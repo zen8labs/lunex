@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Download, FileText, FileJson } from 'lucide-react';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
+import * as opener from '@tauri-apps/plugin-opener';
 import { Button } from '@/ui/atoms/button/button';
 import {
   DropdownMenu,
@@ -17,6 +20,53 @@ interface ChatHeaderProps {
 export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
   const { t } = useTranslation('chat');
 
+  const exportFile = async (
+    content: string,
+    filename: string,
+    extension: string,
+    mimeType: string
+  ) => {
+    // Check if running in Tauri environment
+    const isTauri = '__TAURI_INTERNALS__' in window;
+
+    if (isTauri) {
+      try {
+        const filePath = await save({
+          defaultPath: filename,
+          filters: [
+            {
+              name: extension.toUpperCase(),
+              extensions: [extension],
+            },
+          ],
+        });
+
+        if (filePath) {
+          await writeTextFile(filePath, content);
+          // @ts-ignore
+          await opener.open(filePath);
+        }
+        return;
+      } catch (error) {
+        console.error(
+          'Tauri export failed, falling back to browser download',
+          error
+        );
+      }
+    }
+
+    // Fallback for browser or failed Tauri export
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExportMarkdown = () => {
     const markdown = messages
       .map((m) => {
@@ -26,15 +76,7 @@ export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
       })
       .join('\n');
 
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat-${chatId}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportFile(markdown, `chat-${chatId}.md`, 'md', 'text/markdown');
   };
 
   const handleExportJSON = () => {
@@ -44,15 +86,7 @@ export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
       messages,
     };
     const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat-${chatId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportFile(json, `chat-${chatId}.json`, 'json', 'application/json');
   };
 
   if (messages.length === 0) return null;
