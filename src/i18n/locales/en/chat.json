@@ -42,6 +42,7 @@
   "retry": "Retry",
   "exportChat": "Export Chat",
   "dropFiles": "Drop images here",
+  "toolPermissionTimeout": "Tool permission request timed out.",
   "fileTooLarge": "File too large ({{size}}). Max {{max}}.",
   "fileTypeNotSupported": "File type not supported: {{type}}",
   "messageTooLong": "Message is too long ({{length}}/{{max}} characters)."

@@ -199,6 +199,34 @@ export function ChatMessages({
     [dispatch, selectedChatId]
   );
 
+  // Timeout for pending permissions
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const TIMEOUT_MS = 60000; // 60s
+
+      if (pendingRequests) {
+        Object.values(pendingRequests).forEach((req) => {
+          if (req.timestamp && now - req.timestamp > TIMEOUT_MS) {
+            // Reject all tools in the request
+            req.toolCalls.forEach((tc) => {
+              handlePermissionRespond(req.messageId, tc.id, tc.name, false);
+            });
+
+            dispatch(
+              showError(
+                t('toolPermissionTimeout', { ns: 'chat' }) ||
+                  'Tool permission request timed out'
+              )
+            );
+          }
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pendingRequests, handlePermissionRespond, dispatch, t]);
+
   const handleEdit = useCallback(
     (messageId: string) => {
       const message = messages.find((m) => m.id === messageId);

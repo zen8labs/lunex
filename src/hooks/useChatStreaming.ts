@@ -346,6 +346,7 @@ export function useChatStreaming() {
               chatId: payload.chat_id,
               messageId: payload.message_id,
               toolCalls: payload.tool_calls,
+              timestamp: Date.now(),
             })
           );
         }

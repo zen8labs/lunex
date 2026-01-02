@@ -10,6 +10,7 @@ export interface PermissionRequest {
   chatId: string;
   messageId: string;
   toolCalls: PendingToolCall[];
+  timestamp: number;
 }
 
 interface ToolPermissionState {
