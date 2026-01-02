@@ -423,15 +423,15 @@ export function ChatInput({
             <div className="mx-auto max-w-3xl px-4 pb-2">
               <div
                 className={`rounded-lg px-3 py-1.5 text-xs border flex items-center justify-between ${
-                  timeLeft! <= 10
+                  timeLeft <= 10
                     ? 'bg-red-500/10 dark:bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/30'
-                    : timeLeft! <= 30
+                    : timeLeft <= 30
                       ? 'bg-orange-500/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30'
                       : 'bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30'
                 }`}
               >
                 <span className="font-medium">
-                  ⏱️ {t('streamingTimeout')} {timeLeft!}s
+                  ⏱️ {t('streamingTimeout')} {timeLeft}s
                 </span>
               </div>
             </div>

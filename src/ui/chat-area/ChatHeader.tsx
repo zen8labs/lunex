@@ -43,8 +43,7 @@ export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
 
         if (filePath) {
           await writeTextFile(filePath, content);
-          // @ts-ignore
-          await opener.open(filePath);
+          await opener.openPath(filePath);
         }
         return;
       } catch (error) {

@@ -23,7 +23,3 @@ dist-ssr
 *.sln
 *.sw?
 python-runtime
-
-
-# Local issues tracking
-.issues/

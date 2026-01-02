@@ -81,7 +81,7 @@ function DialogOverlay({
         !isTop && 'pointer-events-none',
         className
       )}
-      {...(props as any)}
+      {...props}
     />
   );
 }
@@ -181,7 +181,7 @@ function DialogContent({
         onEscapeKeyDown={handleEscapeKeyDown}
         onPointerDownOutside={handlePointerDownOutside}
         onInteractOutside={handleInteractOutside}
-        {...(props as any)}
+        {...props}
       >
         {children}
         {showCloseButton && (
@@ -260,7 +260,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn('text-lg leading-none font-semibold', className)}
-      {...(props as any)}
+      {...props}
     >
       {children}
     </DialogPrimitive.Title>
@@ -279,7 +279,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn('text-muted-foreground text-sm', className)}
-      {...(props as any)}
+      {...props}
     >
       {children}
     </DialogPrimitive.Description>
