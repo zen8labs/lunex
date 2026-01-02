@@ -74,7 +74,6 @@ export function ChatInput({
     input,
     selectedModel,
     attachedFiles,
-    isLoading,
     handleInputChange,
     handleModelChange,
     handleFileUpload,
@@ -123,10 +122,7 @@ export function ChatInput({
   })();
 
   // Use messages hook for streaming state
-  const { streamingMessageId, handleStopStreaming } =
-    useMessages(selectedChatId);
-
-  const isStreaming = !!streamingMessageId;
+  const { handleStopStreaming, isStreaming } = useMessages(selectedChatId);
 
   // Insert prompt content into input, replacing the slash command
   const insertPromptContent = (content: string) => {
@@ -355,7 +351,7 @@ export function ChatInput({
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={t('enterMessage')}
-                disabled={disabled || isLoading}
+                disabled={disabled}
                 className="w-full min-h-[40px] max-h-[200px] resize-none leading-relaxed text-base py-0 px-2 border-0 rounded-lg outline-none flex content-center ring-0 shadow-none focus:ring-0 focus:shadow-none"
                 rows={1}
               />
@@ -515,8 +511,7 @@ export function ChatInput({
                   disabled={
                     !selectedLLMConnectionId ||
                     availableModels.length === 0 ||
-                    disabled ||
-                    isLoading
+                    disabled
                   }
                 >
                   <SelectTrigger className="h-7 w-auto min-w-[120px] text-sm border-none bg-background hover:bg-muted/50 shadow-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
@@ -547,9 +542,7 @@ export function ChatInput({
                 {/* Send/Stop Button */}
                 <Button
                   onClick={isStreaming ? handleStopStreaming : onSend}
-                  disabled={
-                    isStreaming ? false : !input.trim() || disabled || isLoading
-                  }
+                  disabled={isStreaming ? false : !input.trim() || disabled}
                   size="icon"
                   variant={isStreaming ? 'destructive' : 'ghost'}
                   className={cn(

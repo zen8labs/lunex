@@ -32,7 +32,6 @@ export function ChatArea() {
   const attachedFiles = useAppSelector(
     (state) => state.chatInput.attachedFiles
   );
-  const isLoading = useAppSelector((state) => state.chatInput.isLoading);
 
   const llmConnections = useAppSelector(
     (state) => state.llmConnections.llmConnections
@@ -50,7 +49,7 @@ export function ChatArea() {
   } = useMessages(selectedChatId);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading || !selectedWorkspace || !selectedChatId)
+    if (!input.trim() || isStreaming || !selectedWorkspace || !selectedChatId)
       return;
 
     const workspaceSetting = workspaceSettings[selectedWorkspace.id];
@@ -125,7 +124,7 @@ export function ChatArea() {
             selectedChatId={selectedChatId}
             selectedLLMConnectionId={selectedLLMConnectionId}
             onSend={handleSend}
-            disabled={isLoading}
+            disabled={isStreaming}
             timeLeft={timeLeft}
             streamingError={selectedChatId ? streamingError : undefined}
             onRetryStreaming={handleRetryStreaming}
@@ -151,7 +150,7 @@ export function ChatArea() {
         selectedChatId={selectedChatId}
         selectedLLMConnectionId={selectedLLMConnectionId}
         onSend={handleSend}
-        disabled={isLoading}
+        disabled={isStreaming}
         dropdownDirection="up"
         timeLeft={timeLeft}
         streamingError={selectedChatId ? streamingError : undefined}
