@@ -11,6 +11,8 @@ import {
   setStreamingByChatId,
   clearStreamingMessageId,
   fetchMessages,
+  setStreamingStartTime,
+  clearStreamingStartTime,
 } from '@/store/slices/messages';
 import type { TokenUsage } from '@/store/types';
 import { addPermissionRequest } from '@/store/slices/toolPermissionSlice';
@@ -140,6 +142,14 @@ export function useChatStreaming() {
           })
         );
         dispatch(setStreamingMessageId(payload.assistant_message_id));
+
+        // Set streaming start time for timeout tracking
+        dispatch(
+          setStreamingStartTime({
+            chatId: payload.chat_id,
+            timestamp: Date.now(),
+          })
+        );
       }
     );
 
@@ -208,6 +218,9 @@ export function useChatStreaming() {
           })
         );
         dispatch(clearStreamingMessageId());
+
+        // Clear streaming start time
+        dispatch(clearStreamingStartTime(payload.chat_id));
       }
     );
 
@@ -232,6 +245,9 @@ export function useChatStreaming() {
           })
         );
         dispatch(clearStreamingMessageId());
+
+        // Clear streaming start time
+        dispatch(clearStreamingStartTime(payload.chat_id));
       }
     );
 

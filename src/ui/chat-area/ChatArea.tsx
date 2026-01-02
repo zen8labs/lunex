@@ -39,8 +39,15 @@ export function ChatArea() {
   );
 
   // Use messages hook
-  const { messages, pausedStreaming, isStreaming, streamingMessageId } =
-    useMessages(selectedChatId);
+  const {
+    messages,
+    pausedStreaming,
+    isStreaming,
+    streamingMessageId,
+    streamingError,
+    timeLeft,
+    handleRetryStreaming,
+  } = useMessages(selectedChatId);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading || !selectedWorkspace || !selectedChatId)
@@ -119,6 +126,9 @@ export function ChatArea() {
             selectedLLMConnectionId={selectedLLMConnectionId}
             onSend={handleSend}
             disabled={isLoading}
+            timeLeft={timeLeft}
+            streamingError={selectedChatId ? streamingError : undefined}
+            onRetryStreaming={handleRetryStreaming}
           />
         </div>
       </div>
@@ -143,6 +153,9 @@ export function ChatArea() {
         onSend={handleSend}
         disabled={isLoading}
         dropdownDirection="up"
+        timeLeft={timeLeft}
+        streamingError={selectedChatId ? streamingError : undefined}
+        onRetryStreaming={handleRetryStreaming}
       />
     </>
   );

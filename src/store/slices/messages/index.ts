@@ -69,6 +69,10 @@ export const {
   clearStreamingByChatId,
   pauseStreaming,
   resumeStreaming,
+  setStreamingError,
+  clearStreamingError,
+  setStreamingStartTime,
+  clearStreamingStartTime,
 } = messagesSlice.actions;
 
 // Export reducer
