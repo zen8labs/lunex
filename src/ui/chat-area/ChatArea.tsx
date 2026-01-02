@@ -126,6 +126,9 @@ export function ChatArea() {
             selectedLLMConnectionId={selectedLLMConnectionId}
             onSend={handleSend}
             disabled={isLoading}
+            timeLeft={timeLeft}
+            streamingError={selectedChatId ? streamingError : undefined}
+            onRetryStreaming={handleRetryStreaming}
           />
         </div>
       </div>
@@ -140,9 +143,6 @@ export function ChatArea() {
         messages={messages}
         isLoading={isStreaming && !pausedStreaming[selectedChatId || '']}
         streamingMessageId={streamingMessageId}
-        streamingError={selectedChatId ? streamingError : undefined}
-        timeLeft={timeLeft}
-        onRetryStreaming={handleRetryStreaming}
       />
 
       {/* Input Area */}
@@ -153,6 +153,9 @@ export function ChatArea() {
         onSend={handleSend}
         disabled={isLoading}
         dropdownDirection="up"
+        timeLeft={timeLeft}
+        streamingError={selectedChatId ? streamingError : undefined}
+        onRetryStreaming={handleRetryStreaming}
       />
     </>
   );
