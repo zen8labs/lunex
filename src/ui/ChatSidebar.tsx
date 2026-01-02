@@ -6,9 +6,19 @@ import {
   Pencil,
   Loader2,
   Settings,
+  Download,
+  FileText,
+  FileJson,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { Button } from '@/ui/atoms/button/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/atoms/dropdown-menu';
 import { Input } from '@/ui/atoms/input';
 import { Label } from '@/ui/atoms/label';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
@@ -24,9 +34,10 @@ import {
 } from '@/ui/atoms/dialog/component';
 import { ContextMenu } from '@/ui/atoms/context-menu';
 import { cn } from '@/lib/utils';
+import type { Message } from '@/store/types';
 import { useChats } from '@/hooks/useChats';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
-
+import { useExportChat } from '@/hooks/useExportChat';
 import { useAppDispatch } from '@/store/hooks';
 import { setWorkspaceSettingsOpen } from '@/store/slices/uiSlice';
 
@@ -52,6 +63,7 @@ export function ChatSidebar() {
     handleDeleteChat,
     handleRenameChat,
   } = useChats(selectedWorkspaceId);
+  const { handleExportMarkdown, handleExportJSON } = useExportChat();
   const { t } = useTranslation(['common', 'chat', 'settings']);
   const dispatch = useAppDispatch();
   const [contextMenu, setContextMenu] = useState<{
@@ -117,6 +129,32 @@ export function ChatSidebar() {
     }
   };
 
+  const handleExport = async (
+    e: React.MouseEvent,
+    chatId: string,
+    format: 'md' | 'json'
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const messages = await invokeCommand<Message[]>(
+        TauriCommands.GET_MESSAGES,
+        {
+          chatId,
+        }
+      );
+
+      if (format === 'md') {
+        handleExportMarkdown(chatId, messages);
+      } else {
+        handleExportJSON(chatId, messages);
+      }
+    } catch (error) {
+      console.error('Failed to export chat from sidebar:', error);
+    }
+  };
+
   return (
     <div className="flex h-full w-64 flex-col border-r border-border bg-sidebar select-none">
       {/* New Chat Button */}
@@ -176,6 +214,45 @@ export function ChatSidebar() {
                         />
                       )}
                     </div>
+                  </div>
+
+                  {/* Export Button - Visible on hover */}
+                  <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover:opacity-100">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7 p-0 hover:bg-black/10 dark:hover:bg-white/10"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <Download className="size-4 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <DropdownMenuItem
+                          onClick={(e) => handleExport(e, chat.id, 'md')}
+                        >
+                          <FileText className="mr-2 size-4" />
+                          Markdown (.md)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => handleExport(e, chat.id, 'json')}
+                        >
+                          <FileJson className="mr-2 size-4" />
+                          JSON (.json)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}

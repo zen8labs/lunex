@@ -1,25 +1,9 @@
-import { useTranslation } from 'react-i18next';
-import { Download, FileText, FileJson } from 'lucide-react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import * as opener from '@tauri-apps/plugin-opener';
-import { Button } from '@/ui/atoms/button/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/ui/atoms/dropdown-menu';
 import type { Message } from '@/store/types';
 
-interface ChatHeaderProps {
-  chatId: string;
-  messages: Message[];
-}
-
-export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
-  const { t } = useTranslation('chat');
-
+export function useExportChat() {
   const exportFile = async (
     content: string,
     filename: string,
@@ -66,7 +50,7 @@ export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
     URL.revokeObjectURL(url);
   };
 
-  const handleExportMarkdown = () => {
+  const handleExportMarkdown = (chatId: string, messages: Message[]) => {
     const markdown = messages
       .map((m) => {
         const role = m.role === 'user' ? '**You**' : '**Assistant**';
@@ -78,7 +62,7 @@ export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
     exportFile(markdown, `chat-${chatId}.md`, 'md', 'text/markdown');
   };
 
-  const handleExportJSON = () => {
+  const handleExportJSON = (chatId: string, messages: Message[]) => {
     const data = {
       chatId,
       exportedAt: new Date().toISOString(),
@@ -88,28 +72,8 @@ export function ChatHeader({ chatId, messages }: ChatHeaderProps) {
     exportFile(json, `chat-${chatId}.json`, 'json', 'application/json');
   };
 
-  if (messages.length === 0) return null;
-
-  return (
-    <div className="flex h-12 shrink-0 items-center justify-end border-b border-border bg-background px-4">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Download className="h-4 w-4" />
-            {t('exportChat')}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleExportMarkdown}>
-            <FileText className="mr-2 h-4 w-4" />
-            Markdown (.md)
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleExportJSON}>
-            <FileJson className="mr-2 h-4 w-4" />
-            JSON (.json)
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  return {
+    handleExportMarkdown,
+    handleExportJSON,
+  };
 }
