@@ -36,5 +36,8 @@
   "totalTokens": "Total tokens",
   "visionNotSupported": "Model này không hỗ trợ tải ảnh",
   "activeTools": "Công cụ",
-  "noActiveTools": "Không có công cụ"
+  "noActiveTools": "Không có công cụ",
+  "streamingTimeout": "Hết thời gian chờ sau",
+  "streamingTimeoutError": "Streaming đã hết thời gian chờ. Vui lòng thử lại.",
+  "retry": "Thử lại"
 }

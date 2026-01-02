@@ -39,8 +39,15 @@ export function ChatArea() {
   );
 
   // Use messages hook
-  const { messages, pausedStreaming, isStreaming, streamingMessageId } =
-    useMessages(selectedChatId);
+  const {
+    messages,
+    pausedStreaming,
+    isStreaming,
+    streamingMessageId,
+    streamingError,
+    timeLeft,
+    handleRetryStreaming,
+  } = useMessages(selectedChatId);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading || !selectedWorkspace || !selectedChatId)
@@ -133,6 +140,9 @@ export function ChatArea() {
         messages={messages}
         isLoading={isStreaming && !pausedStreaming[selectedChatId || '']}
         streamingMessageId={streamingMessageId}
+        streamingError={selectedChatId ? streamingError : undefined}
+        timeLeft={timeLeft}
+        onRetryStreaming={handleRetryStreaming}
       />
 
       {/* Input Area */}

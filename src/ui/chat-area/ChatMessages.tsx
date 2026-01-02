@@ -14,16 +14,24 @@ import { ThinkingItem } from './thinking-item';
 import { MessageItem } from './message-item';
 import { throttle } from '@/lib/utils';
 
+import { StreamingError } from '@/store/slices/messages/state';
+
 interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
   streamingMessageId: string | null;
+  streamingError?: StreamingError;
+  timeLeft: number | null;
+  onRetryStreaming: () => void;
 }
 
 export function ChatMessages({
   messages,
   isLoading,
   streamingMessageId,
+  streamingError,
+  timeLeft,
+  onRetryStreaming,
 }: ChatMessagesProps) {
   const { t } = useTranslation('chat');
   const { userMode } = useAppSettings();
@@ -489,6 +497,32 @@ export function ChatMessages({
             </div>
           );
         })}
+
+        {/* Streaming timeout countdown */}
+        {isLoading && timeLeft !== null && timeLeft > 0 && timeLeft <= 10 && (
+          <div className="mb-6 flex justify-center w-full">
+            <div className="rounded-2xl bg-orange-500/10 dark:bg-orange-500/20 px-4 py-2 text-sm text-orange-700 dark:text-orange-300 border border-orange-500/30">
+              ⏱️ {t('streamingTimeout')} {timeLeft}s
+            </div>
+          </div>
+        )}
+
+        {/* Streaming error message */}
+        {streamingError && (
+          <div className="mb-6 flex justify-center w-full">
+            <div className="rounded-2xl bg-destructive/10 px-4 py-3 border border-destructive/30 flex flex-col gap-2">
+              <div className="text-sm text-destructive font-medium">
+                ❌ {t('streamingTimeoutError')}
+              </div>
+              <button
+                onClick={onRetryStreaming}
+                className="px-3 py-1 text-sm bg-destructive/20 hover:bg-destructive/30 rounded-lg transition-colors"
+              >
+                🔄 {t('retry')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {isLoading && (
           <div className="mb-6 flex justify-start w-full">

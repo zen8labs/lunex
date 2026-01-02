@@ -36,5 +36,8 @@
   "totalTokens": "Total tokens",
   "visionNotSupported": "Image upload not supported for this model",
   "activeTools": "Active tools",
-  "noActiveTools": "No active tools"
+  "noActiveTools": "No active tools",
+  "streamingTimeout": "Timeout in",
+  "streamingTimeoutError": "Streaming timeout. Please try again.",
+  "retry": "Retry"
 }
