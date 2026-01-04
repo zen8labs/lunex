@@ -27,7 +27,6 @@ import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -39,7 +38,7 @@ import { useChats } from '@/hooks/useChats';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useExportChat } from '@/hooks/useExportChat';
 import { useAppDispatch } from '@/store/hooks';
-import { setWorkspaceSettingsOpen } from '@/store/slices/uiSlice';
+import { navigateToSettings, setSettingsSection } from '@/store/slices/uiSlice';
 
 export interface ChatItem {
   id: string;
@@ -263,7 +262,10 @@ export function ChatSidebar() {
 
       <div className="p-3 mt-auto border-t border-border">
         <Button
-          onClick={() => dispatch(setWorkspaceSettingsOpen(true))}
+          onClick={() => {
+            dispatch(navigateToSettings());
+            dispatch(setSettingsSection('workspace'));
+          }}
           className="w-full justify-start gap-2"
           variant="ghost"
         >
@@ -311,7 +313,9 @@ export function ChatSidebar() {
           >
             <DialogHeader>
               <DialogTitle>{t('common:renameConversation')}</DialogTitle>
-              <DialogDescription>{t('common:enterNewName')}</DialogDescription>
+              <p className="text-sm text-muted-foreground">
+                {t('common:enterNewName')}
+              </p>
             </DialogHeader>
             <DialogBody>
               <div className="space-y-2">
@@ -356,7 +360,7 @@ export function ChatSidebar() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('settings:deleteChat')}</DialogTitle>
-            <DialogDescription>
+            <p className="text-sm text-muted-foreground">
               {t('settings:confirmDeleteChat')}
               {chats.find((c) => c.id === chatToDelete)?.title && (
                 <span className="font-semibold">
@@ -365,7 +369,7 @@ export function ChatSidebar() {
                 </span>
               )}
               ?
-            </DialogDescription>
+            </p>
           </DialogHeader>
           <DialogFooter>
             <Button

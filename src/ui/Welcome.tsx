@@ -12,7 +12,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
@@ -20,9 +19,8 @@ import { Button } from '@/ui/atoms/button/button';
 import { useAppDispatch } from '@/store/hooks';
 import {
   setWelcomeOpen,
-  setSettingsOpen,
+  navigateToSettings,
   setSettingsSection,
-  setWorkspaceSettingsOpen,
 } from '@/store/slices/uiSlice';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 
@@ -110,16 +108,18 @@ export function Welcome({ open, onOpenChange }: WelcomeProps) {
     onOpenChange(false);
 
     // Navigate to the appropriate screen
-    if (navigateTo === 'workspace') {
-      dispatch(setWorkspaceSettingsOpen(true));
-    } else {
-      dispatch(
-        setSettingsSection(
-          navigateTo as 'general' | 'llm' | 'mcp' | 'prompts' | 'about'
-        )
-      );
-      dispatch(setSettingsOpen(true));
-    }
+    dispatch(
+      setSettingsSection(
+        navigateTo as
+          | 'general'
+          | 'workspace'
+          | 'llm'
+          | 'mcp'
+          | 'prompts'
+          | 'about'
+      )
+    );
+    dispatch(navigateToSettings());
   };
 
   return (
@@ -135,9 +135,9 @@ export function Welcome({ open, onOpenChange }: WelcomeProps) {
             </div>
           </div>
           <DialogTitle className="text-2xl">{t('welcomeTitle')}</DialogTitle>
-          <DialogDescription className="text-base mt-2">
+          <p className="text-base mt-2 text-muted-foreground">
             {t('welcomeDescription')}
-          </DialogDescription>
+          </p>
         </DialogHeader>
 
         <div className="mt-6">

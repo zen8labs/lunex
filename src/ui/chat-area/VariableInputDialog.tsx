@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -61,10 +60,10 @@ export function VariableInputDialog({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>
+            <p className="text-sm text-muted-foreground mt-2">
               {t('enterVariableValues', { ns: 'chat' }) ||
                 'Enter values for the following variables:'}
-            </DialogDescription>
+            </p>
           </DialogHeader>
 
           <DialogBody>

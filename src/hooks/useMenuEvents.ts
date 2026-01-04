@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { listenToEvent, TauriEvents } from '@/lib/tauri';
 import { useAppDispatch } from '@/store/hooks';
 import {
-  setSettingsOpen,
+  navigateToSettings,
   setAboutOpen,
   setKeyboardShortcutsOpen,
   toggleSidebar,
@@ -77,7 +77,7 @@ export function useMenuEvents() {
       // Settings
       const unlisten4 = await listenToEvent(TauriEvents.MENU_SETTINGS, () => {
         if (isMounted) {
-          dispatchRef.current(setSettingsOpen(true));
+          dispatchRef.current(navigateToSettings());
         }
       });
       unlisteners.push(unlisten4);

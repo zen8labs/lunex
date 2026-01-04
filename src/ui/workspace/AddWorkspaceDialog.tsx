@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -49,9 +48,9 @@ export function AddWorkspaceDialog({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <DialogHeader>
             <DialogTitle>{t('addNewWorkspace')}</DialogTitle>
-            <DialogDescription>
+            <p className="text-sm text-muted-foreground">
               {t('addNewWorkspaceDescription')}
-            </DialogDescription>
+            </p>
           </DialogHeader>
           <DialogBody>
             <div className="space-y-2">

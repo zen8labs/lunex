@@ -23,7 +23,6 @@ import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -363,7 +362,9 @@ function LLMConnectionDialog({
             <DialogTitle>
               {connection ? t('editConnection') : t('addNewConnection')}
             </DialogTitle>
-            <DialogDescription>{t('configureConnection')}</DialogDescription>
+            <p className="text-sm text-muted-foreground">
+              {t('configureConnection')}
+            </p>
           </DialogHeader>
           <DialogBody>
             <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
@@ -537,13 +538,13 @@ function DeleteConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('deleteConnection')}</DialogTitle>
-          <DialogDescription>
+          <p className="text-sm text-muted-foreground">
             {t('confirmDeleteConnection')}
             {connectionName && (
               <span className="font-semibold">{connectionName}</span>
             )}
             ?
-          </DialogDescription>
+          </p>
         </DialogHeader>
         <DialogFooter>
           <Button

@@ -29,9 +29,7 @@ import { Separator } from '@/ui/atoms/separator';
 import { Tooltip } from '@/ui/atoms/tooltip';
 import {
   Dialog,
-  DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -248,16 +246,16 @@ export function WorkspaceSettingsForm({
         onSubmit={handleSubmit}
         className="flex flex-col flex-1 min-h-0 overflow-hidden"
       >
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 text-center sm:text-left shrink-0 px-6 pt-6 pb-4 border-b border-border">
+          <h2 className="text-lg leading-none font-semibold flex items-center gap-2">
             <SettingsIcon className="size-5" />
             {t('workspaceSettings')}
-          </DialogTitle>
-          <DialogDescription>
+          </h2>
+          <p className="text-sm text-muted-foreground ml-7">
             {t('configureWorkspace', { name: workspace.name })}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogBody>
+          </p>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
           <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
             <div className="space-y-6 pr-4">
               {/* Basic Settings Section */}
@@ -932,8 +930,8 @@ export function WorkspaceSettingsForm({
               </div>
             </div>
           </ScrollArea>
-        </DialogBody>
-        <DialogFooter className="shrink-0 justify-between gap-2" showBorder>
+        </div>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row shrink-0 px-6 pt-4 pb-6 border-t border-border justify-between">
           <Button
             type="button"
             variant="destructive"
@@ -956,7 +954,7 @@ export function WorkspaceSettingsForm({
             {isSaving && <Loader2 className="size-4 animate-spin mr-2" />}
             {t('save', { ns: 'common' })}
           </Button>
-        </DialogFooter>
+        </div>
       </form>
 
       {/* Variable Input Dialog */}
@@ -991,9 +989,9 @@ export function WorkspaceSettingsForm({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('clearAllChats', { ns: 'settings' })}</DialogTitle>
-            <DialogDescription>
+            <p className="text-sm text-muted-foreground">
               {t('confirmClearAllChats', { ns: 'settings' })}
-            </DialogDescription>
+            </p>
           </DialogHeader>
           <DialogFooter>
             <Button
@@ -1028,9 +1026,9 @@ export function WorkspaceSettingsForm({
             <DialogTitle>
               {t('deleteWorkspace', { ns: 'settings' })}
             </DialogTitle>
-            <DialogDescription>
+            <p className="text-sm text-muted-foreground">
               {t('confirmDeleteWorkspace', { ns: 'settings' })}
-            </DialogDescription>
+            </p>
           </DialogHeader>
           <DialogFooter>
             <Button

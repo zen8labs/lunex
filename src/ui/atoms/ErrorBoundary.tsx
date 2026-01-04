@@ -38,8 +38,8 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
           <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
           <p className="text-muted-foreground max-w-md mb-8">
-            An unexpected error occurred. We've logged this issue and will fix
-            it soon.
+            An unexpected error occurred. We&apos;ve logged this issue and will
+            fix it soon.
           </p>
 
           {this.state.error && (

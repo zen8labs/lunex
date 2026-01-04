@@ -7,23 +7,21 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
 import { WorkspaceSelector } from '@/ui/workspace/WorkspaceSelector';
-import { ChatSidebar } from '@/ui/ChatSidebar';
-import { ChatArea } from '@/ui/chat-area/ChatArea';
-import { Settings } from '@/ui/settings/Settings';
-import { WorkspaceSettingsDialog } from '@/ui/workspace/WorkspaceSettings';
 import { About } from '@/ui/settings/About';
 import { ChatSearchDialog } from '@/ui/chat-search/ChatSearchDialog';
 import { KeyboardShortcutsDialog } from '@/ui/KeyboardShortcutsDialog';
 import { TitleBar } from '@/ui/TitleBar';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { cn } from '@/lib/utils';
 import { useDialogClick } from '@/hooks/useDialogClick';
 import {
   toggleSidebar,
-  setSettingsOpen,
-  setWorkspaceSettingsOpen,
   setAboutOpen,
+  navigateToSettings,
 } from '@/store/slices/uiSlice';
+
+// Pages
+import { ChatPage } from '@/pages/chat';
+import { SettingsPage } from '@/pages/settings';
 
 export function AppLayout() {
   const { t } = useTranslation(['common', 'settings']);
@@ -32,43 +30,52 @@ export function AppLayout() {
   const isSidebarCollapsed = useAppSelector(
     (state) => state.ui.isSidebarCollapsed
   );
-  const settingsOpen = useAppSelector((state) => state.ui.settingsOpen);
-  const settingsSection = useAppSelector((state) => state.ui.settingsSection);
-  const workspaceSettingsOpen = useAppSelector(
-    (state) => state.ui.workspaceSettingsOpen
-  );
+  const activePage = useAppSelector((state) => state.ui.activePage);
   const aboutOpen = useAppSelector((state) => state.ui.aboutOpen);
 
-  const handleSettingsClick = useDialogClick(() =>
-    dispatch(setSettingsOpen(true))
-  );
+  const handleSettingsClick = () => {
+    dispatch(navigateToSettings());
+  };
+
   const handleAboutClick = useDialogClick(() => dispatch(setAboutOpen(true)));
 
   return (
     <div className="flex h-screen flex-col bg-background select-none">
-      {/* Custom Title Bar with integrated app content */}
+      {/* Custom Title Bar with integrated app content - Only show complex title bar on Chat Page? 
+          Actually, we want TitleBar everywhere. 
+          But the content of TitleBar (Sidebar toggle, Workspace Selector) might be specific to ChatPage.
+          Let's adjust TitleBar usage.
+      */}
       <TitleBar
         leftContent={
-          <>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => dispatch(toggleSidebar())}
-              aria-label={
-                isSidebarCollapsed
-                  ? t('expandSidebar', { ns: 'common' })
-                  : t('collapseSidebar', { ns: 'common' })
-              }
-              className="h-7 w-7"
-            >
-              {isSidebarCollapsed ? (
-                <PanelLeftOpen className="size-4" />
-              ) : (
-                <PanelLeftClose className="size-4" />
-              )}
-            </Button>
-            <WorkspaceSelector />
-          </>
+          activePage === 'chat' ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => dispatch(toggleSidebar())}
+                aria-label={
+                  isSidebarCollapsed
+                    ? t('expandSidebar', { ns: 'common' })
+                    : t('collapseSidebar', { ns: 'common' })
+                }
+                className="h-7 w-7"
+              >
+                {isSidebarCollapsed ? (
+                  <PanelLeftOpen className="size-4" />
+                ) : (
+                  <PanelLeftClose className="size-4" />
+                )}
+              </Button>
+              <WorkspaceSelector />
+            </>
+          ) : (
+            // Keep Workspace Selector in Settings? Or just the Back button (handled in SettingsPage)
+            // Maybe empty left content for Settings Page, as it has its own header/sidebar
+            <div className="flex items-center gap-2">
+              {/* Optional: Breadcrumbs or Title */}
+            </div>
+          )
         }
         rightContent={
           <>
@@ -86,7 +93,11 @@ export function AppLayout() {
               size="icon"
               onClick={handleSettingsClick}
               aria-label={t('settings', { ns: 'common' })}
-              className="h-7 w-7"
+              className={
+                activePage === 'settings'
+                  ? 'bg-accent text-accent-foreground h-7 w-7'
+                  : 'h-7 w-7'
+              }
             >
               <SettingsIcon className="size-4" />
             </Button>
@@ -95,44 +106,8 @@ export function AppLayout() {
       />
 
       {/* Main Content Area */}
-      <div className="relative flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <div
-          className={cn(
-            'relative shrink-0 overflow-hidden transition-all duration-300 ease-in-out',
-            isSidebarCollapsed ? 'w-0' : 'w-64'
-          )}
-        >
-          <div
-            className={cn(
-              'h-full transition-opacity duration-300 ease-in-out',
-              isSidebarCollapsed
-                ? 'opacity-0 pointer-events-none'
-                : 'opacity-100'
-            )}
-          >
-            <ChatSidebar />
-          </div>
-        </div>
-
-        {/* Chat Area */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
-          <ChatArea />
-        </div>
-      </div>
-
-      {/* Settings Dialog */}
-      <Settings
-        open={settingsOpen}
-        onOpenChange={(open) => dispatch(setSettingsOpen(open))}
-        initialSection={settingsSection}
-      />
-
-      {/* Workspace Settings Dialog */}
-      <WorkspaceSettingsDialog
-        open={workspaceSettingsOpen}
-        onOpenChange={(open) => dispatch(setWorkspaceSettingsOpen(open))}
-      />
+      {activePage === 'chat' && <ChatPage />}
+      {activePage === 'settings' && <SettingsPage />}
 
       {/* About Dialog */}
       <About

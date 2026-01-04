@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -233,7 +232,9 @@ function PromptDialog({
             <DialogTitle>
               {prompt ? t('editPrompt') : t('addNewPrompt')}
             </DialogTitle>
-            <DialogDescription>{t('configurePrompt')}</DialogDescription>
+            <p className="text-sm text-muted-foreground">
+              {t('configurePrompt')}
+            </p>
           </DialogHeader>
           <DialogBody>
             <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
@@ -315,11 +316,11 @@ function DeleteConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('deletePrompt')}</DialogTitle>
-          <DialogDescription>
+          <p className="text-sm text-muted-foreground">
             {t('confirmDeletePrompt')}
             {promptName && <span className="font-semibold"> {promptName}</span>}
             ?
-          </DialogDescription>
+          </p>
         </DialogHeader>
         <DialogFooter>
           <Button

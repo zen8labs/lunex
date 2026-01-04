@@ -1,14 +1,23 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 
+export type Page = 'chat' | 'settings';
+
 interface UIState {
+  activePage: Page;
   isSidebarCollapsed: boolean;
-  settingsOpen: boolean;
-  workspaceSettingsOpen: boolean;
   welcomeOpen: boolean;
   aboutOpen: boolean;
   keyboardShortcutsOpen: boolean;
-  settingsSection: 'general' | 'llm' | 'mcp' | 'prompts' | 'about';
+  settingsSection:
+    | 'general'
+    | 'workspace'
+    | 'llm'
+    | 'mcp'
+    | 'prompts'
+    | 'addon'
+    | 'usage'
+    | 'about';
   language: 'vi' | 'en';
   userMode: 'normal' | 'developer';
   theme: 'light' | 'dark' | 'system';
@@ -150,9 +159,8 @@ export const loadLanguage = createAsyncThunk('ui/loadLanguage', async () => {
 });
 
 const initialState: UIState = {
+  activePage: 'chat',
   isSidebarCollapsed: false,
-  settingsOpen: false,
-  workspaceSettingsOpen: false,
   welcomeOpen: false,
   aboutOpen: false,
   keyboardShortcutsOpen: false,
@@ -167,23 +175,32 @@ const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
+    navigateToChat: (state) => {
+      state.activePage = 'chat';
+    },
+    navigateToSettings: (state) => {
+      state.activePage = 'settings';
+    },
     toggleSidebar: (state) => {
       state.isSidebarCollapsed = !state.isSidebarCollapsed;
     },
     setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
       state.isSidebarCollapsed = action.payload;
     },
-    setSettingsOpen: (state, action: PayloadAction<boolean>) => {
-      state.settingsOpen = action.payload;
-    },
     setSettingsSection: (
       state,
-      action: PayloadAction<'general' | 'llm' | 'mcp' | 'prompts' | 'about'>
+      action: PayloadAction<
+        | 'general'
+        | 'workspace'
+        | 'llm'
+        | 'mcp'
+        | 'prompts'
+        | 'addon'
+        | 'usage'
+        | 'about'
+      >
     ) => {
       state.settingsSection = action.payload;
-    },
-    setWorkspaceSettingsOpen: (state, action: PayloadAction<boolean>) => {
-      state.workspaceSettingsOpen = action.payload;
     },
     setWelcomeOpen: (state, action: PayloadAction<boolean>) => {
       state.welcomeOpen = action.payload;
@@ -263,11 +280,11 @@ const uiSlice = createSlice({
 });
 
 export const {
+  navigateToChat,
+  navigateToSettings,
   toggleSidebar,
   setSidebarCollapsed,
-  setSettingsOpen,
   setSettingsSection,
-  setWorkspaceSettingsOpen,
   setWelcomeOpen,
   setAboutOpen,
   setKeyboardShortcutsOpen,

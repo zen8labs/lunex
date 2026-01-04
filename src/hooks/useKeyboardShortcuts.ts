@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setSearchOpen } from '@/store/slices/chatSearchSlice';
 import {
-  setSettingsOpen,
+  navigateToSettings,
+  navigateToChat,
   setKeyboardShortcutsOpen,
   setAboutOpen,
-  setWorkspaceSettingsOpen,
   setWelcomeOpen,
 } from '@/store/slices/uiSlice';
 import { closeCurrentChat } from '@/store/slices/chatsSlice';
@@ -23,10 +23,7 @@ export function useKeyboardShortcuts() {
   const { t } = useTranslation(['common']);
 
   // Get dialog states to determine which one to close on Esc
-  const settingsOpen = useAppSelector((state) => state.ui.settingsOpen);
-  const workspaceSettingsOpen = useAppSelector(
-    (state) => state.ui.workspaceSettingsOpen
-  );
+  const activePage = useAppSelector((state) => state.ui.activePage);
   const aboutOpen = useAppSelector((state) => state.ui.aboutOpen);
   const keyboardShortcutsOpen = useAppSelector(
     (state) => state.ui.keyboardShortcutsOpen
@@ -38,8 +35,7 @@ export function useKeyboardShortcuts() {
   const dispatchRef = useRef(dispatch);
   const selectedWorkspaceIdRef = useRef(selectedWorkspaceId);
   const tRef = useRef(t);
-  const settingsOpenRef = useRef(settingsOpen);
-  const workspaceSettingsOpenRef = useRef(workspaceSettingsOpen);
+  const activePageRef = useRef(activePage);
   const aboutOpenRef = useRef(aboutOpen);
   const keyboardShortcutsOpenRef = useRef(keyboardShortcutsOpen);
   const searchOpenRef = useRef(searchOpen);
@@ -50,8 +46,7 @@ export function useKeyboardShortcuts() {
     dispatchRef.current = dispatch;
     selectedWorkspaceIdRef.current = selectedWorkspaceId;
     tRef.current = t;
-    settingsOpenRef.current = settingsOpen;
-    workspaceSettingsOpenRef.current = workspaceSettingsOpen;
+    activePageRef.current = activePage;
     aboutOpenRef.current = aboutOpen;
     keyboardShortcutsOpenRef.current = keyboardShortcutsOpen;
     searchOpenRef.current = searchOpen;
@@ -60,8 +55,7 @@ export function useKeyboardShortcuts() {
     dispatch,
     selectedWorkspaceId,
     t,
-    settingsOpen,
-    workspaceSettingsOpen,
+    activePage,
     aboutOpen,
     keyboardShortcutsOpen,
     searchOpen,
@@ -105,16 +99,6 @@ export function useKeyboardShortcuts() {
           dispatchRef.current(setSearchOpen(false));
           return;
         }
-        if (workspaceSettingsOpenRef.current) {
-          e.preventDefault();
-          dispatchRef.current(setWorkspaceSettingsOpen(false));
-          return;
-        }
-        if (settingsOpenRef.current) {
-          e.preventDefault();
-          dispatchRef.current(setSettingsOpen(false));
-          return;
-        }
         if (aboutOpenRef.current) {
           e.preventDefault();
           dispatchRef.current(setAboutOpen(false));
@@ -125,6 +109,14 @@ export function useKeyboardShortcuts() {
           // Welcome dialog is handled by its own component
           return;
         }
+
+        // If on Settings page, navigate back to Chat
+        if (activePageRef.current === 'settings') {
+          e.preventDefault();
+          dispatchRef.current(navigateToChat());
+          return;
+        }
+
         return;
       }
 
@@ -171,7 +163,7 @@ export function useKeyboardShortcuts() {
       if (modifierKey && e.key === ',') {
         e.preventDefault();
         e.stopPropagation();
-        dispatchRef.current(setSettingsOpen(true));
+        dispatchRef.current(navigateToSettings());
         return;
       }
 
