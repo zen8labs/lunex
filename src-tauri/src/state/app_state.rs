@@ -24,6 +24,7 @@ pub struct AppState {
     pub workspace_settings_service: Arc<WorkspaceSettingsService>,
     pub llm_connection_service: Arc<LLMConnectionService>,
     pub mcp_connection_service: Arc<MCPConnectionService>,
+    pub usage_service: Arc<UsageService>,
     #[allow(dead_code)]
     pub tool_service: Arc<ToolService>,
     pub app_settings_service: Arc<AppSettingsService>,
@@ -60,6 +61,8 @@ impl AppState {
             Arc::new(SqliteAppSettingsRepository::new(app.clone()));
         let prompt_repo: Arc<dyn PromptRepository> =
             Arc::new(SqlitePromptRepository::new(app.clone()));
+        let usage_repo: Arc<dyn UsageRepository> =
+            Arc::new(SqliteUsageRepository::new(app.clone()));
 
         // Create services
         let workspace_service = Arc::new(WorkspaceService::new(workspace_repo));
@@ -68,6 +71,7 @@ impl AppState {
             Arc::new(WorkspaceSettingsService::new(workspace_settings_repo));
         let llm_connection_service = Arc::new(LLMConnectionService::new(llm_connection_repo));
         let llm_service = Arc::new(LLMService::new());
+        let usage_service = Arc::new(UsageService::new(usage_repo));
         let mcp_connection_service =
             Arc::new(MCPConnectionService::new(mcp_connection_repo.clone()));
         let tool_service = Arc::new(ToolService::new(
@@ -82,6 +86,7 @@ impl AppState {
             workspace_settings_service.clone(),
             llm_connection_service.clone(),
             tool_service.clone(),
+            usage_service.clone(),
         ));
         let app_settings_service = Arc::new(AppSettingsService::new(app_settings_repo));
         let prompt_service = Arc::new(PromptService::new(prompt_repo));
@@ -103,6 +108,7 @@ impl AppState {
             workspace_settings_service,
             llm_connection_service,
             mcp_connection_service,
+            usage_service,
             tool_service,
             app_settings_service,
             prompt_service,

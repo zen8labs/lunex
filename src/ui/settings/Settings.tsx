@@ -6,6 +6,7 @@ import {
   FileText,
   Info,
   Package,
+  BarChart,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,6 +22,7 @@ import { MCPServerConnections } from '@/ui/settings/MCPServerConnections';
 import { AppSettings } from '@/ui/settings/AppSettings';
 import { PromptManagement } from '@/ui/settings/PromptManagement';
 import AddonSettings from '@/ui/settings/AddonSettings';
+import { UsagePage } from '@/ui/settings/usage/UsagePage';
 
 interface SettingsProps {
   open: boolean;
@@ -34,6 +36,7 @@ type SettingsSection =
   | 'mcp'
   | 'prompts'
   | 'addon'
+  | 'usage'
   | 'about';
 
 export function Settings({
@@ -83,6 +86,11 @@ export function Settings({
       icon: <Package className="size-4" />,
     },
     {
+      id: 'usage',
+      label: 'Usage',
+      icon: <BarChart className="size-4" />,
+    },
+    {
       id: 'about',
       label: t('about'),
       icon: <Info className="size-4" />,
@@ -101,6 +109,8 @@ export function Settings({
         return <PromptManagement />;
       case 'addon':
         return <AddonSettings />;
+      case 'usage':
+        return <UsagePage />;
       case 'about':
         return <AboutContent />;
       default:

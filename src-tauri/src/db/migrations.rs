@@ -241,5 +241,37 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
         )?;
     }
 
+    // Create usage_stats table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS usage_stats (
+            id TEXT PRIMARY KEY,
+            workspace_id TEXT NOT NULL,
+            chat_id TEXT NOT NULL,
+            message_id TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            model TEXT NOT NULL,
+            input_tokens INTEGER DEFAULT 0,
+            output_tokens INTEGER DEFAULT 0,
+            total_tokens INTEGER DEFAULT 0,
+            latency_ms INTEGER DEFAULT 0,
+            cost REAL DEFAULT 0.0,
+            timestamp INTEGER NOT NULL,
+            is_stream INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'success',
+            request_type TEXT
+        )",
+        [],
+    )?;
+
+    // Create indexes for usage_stats
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_usage_stats_workspace_id ON usage_stats(workspace_id)",
+        [],
+    )?;
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_usage_stats_timestamp ON usage_stats(timestamp)",
+        [],
+    )?;
+
     Ok(())
 }

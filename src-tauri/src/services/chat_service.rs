@@ -4,7 +4,8 @@ use crate::models::llm_types::*;
 use crate::models::{Chat, Message};
 use crate::repositories::ChatRepository;
 use crate::services::{
-    LLMConnectionService, LLMService, MessageService, ToolService, WorkspaceSettingsService,
+    LLMConnectionService, LLMService, MessageService, ToolService, UsageService,
+    WorkspaceSettingsService,
 };
 use serde_json;
 use std::collections::HashMap;
@@ -18,6 +19,7 @@ pub struct ChatService {
     workspace_settings_service: Arc<WorkspaceSettingsService>,
     llm_connection_service: Arc<LLMConnectionService>,
     tool_service: Arc<ToolService>,
+    usage_service: Arc<UsageService>,
 }
 
 impl ChatService {
@@ -28,6 +30,7 @@ impl ChatService {
         workspace_settings_service: Arc<WorkspaceSettingsService>,
         llm_connection_service: Arc<LLMConnectionService>,
         tool_service: Arc<ToolService>,
+        usage_service: Arc<UsageService>,
     ) -> Self {
         Self {
             repository,
@@ -36,6 +39,7 @@ impl ChatService {
             workspace_settings_service,
             llm_connection_service,
             tool_service,
+            usage_service,
         }
     }
 
@@ -196,6 +200,7 @@ impl ChatService {
         let tool_choice: Option<ToolChoice> = None; // Use "auto" by default
 
         // 11. Create LLM request
+        let model_for_usage = model.clone();
         let llm_request = LLMChatRequest {
             model,
             messages: api_messages,
@@ -205,9 +210,11 @@ impl ChatService {
             tools,
             tool_choice,
             reasoning_effort: reasoning_effort.clone(),
+            stream_options: None,
         };
 
         // 12. Call LLM service
+        let start_time = std::time::Instant::now();
         let llm_response = self
             .llm_service
             .chat(
@@ -219,6 +226,33 @@ impl ChatService {
                 app.clone(),
             )
             .await?;
+        let latency = start_time.elapsed().as_millis() as u64;
+
+        // Record usage
+        let usage_service = self.usage_service.clone();
+        let r_workspace_id = workspace_id.clone();
+        let r_chat_id = chat_id.clone();
+        let r_message_id = assistant_message_id.clone();
+        let r_provider = llm_connection.provider.clone();
+        let r_model = model_for_usage;
+        let r_usage = llm_response.usage.clone();
+        let r_is_stream = stream_enabled;
+
+        tokio::task::spawn_blocking(move || {
+            if let Err(e) = usage_service.record_usage(
+                r_workspace_id,
+                r_chat_id,
+                r_message_id,
+                r_provider,
+                r_model,
+                r_usage,
+                latency,
+                r_is_stream,
+                "success".to_string(),
+            ) {
+                eprintln!("Failed to record usage: {}", e);
+            }
+        });
 
         // 13. Update assistant message with final content
         self.message_service.update(
@@ -425,6 +459,7 @@ impl ChatService {
                 initial_llm_response.take().unwrap()
             } else {
                 // Call LLM
+                let model_for_usage = model.clone();
                 let llm_request = LLMChatRequest {
                     model: model.clone(),
                     messages: current_messages.clone(),
@@ -434,8 +469,10 @@ impl ChatService {
                     tools: tools.clone(),
                     tool_choice: None,
                     reasoning_effort: reasoning_effort.clone(),
+                    stream_options: None,
                 };
 
+                let start_time = std::time::Instant::now();
                 let resp = self
                     .llm_service
                     .chat(
@@ -447,6 +484,33 @@ impl ChatService {
                         app.clone(),
                     )
                     .await?;
+                let latency = start_time.elapsed().as_millis() as u64;
+
+                // Record usage
+                let usage_service = self.usage_service.clone();
+                let r_workspace_id = workspace_id.clone();
+                let r_chat_id = chat_id.clone();
+                let r_message_id = assistant_message_id.clone();
+                let r_provider = llm_connection.provider.clone();
+                let r_model = model_for_usage;
+                let r_usage = resp.usage.clone();
+                let r_is_stream = stream_enabled;
+
+                tokio::task::spawn_blocking(move || {
+                    if let Err(e) = usage_service.record_usage(
+                        r_workspace_id,
+                        r_chat_id,
+                        r_message_id,
+                        r_provider,
+                        r_model,
+                        r_usage,
+                        latency,
+                        r_is_stream,
+                        "success".to_string(),
+                    ) {
+                        eprintln!("Failed to record usage: {}", e);
+                    }
+                });
 
                 // Update assistant message content (only for new calls, initial response already updated message)
                 self.message_service.update(

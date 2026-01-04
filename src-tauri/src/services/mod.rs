@@ -27,5 +27,7 @@ pub use node_runtime::NodeRuntime;
 pub use prompt_service::PromptService;
 pub use python_runtime::PythonRuntime;
 pub use tool_service::ToolService;
+pub mod usage_service;
+pub use usage_service::UsageService;
 pub use workspace_service::WorkspaceService;
 pub use workspace_settings_service::WorkspaceSettingsService;

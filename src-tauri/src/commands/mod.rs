@@ -8,4 +8,5 @@ pub mod node;
 pub mod prompt;
 pub mod python;
 pub mod settings;
+pub mod usage;
 pub mod workspace;

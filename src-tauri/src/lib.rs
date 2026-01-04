@@ -111,6 +111,10 @@ pub fn run() {
             commands::node::get_node_runtimes_status,
             commands::node::install_node_runtime,
             commands::node::uninstall_node_runtime,
+            // Usage commands
+            commands::usage::get_usage_summary,
+            commands::usage::get_usage_chart,
+            commands::usage::get_usage_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
