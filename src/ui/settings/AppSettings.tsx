@@ -36,14 +36,9 @@ export function AppSettings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-1">
-          {t('generalSettings') || t('title')}
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          {t('generalSettingsDescription') || t('configureGeneralSettings')}
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        {t('generalSettingsDescription') || t('configureGeneralSettings')}
+      </p>
 
       <div className="space-y-4">
         <div className="space-y-2">

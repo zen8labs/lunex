@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from '@/ui/atoms/select';
 import { UsageFilter } from '@/models/usage';
-import { BarChart3, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 
 interface UsageHeaderProps {
   filter: UsageFilter;
@@ -23,15 +23,6 @@ export function UsageHeader({
 }: UsageHeaderProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20">
-          <BarChart3 className="h-6 w-6 text-primary" />
-        </div>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Usage Analytics
-        </h1>
-      </div>
-
       <div className="flex flex-wrap gap-3 items-center">
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-card">
           <Clock className="h-4 w-4 text-muted-foreground" />

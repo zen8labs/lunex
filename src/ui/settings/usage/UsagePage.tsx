@@ -55,33 +55,31 @@ export function UsagePage() {
   }, [filter, interval, page]);
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        <UsageHeader
-          filter={filter}
-          onFilterChange={setFilter}
-          interval={interval}
-          onIntervalChange={setInterval}
+    <div className="space-y-8">
+      <UsageHeader
+        filter={filter}
+        onFilterChange={setFilter}
+        interval={interval}
+        onIntervalChange={setInterval}
+      />
+
+      <div
+        className={`space-y-6 transition-opacity duration-300 ${
+          loading ? 'opacity-50' : 'opacity-100'
+        }`}
+      >
+        {summary && <UsageOverview summary={summary} loading={loading} />}
+
+        <UsageChart data={chartData} loading={loading} />
+
+        <UsageLogs
+          logs={logs}
+          page={page}
+          limit={LIMIT}
+          onPageChange={setPage}
+          hasMore={logs.length === LIMIT}
+          loading={loading}
         />
-
-        <div
-          className={`space-y-6 transition-opacity duration-300 ${
-            loading ? 'opacity-50' : 'opacity-100'
-          }`}
-        >
-          {summary && <UsageOverview summary={summary} loading={loading} />}
-
-          <UsageChart data={chartData} loading={loading} />
-
-          <UsageLogs
-            logs={logs}
-            page={page}
-            limit={LIMIT}
-            onPageChange={setPage}
-            hasMore={logs.length === LIMIT}
-            loading={loading}
-          />
-        </div>
       </div>
     </div>
   );
