@@ -17,7 +17,7 @@ import { fetchLLMConnections } from '@/store/slices/llmConnectionsSlice';
 import { fetchMCPConnections } from '@/store/slices/mcpConnectionsSlice';
 import { showError, showSuccess } from '@/store/slices/notificationSlice';
 import { setSelectedModel } from '@/store/slices/chatInputSlice';
-import { clearAllChats } from '@/store/slices/chatsSlice';
+import { clearAllChats, createChat } from '@/store/slices/chatsSlice';
 
 /**
  * Hook to access and manage workspaces
@@ -65,7 +65,13 @@ export function useWorkspaces() {
 
   const handleAddWorkspace = async (name: string) => {
     try {
-      await dispatch(createWorkspace(name)).unwrap();
+      const workspace = await dispatch(createWorkspace(name)).unwrap();
+      await dispatch(
+        createChat({
+          workspaceId: workspace.id,
+          title: t('newConversation', { ns: 'common' }),
+        })
+      ).unwrap();
     } catch (error) {
       console.error('Error creating workspace:', error);
       dispatch(showError(t('cannotCreateWorkspace', { ns: 'settings' })));

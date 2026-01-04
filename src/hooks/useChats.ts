@@ -49,16 +49,7 @@ export function useChats(selectedWorkspaceId: string | null) {
     dispatch(fetchChats(selectedWorkspaceId)).then((result) => {
       if (!isMounted) return;
       if (fetchChats.fulfilled.match(result)) {
-        const chats = result.payload.chats;
-        if (chats.length === 0) {
-          // Create default chat if none exists
-          dispatch(
-            createChat({
-              workspaceId: selectedWorkspaceId,
-              title: t('newConversation', { ns: 'common' }),
-            })
-          );
-        }
+        // Chat fetching completed
       }
     });
 
