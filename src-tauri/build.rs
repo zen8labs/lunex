@@ -4,8 +4,6 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    tauri_build::build();
-
     println!("cargo:rerun-if-changed=build.rs");
 
     // Setup configurations
@@ -32,6 +30,8 @@ fn main() {
     // Install Tools
     uv.install(&out_dir, &binaries_dir);
     fnm.install(&out_dir, &binaries_dir);
+
+    tauri_build::build();
 }
 
 // --- Tool Definitions ---
