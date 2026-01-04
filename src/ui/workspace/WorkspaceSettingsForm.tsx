@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Settings as SettingsIcon,
   ChevronDown,
   ChevronUp,
   CheckCircle2,
@@ -246,15 +245,6 @@ export function WorkspaceSettingsForm({
         onSubmit={handleSubmit}
         className="flex flex-col flex-1 min-h-0 overflow-hidden"
       >
-        <div className="flex flex-col gap-2 text-center sm:text-left shrink-0 px-6 pt-6 pb-4 border-b border-border">
-          <h2 className="text-lg leading-none font-semibold flex items-center gap-2">
-            <SettingsIcon className="size-5" />
-            {t('workspaceSettings')}
-          </h2>
-          <p className="text-sm text-muted-foreground ml-7">
-            {t('configureWorkspace', { name: workspace.name })}
-          </p>
-        </div>
         <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
           <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
             <div className="space-y-6 pr-4">

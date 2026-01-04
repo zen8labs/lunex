@@ -21,6 +21,7 @@ import {
   setWelcomeOpen,
   navigateToSettings,
   setSettingsSection,
+  navigateToWorkspaceSettings,
 } from '@/store/slices/uiSlice';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 
@@ -57,7 +58,7 @@ const features = [
   {
     icon: FolderKanban,
     key: 'featureWorkspaces',
-    navigateTo: 'workspace' as const,
+    navigateTo: 'workspaceSettings' as const,
     comingSoon: false,
   },
   {
@@ -108,18 +109,23 @@ export function Welcome({ open, onOpenChange }: WelcomeProps) {
     onOpenChange(false);
 
     // Navigate to the appropriate screen
-    dispatch(
-      setSettingsSection(
-        navigateTo as
-          | 'general'
-          | 'workspace'
-          | 'llm'
-          | 'mcp'
-          | 'prompts'
-          | 'about'
-      )
-    );
-    dispatch(navigateToSettings());
+    if (navigateTo === 'workspaceSettings') {
+      dispatch(navigateToWorkspaceSettings());
+    } else {
+      dispatch(
+        setSettingsSection(
+          navigateTo as
+            | 'general'
+            | 'llm'
+            | 'mcp'
+            | 'prompts'
+            | 'addon'
+            | 'usage'
+            | 'about'
+        )
+      );
+      dispatch(navigateToSettings());
+    }
   };
 
   return (

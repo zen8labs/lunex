@@ -22,84 +22,11 @@ import { AppSettings } from '@/ui/settings/AppSettings';
 import { PromptManagement } from '@/ui/settings/PromptManagement';
 import AddonSettings from '@/ui/settings/AddonSettings';
 import { UsagePage } from '@/ui/settings/usage/UsagePage';
-import { WorkspaceSettingsForm } from '@/ui/workspace/WorkspaceSettingsForm';
-
-// Hooks for Workspace Settings
-import { useWorkspaces } from '@/hooks/useWorkspaces';
-import {
-  clearAllChats,
-  createChat,
-  setSelectedChat,
-} from '@/store/slices/chatsSlice';
-import {
-  clearMessages,
-  clearStreamingByChatId,
-  stopStreaming,
-} from '@/store/slices/messages';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
-import type { WorkspaceSettings } from '@/store/types';
 
 export function SettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
   const dispatch = useAppDispatch();
   const selectedSection = useAppSelector((state) => state.ui.settingsSection);
-
-  // Workspace Settings Logic
-  const {
-    selectedWorkspace,
-    workspaceSettings,
-    handleSaveWorkspaceSettings,
-    handleDeleteWorkspace,
-  } = useWorkspaces();
-
-  const llmConnections = useAppSelector(
-    (state) => state.llmConnections.llmConnections
-  );
-  const allMcpConnections = useAppSelector(
-    (state) => state.mcpConnections.mcpConnections
-  );
-
-  const chats = useAppSelector((state) =>
-    selectedWorkspace
-      ? state.chats.chatsByWorkspaceId[selectedWorkspace.id] || []
-      : []
-  );
-
-  const handleClearAllChats = async (workspaceId: string) => {
-    try {
-      const chatIds = chats.map((chat) => chat.id);
-      chatIds.forEach((chatId) => {
-        dispatch(stopStreaming(chatId));
-        dispatch(clearStreamingByChatId(chatId));
-      });
-      chatIds.forEach((chatId) => {
-        dispatch(clearMessages(chatId));
-      });
-      await dispatch(clearAllChats(workspaceId)).unwrap();
-      const newChat = await dispatch(
-        createChat({
-          workspaceId: workspaceId,
-          title: t('common:newConversation'),
-        })
-      ).unwrap();
-      dispatch(setSelectedChat(newChat.id));
-      dispatch(
-        showSuccess(t('allChatsCleared'), t('allChatsClearedDescription'))
-      );
-    } catch (error) {
-      console.error('Error clearing all chats:', error);
-      dispatch(showError(t('cannotClearAllChats')));
-    }
-  };
-
-  const onSaveWorkspaceSettings = async (settings: WorkspaceSettings) => {
-    await handleSaveWorkspaceSettings(settings);
-  };
-
-  const onDeleteWorkspace = async (workspaceId: string) => {
-    await handleDeleteWorkspace(workspaceId);
-    dispatch(navigateToChat());
-  };
 
   // Section Navigation
   const sections = [
@@ -144,20 +71,6 @@ export function SettingsPage() {
     switch (selectedSection) {
       case 'general':
         return <AppSettings />;
-      case 'workspace':
-        return selectedWorkspace ? (
-          <WorkspaceSettingsForm
-            workspace={selectedWorkspace}
-            initialSettings={workspaceSettings[selectedWorkspace.id]}
-            llmConnections={llmConnections}
-            allMcpConnections={allMcpConnections}
-            hasChats={chats.length > 0}
-            onOpenChange={() => {}} // Not needed in page view
-            onSave={onSaveWorkspaceSettings}
-            onDeleteWorkspace={onDeleteWorkspace}
-            onClearAllChats={handleClearAllChats}
-          />
-        ) : null;
       case 'llm':
         return <LLMConnections />;
       case 'mcp':

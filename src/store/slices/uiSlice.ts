@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 
-export type Page = 'chat' | 'settings';
+export type Page = 'chat' | 'settings' | 'workspaceSettings';
 
 interface UIState {
   activePage: Page;
@@ -11,7 +11,6 @@ interface UIState {
   keyboardShortcutsOpen: boolean;
   settingsSection:
     | 'general'
-    | 'workspace'
     | 'llm'
     | 'mcp'
     | 'prompts'
@@ -181,6 +180,9 @@ const uiSlice = createSlice({
     navigateToSettings: (state) => {
       state.activePage = 'settings';
     },
+    navigateToWorkspaceSettings: (state) => {
+      state.activePage = 'workspaceSettings';
+    },
     toggleSidebar: (state) => {
       state.isSidebarCollapsed = !state.isSidebarCollapsed;
     },
@@ -190,14 +192,7 @@ const uiSlice = createSlice({
     setSettingsSection: (
       state,
       action: PayloadAction<
-        | 'general'
-        | 'workspace'
-        | 'llm'
-        | 'mcp'
-        | 'prompts'
-        | 'addon'
-        | 'usage'
-        | 'about'
+        'general' | 'llm' | 'mcp' | 'prompts' | 'addon' | 'usage' | 'about'
       >
     ) => {
       state.settingsSection = action.payload;
@@ -282,6 +277,7 @@ const uiSlice = createSlice({
 export const {
   navigateToChat,
   navigateToSettings,
+  navigateToWorkspaceSettings,
   toggleSidebar,
   setSidebarCollapsed,
   setSettingsSection,

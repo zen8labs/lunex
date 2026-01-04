@@ -38,7 +38,7 @@ import { useChats } from '@/hooks/useChats';
 import { useWorkspaces } from '@/hooks/useWorkspaces';
 import { useExportChat } from '@/hooks/useExportChat';
 import { useAppDispatch } from '@/store/hooks';
-import { navigateToSettings, setSettingsSection } from '@/store/slices/uiSlice';
+import { navigateToWorkspaceSettings } from '@/store/slices/uiSlice';
 
 export interface ChatItem {
   id: string;
@@ -263,8 +263,7 @@ export function ChatSidebar() {
       <div className="p-3 mt-auto border-t border-border">
         <Button
           onClick={() => {
-            dispatch(navigateToSettings());
-            dispatch(setSettingsSection('workspace'));
+            dispatch(navigateToWorkspaceSettings());
           }}
           className="w-full justify-start gap-2"
           variant="ghost"

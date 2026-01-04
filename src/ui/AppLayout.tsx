@@ -22,6 +22,7 @@ import {
 // Pages
 import { ChatPage } from '@/pages/chat';
 import { SettingsPage } from '@/pages/settings';
+import { WorkspaceSettingsPage } from '@/pages/workspace-settings';
 
 export function AppLayout() {
   const { t } = useTranslation(['common', 'settings']);
@@ -108,6 +109,7 @@ export function AppLayout() {
       {/* Main Content Area */}
       {activePage === 'chat' && <ChatPage />}
       {activePage === 'settings' && <SettingsPage />}
+      {activePage === 'workspaceSettings' && <WorkspaceSettingsPage />}
 
       {/* About Dialog */}
       <About
