@@ -2,7 +2,7 @@
 
 <div align="center">
   
-  [![publish](https://github.com/magiskboy/nexo/actions/workflows/build.yaml/badge.svg)](https://github.com/magiskboy/nexo/actions/workflows/build.yaml)
+  [![publish](https://github.com/Nexo-Agent/nexo/actions/workflows/build.yaml/badge.svg)](https://github.com/Nexo-Agent/nexo/actions/workflows/build.yaml)
   ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/nexo-docs?style=flat-square&name=docs)
   ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/nexo?style=flat-square&name=website)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -104,11 +104,18 @@ Nexo stands out from other AI assistants by offering a unique combination of fle
 
 ### From Release (Recommended)
 
-1. Download the latest release for your platform from the [Releases](https://github.com/magiskboy/nexo/releases) page
+1. Download the latest release for your platform from the [Releases](https://github.com/Nexo-Agent/nexo/releases) page
 2. Install the application:
    - **macOS**: Open the `.dmg` file and drag Nexo to Applications
    - **Linux**: Install the `.deb` or `.AppImage` file
    - **Windows**: Run the `.msi` installer
+
+### Via Homebrew
+
+```bash
+brew tap nexo-agent/nexo
+brew install --cask nexo
+```
 
 ### From Source
 
@@ -124,7 +131,7 @@ Nexo stands out from other AI assistants by offering a unique combination of fle
 
 ```bash
 # Clone the repository
-git clone https://github.com/magiskboy/nexo.git
+git clone https://github.com/Nexo-Agent/nexo.git
 cd nexo
 
 # Install dependencies
@@ -229,7 +236,7 @@ Ensure you have all the [installation prerequisites](#prerequisites) installed.
 
 ```bash
 # Clone the repository
-git clone https://github.com/magiskboy/nexo.git
+git clone https://github.com/Nexo-Agent/nexo.git
 cd nexo
 
 # Install dependencies
@@ -272,8 +279,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Website**: [https://nexo.nkthanh.dev](https://nexo.nkthanh.dev)
-- **Issues**: [GitHub Issues](https://github.com/magiskboy/nexo/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/magiskboy/nexo/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Nexo-Agent/nexo/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Nexo-Agent/nexo/discussions)
 - **Email**: [ask@nkthanh.dev](mailto:ask@nkthanh.dev)
 
 ---
@@ -281,7 +288,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <div align="center">
   <p>Made with ❤️ by the Nexo community</p>
   <p>
-    <a href="https://github.com/magiskboy/nexo/stargazers">⭐ Star us on GitHub</a> •
+    <a href="https://github.com/Nexo-Agent/nexo/stargazers">⭐ Star us on GitHub</a> •
     <a href="https://nexo.nkthanh.dev">🌐 Visit Website</a>
   </p>
 </div>
