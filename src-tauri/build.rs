@@ -111,11 +111,7 @@ impl SidecarTool {
         download_and_extract(
             self.name,
             &url,
-            if self.name == "uv" {
-                "uv"
-            } else {
-                &binary_name
-            },
+            &binary_name, // Use the correctly computed binary_name (includes .exe on Windows)
             &target_triple,
             out_dir,
             &output_path,
