@@ -16,21 +16,26 @@ Follow these steps to release a new version of Nexo:
    - `package.json` (`"version": "..."`)
    - `src-tauri/tauri.conf.json` (`"version": "..."`)
 
-3. **Create Changelog entry**
+3. **Update Cargo.lock**
+   Run the following command in `src-tauri` to sync the version in `Cargo.lock`:
+   // turbo
+   `cd src-tauri && cargo check`
+
+4. **Create Changelog entry**
    Create a new file in `changelogs/` named `<version>.md` documenting the changes.
    Include sections for Features, Fixes, and Improvements.
 
-4. **Commit changes**
+5. **Commit changes**
    // turbo
-   `git add src-tauri/Cargo.toml package.json src-tauri/tauri.conf.json changelogs/`
+   `git add src-tauri/Cargo.toml src-tauri/Cargo.lock package.json src-tauri/tauri.conf.json changelogs/`
    // turbo
    `git commit -m "chore(release): <version>"`
 
-5. **Create Git tag**
+6. **Create Git tag**
    // turbo
    `git tag <version>`
 
-6. **Push commit and tag**
+7. **Push commit and tag**
    // turbo
    `git push origin main`
    // turbo
