@@ -225,7 +225,15 @@ fn download_and_extract(
     out_dir: &PathBuf,
     final_output_path: &PathBuf,
 ) {
-    let temp_file = out_dir.join(format!("{}-{}.tmp", tool_name, target_triple));
+    // Use correct extension for temp file to avoid issues with extraction tools
+    let file_ext = if url.ends_with(".zip") {
+        "zip"
+    } else if url.ends_with(".tar.gz") {
+        "tar.gz"
+    } else {
+        "tmp"
+    };
+    let temp_file = out_dir.join(format!("{}-{}.{}", tool_name, target_triple, file_ext));
 
     println!("Downloading {} from {}", tool_name, url);
     let status = Command::new("curl")
