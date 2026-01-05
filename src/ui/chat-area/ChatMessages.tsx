@@ -230,7 +230,7 @@ export function ChatMessages({
   const handleEdit = useCallback(
     (messageId: string) => {
       const message = messages.find((m) => m.id === messageId);
-      if (message && message.role === 'user') {
+      if (message) {
         setEditingMessageId(messageId);
         setEditingContent(message.content);
       }
@@ -258,15 +258,33 @@ export function ChatMessages({
         return;
       }
 
+      const message = messages.find((m) => m.id === messageId);
+      if (!message) return;
+
       dispatch(setLoading(true));
       try {
-        await dispatch(
-          editAndResendMessage({
-            chatId: selectedChatId,
-            messageId,
-            newContent: content,
-          })
-        ).unwrap();
+        if (message.role === 'user') {
+          // For user messages: edit and resend
+          await dispatch(
+            editAndResendMessage({
+              chatId: selectedChatId,
+              messageId,
+              newContent: content,
+            })
+          ).unwrap();
+        } else if (message.role === 'assistant') {
+          // For assistant messages: just update the content
+          await invokeCommand(TauriCommands.UPDATE_MESSAGE, {
+            id: messageId,
+            content,
+            reasoning: message.reasoning || null,
+            timestamp: null, // Keep original timestamp
+          });
+
+          // Refresh messages to show updated content
+          const { fetchMessages } = await import('@/store/slices/messages');
+          await dispatch(fetchMessages(selectedChatId));
+        }
 
         setEditingMessageId(null);
         setEditingContent('');
@@ -283,7 +301,7 @@ export function ChatMessages({
         dispatch(setLoading(false));
       }
     },
-    [selectedChatId, dispatch, t]
+    [selectedChatId, dispatch, t, messages]
   );
 
   // Memoize sorted messages - only recalculate when messages array changes

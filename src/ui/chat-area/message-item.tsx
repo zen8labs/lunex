@@ -292,19 +292,28 @@ export const MessageItem = memo(
                   </button>
                 )}
                 {message.role === 'assistant' && (
-                  <button
-                    className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
-                    onClick={handleToggleMarkdown}
-                    title={
-                      markdownEnabled ? t('showRawText') : t('showMarkdown')
-                    }
-                  >
-                    {markdownEnabled ? (
-                      <FileText className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
-                    ) : (
-                      <Code className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
-                    )}
-                  </button>
+                  <>
+                    <button
+                      className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                      onClick={handleEdit}
+                      title={t('edit') || 'Edit'}
+                    >
+                      <Pencil className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                    </button>
+                    <button
+                      className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                      onClick={handleToggleMarkdown}
+                      title={
+                        markdownEnabled ? t('showRawText') : t('showMarkdown')
+                      }
+                    >
+                      {markdownEnabled ? (
+                        <FileText className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                      ) : (
+                        <Code className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                      )}
+                    </button>
+                  </>
                 )}
                 <button
                   className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
