@@ -13,6 +13,16 @@ import { useAppDispatch } from '@/store/hooks';
 import { navigateToChat } from '@/store/slices/uiSlice';
 import { Button } from '@/ui/atoms/button/button';
 
+type Theme =
+  | 'light'
+  | 'dark'
+  | 'system'
+  | 'github-light'
+  | 'github-dark'
+  | 'gruvbox'
+  | 'midnight'
+  | 'dracula';
+
 export function AppSettings() {
   const { t } = useTranslation(['settings', 'common']);
   const dispatch = useAppDispatch();
@@ -34,7 +44,7 @@ export function AppSettings() {
     updateUserMode(mode);
   };
 
-  const handleThemeChange = (newTheme: any) => {
+  const handleThemeChange = (newTheme: Theme) => {
     updateTheme(newTheme);
   };
 
@@ -64,7 +74,7 @@ export function AppSettings() {
           <Label htmlFor="theme-select">{t('theme')}</Label>
           <Select
             value={currentTheme}
-            onValueChange={(value: any) => handleThemeChange(value)}
+            onValueChange={(value: Theme) => handleThemeChange(value)}
           >
             <SelectTrigger id="theme-select" className="w-full">
               <SelectValue placeholder={t('selectTheme')} />

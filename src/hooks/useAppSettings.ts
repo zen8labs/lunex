@@ -6,6 +6,16 @@ import {
   loadAppSettings,
 } from '@/store/slices/uiSlice';
 
+type Theme =
+  | 'light'
+  | 'dark'
+  | 'system'
+  | 'github-light'
+  | 'github-dark'
+  | 'gruvbox'
+  | 'midnight'
+  | 'dracula';
+
 /**
  * Hook to access and manage app settings (language, userMode, and theme)
  */
@@ -24,7 +34,7 @@ export function useAppSettings() {
     dispatch(setUserMode(mode));
   };
 
-  const updateTheme = (newTheme: any) => {
+  const updateTheme = (newTheme: Theme) => {
     dispatch(setTheme(newTheme));
   };
 

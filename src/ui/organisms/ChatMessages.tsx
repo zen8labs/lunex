@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
@@ -9,10 +9,8 @@ import { removePermissionRequest } from '@/store/slices/toolPermissionSlice';
 import { setLoading } from '@/store/slices/chatInputSlice';
 import { showError } from '@/store/slices/notificationSlice';
 import { setAgentChatHistoryDrawerOpen } from '@/store/slices/uiSlice';
+import { MessageList } from '@/ui/organisms/MessageList';
 import type { Message } from '@/store/types';
-import { ToolCallItem } from '@/ui/organisms/ToolCallItem';
-import { ThinkingItem } from '@/ui/organisms/ThinkingItem';
-import { MessageItem } from '@/ui/organisms/MessageItem';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -34,15 +32,6 @@ export function ChatMessages({
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [markdownEnabled, setMarkdownEnabled] = useState<
-    Record<string, boolean>
-  >({});
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [expandedToolCalls, setExpandedToolCalls] = useState<
-    Record<string, boolean>
-  >({});
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState<string>('');
 
   // Track if user is at the bottom of the chat to handle auto-scrolling
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -124,30 +113,6 @@ export function ChatMessages({
     }
   }, [messages, selectedChatId, isAtBottom, scrollToBottom]);
 
-  const handleCopy = useCallback(async (content: string, messageId: string) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedId(messageId);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch (error) {
-      console.error('Failed to copy:', error);
-    }
-  }, []);
-
-  const toggleMarkdown = useCallback((messageId: string) => {
-    setMarkdownEnabled((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  }, []);
-
-  const toggleToolCall = useCallback((messageId: string) => {
-    setExpandedToolCalls((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  }, []);
-
   const handlePermissionRespond = useCallback(
     async (
       messageId: string,
@@ -228,26 +193,6 @@ export function ChatMessages({
     return () => clearInterval(timer);
   }, [pendingRequests, handlePermissionRespond, dispatch, t]);
 
-  const handleEdit = useCallback(
-    (messageId: string) => {
-      const message = messages.find((m) => m.id === messageId);
-      if (message) {
-        setEditingMessageId(messageId);
-        setEditingContent(message.content);
-      }
-    },
-    [messages]
-  );
-
-  const handleCancelEdit = useCallback(() => {
-    setEditingMessageId(null);
-    setEditingContent('');
-  }, []);
-
-  const handleEditContentChange = useCallback((content: string) => {
-    setEditingContent(content);
-  }, []);
-
   const handleViewAgentDetails = useCallback(
     (sessionId: string, agentId: string) => {
       dispatch(
@@ -299,9 +244,6 @@ export function ChatMessages({
           const { fetchMessages } = await import('@/store/slices/messages');
           await dispatch(fetchMessages(selectedChatId));
         }
-
-        setEditingMessageId(null);
-        setEditingContent('');
       } catch (error: unknown) {
         console.error('Error editing message:', error);
         dispatch(
@@ -318,162 +260,23 @@ export function ChatMessages({
     [selectedChatId, dispatch, t, messages]
   );
 
-  // Memoize sorted messages - only recalculate when messages array changes
-  const sortedMessages = useMemo(() => {
-    // 1. Sort all messages by timestamp
-    const timestampSorted = [...messages].sort(
-      (a, b) => a.timestamp - b.timestamp
-    );
-
-    // 2. Index tool calls by assistant message ID for O(1) lookup
-    // This avoids O(N^2) complexity from nested filtering
-    const toolCallsMap = new Map<string, typeof messages>();
-
-    for (const m of timestampSorted) {
-      if (m.role === 'tool_call' && m.assistantMessageId) {
-        if (!toolCallsMap.has(m.assistantMessageId)) {
-          toolCallsMap.set(m.assistantMessageId, []);
-        }
-        const list = toolCallsMap.get(m.assistantMessageId);
-        if (list) {
-          list.push(m);
-        }
-      }
-    }
-
-    const sorted: typeof messages = [];
-    const processedIds = new Set<string>();
-
-    for (const message of timestampSorted) {
-      // Skip if already processed (e.g., a tool call already added via its assistant parent)
-      if (processedIds.has(message.id)) {
-        continue;
-      }
-
-      // Add the message itself
-      sorted.push(message);
-      processedIds.add(message.id);
-
-      // If this is an assistant message, append all its associated tool calls immediately after
-      // This ensures Thinking (part of assistant message) -> Tool Call order
-      if (message.role === 'assistant') {
-        const childToolCalls = toolCallsMap.get(message.id);
-        if (childToolCalls) {
-          // Tool calls in map are already sorted by timestamp because we iterated timestampSorted
-          for (const toolCall of childToolCalls) {
-            if (!processedIds.has(toolCall.id)) {
-              sorted.push(toolCall);
-              processedIds.add(toolCall.id);
-            }
-          }
-        }
-      }
-    }
-
-    return sorted;
-  }, [messages]);
-
   return (
     <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-hidden">
       <div className="mx-auto w-full max-w-3xl px-4 py-6 gap-2 grid">
-        {sortedMessages.map((message) => {
-          // Skip tool result messages (role="tool") - they are only used internally
-          // Tool results are displayed within tool_call messages
-          if (message.role === 'tool') {
-            return null;
-          }
-
-          // Handle tool_call messages separately (completed/executing)
-          if (message.role === 'tool_call') {
-            return (
-              <ToolCallItem
-                key={message.id}
-                message={message}
-                isExpanded={expandedToolCalls[message.id] || false}
-                onToggle={toggleToolCall}
-                t={t}
-                userMode={userMode}
-              />
-            );
-          }
-
-          // Regular messages (user/assistant)
-          const isMarkdownEnabled = markdownEnabled[message.id] !== false;
-          const isEditing = editingMessageId === message.id;
-          const pending =
-            message.role === 'assistant' ? pendingRequests[message.id] : null;
-
-          return (
-            <div
-              key={message.id}
-              className="flex min-w-0 w-full flex-col gap-2"
-            >
-              {message.role === 'assistant' && message.reasoning && (
-                <ThinkingItem
-                  content={message.reasoning}
-                  isStreaming={
-                    streamingMessageId === message.id && !message.content
-                  }
-                />
-              )}
-              {(message.role !== 'assistant' || message.content) && (
-                <MessageItem
-                  message={message}
-                  userMode={userMode}
-                  markdownEnabled={isMarkdownEnabled}
-                  isCopied={copiedId === message.id}
-                  isEditing={isEditing}
-                  editingContent={editingContent}
-                  onToggleMarkdown={toggleMarkdown}
-                  onCopy={handleCopy}
-                  onEdit={handleEdit}
-                  onCancelEdit={handleCancelEdit}
-                  onEditContentChange={handleEditContentChange}
-                  onSaveEdit={handleSaveEdit}
-                  onViewAgentDetails={handleViewAgentDetails}
-                  isStreaming={streamingMessageId === message.id}
-                  t={t}
-                />
-              )}
-
-              {/* Render Pending Tool Calls */}
-              {pending &&
-                pending.toolCalls.map((tc) => (
-                  <ToolCallItem
-                    key={tc.id}
-                    data={{
-                      id: tc.id,
-                      name: tc.name,
-                      arguments: tc.arguments,
-                      status: 'pending_permission',
-                    }}
-                    isExpanded={expandedToolCalls[tc.id] !== false} // Default to expanded
-                    onToggle={toggleToolCall}
-                    t={t}
-                    onRespond={(allow) =>
-                      handlePermissionRespond(message.id, tc.id, tc.name, allow)
-                    }
-                    userMode={userMode}
-                  />
-                ))}
-            </div>
-          );
-        })}
-
-        {isLoading && !streamingMessageId && (
-          <div className="mb-6 flex justify-start w-full">
-            <div className="flex min-w-0 w-full flex-col gap-2">
-              <div className="min-w-0 wrap-break-words rounded-2xl bg-muted px-4 py-3">
-                <div className="flex gap-1">
-                  <span className="size-2 animate-pulse rounded-full bg-foreground/50" />
-                  <span className="size-2 animate-pulse rounded-full bg-foreground/50 [animation-delay:0.2s]" />
-                  <span className="size-2 animate-pulse rounded-full bg-foreground/50 [animation-delay:0.4s]" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
+        <MessageList
+          messages={messages}
+          enableStreaming={true}
+          enableThinkingItem={true}
+          enablePendingPermissions={true}
+          streamingMessageId={streamingMessageId}
+          pendingRequests={pendingRequests}
+          onSaveEdit={handleSaveEdit}
+          onPermissionRespond={handlePermissionRespond}
+          onViewAgentDetails={handleViewAgentDetails}
+          userMode={userMode}
+          t={t}
+          isLoading={isLoading && !streamingMessageId}
+        />
         <div ref={messagesEndRef} />
       </div>
     </ScrollArea>

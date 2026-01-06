@@ -9,8 +9,7 @@ import {
   DialogBody,
 } from '@/ui/atoms/dialog';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
-import { MessageItem } from '@/ui/organisms/MessageItem';
-import { ToolCallItem } from '@/ui/organisms/ToolCallItem';
+import { MessageList } from '@/ui/organisms/MessageList';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import type { Message } from '@/store/types';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
@@ -32,15 +31,6 @@ export function AgentChatHistoryDialog({
   const { userMode } = useAppSettings();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const [markdownEnabled, setMarkdownEnabled] = useState<
-    Record<string, boolean>
-  >({});
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editingContent, setEditingContent] = useState<string>('');
-  const [expandedToolCalls, setExpandedToolCalls] = useState<
-    Record<string, boolean>
-  >({});
   const [agentName, setAgentName] = useState<string | null>(null);
 
   // Fetch agent name when agentId changes
@@ -121,36 +111,6 @@ export function AgentChatHistoryDialog({
     loadMessages();
   }, [open, sessionId]);
 
-  const handleToggleMarkdown = (messageId: string) => {
-    setMarkdownEnabled((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  };
-
-  const handleCopy = (content: string, messageId: string) => {
-    navigator.clipboard.writeText(content);
-    setCopiedId(messageId);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleEdit = (messageId: string) => {
-    const message = messages.find((m) => m.id === messageId);
-    if (message) {
-      setEditingMessageId(messageId);
-      setEditingContent(message.content);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingMessageId(null);
-    setEditingContent('');
-  };
-
-  const handleEditContentChange = (content: string) => {
-    setEditingContent(content);
-  };
-
   const handleSaveEdit = async (messageId: string, content: string) => {
     if (!sessionId) return;
 
@@ -164,21 +124,13 @@ export function AgentChatHistoryDialog({
       setMessages((prev) =>
         prev.map((m) => (m.id === messageId ? { ...m, content } : m))
       );
-      setEditingMessageId(null);
-      setEditingContent('');
     } catch (error) {
       console.error('Failed to update message:', error);
     }
   };
 
-  const toggleToolCall = (id: string) => {
-    setExpandedToolCalls((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
   // Filter out tool messages for display (tool results are shown within tool_call messages)
+  // MessageList will handle this, but we filter here to match the original behavior
   const displayMessages = messages.filter((m) => m.role !== 'tool');
 
   return (
@@ -222,46 +174,15 @@ export function AgentChatHistoryDialog({
             <ScrollArea className="h-full">
               <div className="px-6 py-4">
                 <div className="mx-auto w-full flex flex-col gap-4">
-                  {displayMessages.map((message) => {
-                    // Handle tool_call messages separately
-                    if (message.role === 'tool_call') {
-                      return (
-                        <ToolCallItem
-                          key={message.id}
-                          message={message}
-                          isExpanded={expandedToolCalls[message.id] || false}
-                          onToggle={toggleToolCall}
-                          t={tChat}
-                          userMode={userMode}
-                        />
-                      );
-                    }
-
-                    // Regular messages (user/assistant)
-                    const isMarkdownEnabled =
-                      markdownEnabled[message.id] !== false;
-                    const isEditing = editingMessageId === message.id;
-
-                    return (
-                      <MessageItem
-                        key={message.id}
-                        message={message}
-                        userMode={userMode}
-                        markdownEnabled={isMarkdownEnabled}
-                        isCopied={copiedId === message.id}
-                        isEditing={isEditing}
-                        editingContent={editingContent}
-                        isStreaming={false}
-                        onToggleMarkdown={handleToggleMarkdown}
-                        onCopy={handleCopy}
-                        onEdit={handleEdit}
-                        onCancelEdit={handleCancelEdit}
-                        onEditContentChange={handleEditContentChange}
-                        onSaveEdit={handleSaveEdit}
-                        t={tChat}
-                      />
-                    );
-                  })}
+                  <MessageList
+                    messages={displayMessages}
+                    enableStreaming={false}
+                    enableThinkingItem={false}
+                    enablePendingPermissions={false}
+                    onSaveEdit={handleSaveEdit}
+                    userMode={userMode}
+                    t={tChat}
+                  />
                 </div>
               </div>
             </ScrollArea>
