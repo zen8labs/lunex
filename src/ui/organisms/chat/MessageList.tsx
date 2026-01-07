@@ -224,6 +224,22 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
     // Memoize sorted messages - only recalculate when messages array changes
     const sortedMessages = useMemo(() => sortMessages(messages), [messages]);
 
+    // Find the last message that will be rendered (not skipped)
+    const lastRenderableMessageId = useMemo(() => {
+      for (let i = sortedMessages.length - 1; i >= 0; i--) {
+        const msg = sortedMessages[i];
+        // Skip tool messages, but include tool_call and regular messages
+        if (msg.role !== 'tool') {
+          // For assistant messages, also check if they have content
+          if (msg.role === 'assistant' && !msg.content) {
+            continue;
+          }
+          return msg.id;
+        }
+      }
+      return null;
+    }, [sortedMessages]);
+
     return (
       <div ref={ref} className={cn('flex flex-col gap-2', className)}>
         {sortedMessages.map((message) => {
@@ -290,6 +306,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                   isStreaming={
                     enableStreaming && streamingMessageId === message.id
                   }
+                  isLastMessage={message.id === lastRenderableMessageId}
                   t={t}
                 />
               )}

@@ -26,6 +26,7 @@ export interface MessageItemProps {
   isEditing: boolean;
   editingContent: string;
   isStreaming: boolean;
+  isLastMessage?: boolean;
   onToggleMarkdown: (messageId: string) => void;
   onCopy: (content: string, messageId: string) => void;
   onEdit: (messageId: string) => void;
@@ -45,6 +46,7 @@ export const MessageItem = memo(
     isEditing,
     editingContent,
     isStreaming,
+    isLastMessage = false,
     onToggleMarkdown,
     onCopy,
     onEdit,
@@ -67,7 +69,10 @@ export const MessageItem = memo(
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
-    const [isCollapsed, setIsCollapsed] = useState(!isStreaming);
+    // Don't collapse by default if it's the last message or if streaming
+    const [isCollapsed, setIsCollapsed] = useState(
+      !isStreaming && !isLastMessage
+    );
 
     // Initial height state
     const [contentHeight, setContentHeight] = useState<string | number>(
@@ -410,7 +415,8 @@ export const MessageItem = memo(
       prevProps.isCopied === nextProps.isCopied &&
       prevProps.isEditing === nextProps.isEditing &&
       prevProps.editingContent === nextProps.editingContent &&
-      prevProps.isStreaming === nextProps.isStreaming
+      prevProps.isStreaming === nextProps.isStreaming &&
+      prevProps.isLastMessage === nextProps.isLastMessage
     );
   }
 );
