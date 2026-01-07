@@ -2,46 +2,71 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# Welcome to Nexo
 
-Let's discover **Docusaurus in less than 5 minutes**.
+**Nexo** is a powerful, cross-platform desktop AI assistant built with Tauri, React, and Rust. It provides a seamless interface for interacting with multiple LLM providers while offering advanced features like MCP (Model Context Protocol) integration, workspace management, and extensible tool support.
 
-## Getting Started
+## What is Nexo?
 
-Get started by **creating a new site**.
+Nexo stands out from other AI assistants by offering a unique combination of flexibility, privacy, and extensibility:
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+- **Multi-LLM Support**: Connect to multiple LLM providers (OpenAI, Anthropic, Google, Ollama, etc.) simultaneously
+- **MCP Integration**: Full support for Model Context Protocol servers
+- **Workspace Management**: Organize conversations into separate workspaces with custom settings
+- **Privacy-First**: All data stored locally in SQLite - no cloud dependencies
+- **Open Source**: MIT License - full control and customization
+- **Extensible**: Python and Node.js runtime support for custom tools
 
-### What you'll need
+## Key Features
 
-- [Node.js](https://nodejs.org/en/download/) version 20.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+### Multi-LLM Support
 
-## Generate a new site
+Switch between different LLM providers seamlessly. Use the best model for each task without vendor lock-in.
 
-Generate a new Docusaurus site using the **classic template**.
+### Workspace Management
 
-The classic template will automatically be added to your project after you run the command:
+Organize your work into separate workspaces, each with its own:
 
-```bash
-npm init docusaurus@latest my-website classic
-```
+- System prompts
+- LLM model selection
+- MCP tool configuration
+- Chat history
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+### MCP Integration
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+Connect to MCP servers for extended functionality:
 
-## Start your site
+- Dynamic tool discovery
+- Permission-based tool execution
+- Custom tool integration
 
-Run the development server:
+### Advanced Chat Features
 
-```bash
-cd my-website
-npm run start
-```
+- Run code in the chat
+- LaTeX and mathematical notation rendering
+- Code syntax highlighting
+- Mermaid diagram support
 
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
+## Quick Start
 
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
+1. **Install Nexo**: Download from [Releases](https://github.com/Nexo-Agent/nexo/releases) or see [Installation Guide](/docs/user-guide/installation)
+2. **Create a Workspace**: Organize your conversations
+3. **Configure LLM**: Add your API keys in Settings
+4. **Start Chatting**: Begin your AI assistant journey
 
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+## Documentation Structure
+
+- **[User Guide](/docs/user-guide/getting-started)**: Learn how to use Nexo
+- **[Architecture](/docs/architecture/overview)**: Understand how Nexo works
+- **[Developer Guide](/docs/development/setup)**: Contribute to Nexo development
+- **[API Reference](/docs/api/commands)**: Tauri commands and events
+
+## Get Involved
+
+- **GitHub**: [Nexo-Agent/nexo](https://github.com/Nexo-Agent/nexo)
+- **Issues**: [Report bugs or suggest features](https://github.com/Nexo-Agent/nexo/issues)
+- **Discussions**: [Join the community](https://github.com/Nexo-Agent/nexo/discussions)
+
+---
+
+Ready to get started? Check out the [Installation Guide](/docs/user-guide/installation) or [Getting Started](/docs/user-guide/getting-started) tutorial.

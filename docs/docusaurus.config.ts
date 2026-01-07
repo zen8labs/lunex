@@ -8,6 +8,10 @@ const config: Config = {
   title: 'Nexo',
   tagline: 'A Smart AI Assistant for Everyone',
   favicon: 'img/favicon.ico',
+  themes: ['@docusaurus/theme-mermaid', '@docusaurus/theme-live-codeblock'],
+  markdown: {
+    mermaid: true,
+  },
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -67,6 +71,9 @@ const config: Config = {
   ],
 
   themeConfig: {
+    liveCodeBlock: {
+      playgroundPosition: 'top',
+    },
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
