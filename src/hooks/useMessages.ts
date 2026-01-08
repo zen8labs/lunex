@@ -167,7 +167,9 @@ export function useMessages(selectedChatId: string | null) {
       // Cancel backend request
       invokeCommand(TauriCommands.CANCEL_MESSAGE, {
         chatId: selectedChatId,
-      }).catch(console.error);
+      }).catch((error) => {
+        console.error('[useMessages] CANCEL_MESSAGE failed:', error);
+      });
     } else {
       dispatch(stopStreaming());
     }

@@ -50,6 +50,7 @@ interface MessageListProps {
   t: (key: string) => string;
   isLoading?: boolean;
   className?: string;
+  permissionTimeLeft?: Record<string, number>; // Countdown for pending permissions
 }
 
 export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
@@ -78,6 +79,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       userMode,
       t,
       className,
+      permissionTimeLeft = {},
     },
     ref
   ) => {
@@ -317,33 +319,38 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
               {/* Render Pending Tool Calls */}
               {enablePendingPermissions &&
                 pending &&
-                pending.toolCalls.map((tc) => (
-                  <ToolCallItem
-                    key={tc.id}
-                    data={{
-                      id: tc.id,
-                      name: tc.name,
-                      arguments: tc.arguments,
-                      status: 'pending_permission',
-                    }}
-                    isExpanded={expandedToolCalls[tc.id] !== false} // Default to expanded
-                    onToggle={toggleToolCall}
-                    onCancel={onCancelToolExecution}
-                    t={t}
-                    onRespond={
-                      onPermissionRespond
-                        ? (allow) =>
-                            onPermissionRespond(
-                              message.id,
-                              tc.id,
-                              tc.name,
-                              allow
-                            )
-                        : undefined
-                    }
-                    userMode={userMode}
-                  />
-                ))}
+                pending.toolCalls.map((tc) => {
+                  const timeLeftValue = permissionTimeLeft[message.id];
+
+                  return (
+                    <ToolCallItem
+                      key={tc.id}
+                      data={{
+                        id: tc.id,
+                        name: tc.name,
+                        arguments: tc.arguments,
+                        status: 'pending_permission',
+                      }}
+                      isExpanded={expandedToolCalls[tc.id] !== false} // Default to expanded
+                      onToggle={toggleToolCall}
+                      onCancel={onCancelToolExecution}
+                      timeLeft={timeLeftValue}
+                      t={t}
+                      onRespond={
+                        onPermissionRespond
+                          ? (allow) =>
+                              onPermissionRespond(
+                                message.id,
+                                tc.id,
+                                tc.name,
+                                allow
+                              )
+                          : undefined
+                      }
+                      userMode={userMode}
+                    />
+                  );
+                })}
             </div>
           );
         })}

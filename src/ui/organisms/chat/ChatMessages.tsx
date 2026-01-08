@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStickToBottom } from 'use-stick-to-bottom';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
@@ -57,7 +57,7 @@ export function ChatMessages({
         });
 
         if (!approved && selectedChatId) {
-          const content = `🚫 **System Notification:** Tool \`${toolName}\` denied by user. Flow cancelled.`;
+          const content = `**System Notification:** Tool \`${toolName}\` denied by user. Flow cancelled.`;
           const id = crypto.randomUUID();
           const timestamp = Date.now();
 
@@ -88,28 +88,52 @@ export function ChatMessages({
     [dispatch, selectedChatId]
   );
 
+  // Countdown for pending permissions
+  const [permissionTimeLeft, setPermissionTimeLeft] = useState<
+    Record<string, number>
+  >({});
+
+  // Track which requests have already been timed out to prevent infinite loop
+  const processedTimeoutsRef = useRef<Set<string>>(new Set());
+
   // Timeout for pending permissions
   useEffect(() => {
     const timer = setInterval(() => {
       const now = Date.now();
-      const TIMEOUT_MS = 60000; // 60s
+      const TIMEOUT_MS = 5000; // 60s
 
       if (pendingRequests) {
-        Object.values(pendingRequests).forEach((req) => {
-          if (req.timestamp && now - req.timestamp > TIMEOUT_MS) {
-            // Reject all tools in the request
-            req.toolCalls.forEach((tc) => {
-              handlePermissionRespond(req.messageId, tc.id, tc.name, false);
-            });
+        const newTimeLeft: Record<string, number> = {};
 
-            dispatch(
-              showError(
-                t('toolPermissionTimeout', { ns: 'chat' }) ||
-                  'Tool permission request timed out'
-              )
-            );
+        Object.values(pendingRequests).forEach((req) => {
+          if (req.timestamp) {
+            const elapsed = now - req.timestamp;
+            const remaining = Math.max(0, TIMEOUT_MS - elapsed);
+            newTimeLeft[req.messageId] = Math.ceil(remaining / 1000);
+
+            // Only process timeout once per request
+            if (
+              elapsed > TIMEOUT_MS &&
+              !processedTimeoutsRef.current.has(req.messageId)
+            ) {
+              processedTimeoutsRef.current.add(req.messageId);
+
+              // Reject all tools in the request (this will auto-remove from pendingRequests)
+              req.toolCalls.forEach((tc) => {
+                handlePermissionRespond(req.messageId, tc.id, tc.name, false);
+              });
+
+              dispatch(
+                showError(
+                  t('toolPermissionTimeout', { ns: 'chat' }) ||
+                    'Tool permission request timed out'
+                )
+              );
+            }
           }
         });
+
+        setPermissionTimeLeft(newTimeLeft);
       }
     }, 1000);
 
@@ -236,6 +260,7 @@ export function ChatMessages({
         onPermissionRespond={handlePermissionRespond}
         onViewAgentDetails={handleViewAgentDetails}
         onCancelToolExecution={onCancelToolExecution}
+        permissionTimeLeft={permissionTimeLeft}
         userMode={userMode}
         t={t}
         isLoading={isLoading && !streamingMessageId}

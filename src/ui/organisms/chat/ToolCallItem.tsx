@@ -30,6 +30,7 @@ export interface ToolCallItemProps {
   t: (key: string) => string;
   onRespond?: (allow: boolean) => void;
   onCancel?: () => void;
+  timeLeft?: number; // Countdown in seconds for pending permission
   userMode?: 'normal' | 'developer';
 }
 
@@ -42,6 +43,7 @@ export const ToolCallItem = memo(
     t,
     onRespond,
     onCancel,
+    timeLeft,
     userMode = 'normal',
   }: ToolCallItemProps) {
     const { toolCallData, parseError } = useMemo(() => {
@@ -83,7 +85,9 @@ export const ToolCallItem = memo(
     const handleCancel = useCallback(
       (e: MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        onCancel?.();
+        if (onCancel) {
+          onCancel();
+        }
       },
       [onCancel]
     );
@@ -133,7 +137,7 @@ export const ToolCallItem = memo(
           <div className="rounded-lg border bg-background/50 p-3 text-xs">
             <button
               className="flex w-full items-center justify-between gap-2 text-left"
-              disabled={isExecuting && !isPending}
+              type="button"
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 {isExecuting ? (
@@ -150,9 +154,22 @@ export const ToolCallItem = memo(
                   </span>
                 )}
                 {isPending && (
-                  <span className="text-yellow-500 text-xs font-semibold">
-                    Permission Required
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-yellow-500 text-xs font-semibold">
+                      Permission Required
+                    </span>
+                    {timeLeft !== undefined && timeLeft > 0 && (
+                      <span
+                        className={`text-xs font-mono ${
+                          timeLeft <= 10
+                            ? 'text-destructive font-bold'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        ({timeLeft}s)
+                      </span>
+                    )}
+                  </div>
                 )}
                 {isError && (
                   <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
@@ -285,7 +302,8 @@ export const ToolCallItem = memo(
       prevId === nextId &&
       prevDataStr === nextDataStr &&
       prevProps.isExpanded === nextProps.isExpanded &&
-      prevProps.userMode === nextProps.userMode
+      prevProps.userMode === nextProps.userMode &&
+      prevProps.timeLeft === nextProps.timeLeft // ← Added for countdown
     );
   }
 );
