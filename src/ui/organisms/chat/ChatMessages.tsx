@@ -223,7 +223,7 @@ export function ChatMessages({
   });
 
   return (
-    <ScrollArea ref={scrollAreaRef}>
+    <ScrollArea ref={scrollAreaRef} className="flex-1">
       <MessageList
         ref={contentRef}
         messages={messages}

@@ -11,7 +11,16 @@ export interface LLMConnection {
   id: string;
   name: string;
   baseUrl: string;
-  provider: 'openai' | 'ollama';
+  provider:
+    | 'openai'
+    | 'ollama'
+    | 'vllm'
+    | 'litellm'
+    | 'fireworks'
+    | 'openrouter'
+    | 'groq'
+    | 'together'
+    | 'deepinfra';
   apiKey: string;
   models?: LLMModel[];
 }

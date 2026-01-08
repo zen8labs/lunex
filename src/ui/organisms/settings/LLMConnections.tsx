@@ -8,6 +8,7 @@ import {
   Network,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { ProviderIcon } from '@/ui/atoms/provider-icon';
 import { Button } from '@/ui/atoms/button/button';
 import { EmptyState } from '@/ui/atoms/empty-state';
 import { Input } from '@/ui/atoms/input';
@@ -50,7 +51,17 @@ export interface LLMConnection {
   id: string;
   name: string;
   baseUrl: string;
-  provider: 'openai' | 'ollama';
+
+  provider:
+    | 'openai'
+    | 'ollama'
+    | 'vllm'
+    | 'litellm'
+    | 'fireworks'
+    | 'openrouter'
+    | 'groq'
+    | 'together'
+    | 'deepinfra';
   apiKey: string;
   models?: LLMModel[];
 }
@@ -171,9 +182,13 @@ export function LLMConnections() {
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{connection.name}</h4>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                      {connection.provider}
-                    </span>
+                    <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      <ProviderIcon
+                        provider={connection.provider}
+                        className="size-3.5"
+                      />
+                      <span>{connection.provider}</span>
+                    </div>
                     {connection.models && connection.models.length > 0 && (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                         {connection.models.length}{' '}
@@ -258,7 +273,7 @@ function LLMConnectionDialog({
   const { t } = useTranslation(['settings', 'common']);
   const [name, setName] = useState(connection?.name || '');
   const [baseUrl, setBaseUrl] = useState(connection?.baseUrl || '');
-  const [provider, setProvider] = useState<'openai' | 'ollama'>(
+  const [provider, setProvider] = useState<LLMConnection['provider']>(
     connection?.provider || 'openai'
   );
   const [apiKey, setApiKey] = useState(connection?.apiKey || '');
@@ -375,7 +390,27 @@ function LLMConnectionDialog({
   const defaultUrls = {
     openai: 'https://api.openai.com/v1',
     ollama: 'http://localhost:11434/v1',
+    vllm: 'http://localhost:8000/v1',
+    litellm: 'http://0.0.0.0:4000',
+    fireworks: 'https://api.fireworks.ai/inference/v1',
+    openrouter: 'https://openrouter.ai/api/v1',
+    groq: 'https://api.groq.com/openai/v1',
+    together: 'https://api.together.xyz/v1',
+    deepinfra: 'https://api.deepinfra.com/v1/openai',
   };
+
+  const providerOptions: { value: LLMConnection['provider']; label: string }[] =
+    [
+      { value: 'openai', label: 'OpenAI' },
+      { value: 'ollama', label: 'Ollama' },
+      { value: 'vllm', label: 'vLLM' },
+      { value: 'litellm', label: 'LiteLLM' },
+      { value: 'fireworks', label: 'Fireworks AI' },
+      { value: 'openrouter', label: 'OpenRouter' },
+      { value: 'groq', label: 'Groq' },
+      { value: 'together', label: 'Together AI' },
+      { value: 'deepinfra', label: 'DeepInfra' },
+    ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -407,7 +442,7 @@ function LLMConnectionDialog({
                   <Label htmlFor="provider">{t('provider')}</Label>
                   <Select
                     value={provider}
-                    onValueChange={(value: 'openai' | 'ollama') => {
+                    onValueChange={(value: LLMConnection['provider']) => {
                       setProvider(value);
                       if (!baseUrl || baseUrl === defaultUrls[provider]) {
                         setBaseUrl(defaultUrls[value]);
@@ -418,8 +453,17 @@ function LLMConnectionDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="openai">OpenAI</SelectItem>
-                      <SelectItem value="ollama">Ollama</SelectItem>
+                      {providerOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <ProviderIcon
+                              provider={option.value}
+                              className="size-4"
+                            />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -441,7 +485,11 @@ function LLMConnectionDialog({
                     type="password"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder={t('enterApiKey')}
+                    placeholder={
+                      provider === 'vllm' || provider === 'ollama'
+                        ? t('optional') + ' ' + t('enterApiKey')
+                        : t('enterApiKey')
+                    }
                     className="w-full"
                   />
                 </div>
