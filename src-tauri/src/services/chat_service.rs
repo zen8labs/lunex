@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::AppHandle;
 use tauri::Manager;
+use tokio::sync::Mutex;
 
 pub struct ChatService {
     repository: Arc<dyn ChatRepository>,
@@ -23,6 +24,8 @@ pub struct ChatService {
     tool_service: Arc<ToolService>,
     usage_service: Arc<UsageService>,
     agent_manager: Arc<crate::agent::manager::AgentManager>,
+    // Cancellation channels for each chat_id
+    cancellation_senders: Arc<Mutex<HashMap<String, tokio::sync::broadcast::Sender<()>>>>,
 }
 
 impl ChatService {
@@ -45,7 +48,31 @@ impl ChatService {
             tool_service,
             usage_service,
             agent_manager,
+            cancellation_senders: Arc::new(Mutex::new(HashMap::new())),
         }
+    }
+
+    /// Cancel an ongoing message stream for a chat
+    pub fn cancel_message(&self, chat_id: &str) -> Result<(), AppError> {
+        // Try to send cancellation signal
+        let senders = futures::executor::block_on(self.cancellation_senders.lock());
+        if let Some(sender) = senders.get(chat_id) {
+            // Ignore error if no receivers are listening
+            let _ = sender.send(());
+        }
+        Ok(())
+    }
+
+    /// Get or create a cancellation receiver for a chat
+    async fn get_cancellation_receiver(
+        &self,
+        chat_id: &str,
+    ) -> tokio::sync::broadcast::Receiver<()> {
+        let mut senders = self.cancellation_senders.lock().await;
+        let sender = senders
+            .entry(chat_id.to_string())
+            .or_insert_with(|| tokio::sync::broadcast::channel(1).0);
+        sender.subscribe()
     }
 
     pub fn create(
@@ -449,7 +476,10 @@ impl ChatService {
             })),
         };
 
-        // 12. Call LLM service
+        // 12. Get cancellation receiver for this chat
+        let cancellation_rx = self.get_cancellation_receiver(&chat_id).await;
+
+        // 13. Call LLM service
         let start_time = std::time::Instant::now();
         let llm_response = self
             .llm_service
@@ -460,6 +490,7 @@ impl ChatService {
                 chat_id.clone(),
                 assistant_message_id.clone(),
                 app.clone(),
+                Some(cancellation_rx),
             )
             .await?;
         let latency = start_time.elapsed().as_millis() as u64;
@@ -677,6 +708,9 @@ impl ChatService {
         let agent_emitter = AgentEmitter::new(app.clone());
         let message_emitter = MessageEmitter::new(app.clone());
 
+        // Get cancellation receiver for this chat (reused across iterations)
+        let mut cancellation_rx = self.get_cancellation_receiver(&chat_id).await;
+
         // Agent loop
         for iteration in 0..MAX_ITERATIONS {
             // Emit iteration event
@@ -746,6 +780,7 @@ impl ChatService {
                         chat_id.clone(),
                         assistant_message_id.clone(),
                         app.clone(),
+                        Some(cancellation_rx.resubscribe()),
                     )
                     .await?;
                 let latency = start_time.elapsed().as_millis() as u64;
@@ -812,7 +847,13 @@ impl ChatService {
                     // Handle tool calls
                     // Use match instead of ? to prevent agent loop from stopping on error
                     let tool_results = match self
-                        .handle_tool_calls(&chat_id, &assistant_message_id, &allowed_tools, &app)
+                        .handle_tool_calls(
+                            &chat_id,
+                            &assistant_message_id,
+                            &allowed_tools,
+                            &app,
+                            &mut cancellation_rx,
+                        )
                         .await
                     {
                         Ok(results) => results,
@@ -986,6 +1027,7 @@ impl ChatService {
         assistant_message_id: &str,
         tool_calls: &[crate::models::llm_types::ToolCall],
         app: &AppHandle,
+        cancellation_rx: &mut tokio::sync::broadcast::Receiver<()>,
     ) -> Result<Vec<ChatMessage>, AppError> {
         // Emit tool execution started event
         let tool_emitter = ToolEmitter::new(app.clone());
@@ -1092,64 +1134,72 @@ impl ChatService {
                     arguments: arguments_map,
                 };
 
-                // Call tool on agent client with timeout (300 seconds, same as LLM timeout)
+                // Call tool on agent client with timeout (60 seconds) and cancellation support
                 let tool_call_future = client.call_tool(params);
-                match tokio::time::timeout(tokio::time::Duration::from_secs(300), tool_call_future)
-                    .await
-                {
-                    Ok(Ok(res)) => {
-                        // Serialize content to match expected generic JSON
-                        match serde_json::to_value(&res.content) {
-                            Ok(value) => {
-                                // Try to extract text content to simplify response for LLM
-                                let extracted_text = if let serde_json::Value::Array(items) = &value
-                                {
-                                    let mut texts = Vec::new();
-                                    let mut has_text = false;
 
-                                    for item in items {
-                                        if let Some(type_str) =
-                                            item.get("type").and_then(|t| t.as_str())
+                // Use tokio::select to handle both timeout and cancellation
+                tokio::select! {
+                    result = tokio::time::timeout(tokio::time::Duration::from_secs(60), tool_call_future) => {
+                        match result {
+                            Ok(Ok(res)) => {
+                                // Serialize content to match expected generic JSON
+                                match serde_json::to_value(&res.content) {
+                                    Ok(value) => {
+                                        // Try to extract text content to simplify response for LLM
+                                        let extracted_text = if let serde_json::Value::Array(items) = &value
                                         {
-                                            if type_str == "text" {
-                                                if let Some(text) =
-                                                    item.get("text").and_then(|t| t.as_str())
+                                            let mut texts = Vec::new();
+                                            let mut has_text = false;
+
+                                            for item in items {
+                                                if let Some(type_str) =
+                                                    item.get("type").and_then(|t| t.as_str())
                                                 {
-                                                    texts.push(text);
-                                                    has_text = true;
+                                                    if type_str == "text" {
+                                                        if let Some(text) =
+                                                            item.get("text").and_then(|t| t.as_str())
+                                                        {
+                                                            texts.push(text);
+                                                            has_text = true;
+                                                        }
+                                                    } else if type_str == "image" {
+                                                        // Used by some tools to return screenshots
+                                                        texts.push("[Image Content]");
+                                                    }
                                                 }
-                                            } else if type_str == "image" {
-                                                // Used by some tools to return screenshots
-                                                texts.push("[Image Content]");
                                             }
+
+                                            if has_text {
+                                                Some(texts.join("\n\n"))
+                                            } else {
+                                                None
+                                            }
+                                        } else {
+                                            None
+                                        };
+
+                                        if let Some(text) = extracted_text {
+                                            Ok(serde_json::Value::String(text))
+                                        } else {
+                                            Ok(value)
                                         }
                                     }
-
-                                    if has_text {
-                                        Some(texts.join("\n\n"))
-                                    } else {
-                                        None
-                                    }
-                                } else {
-                                    None
-                                };
-
-                                if let Some(text) = extracted_text {
-                                    Ok(serde_json::Value::String(text))
-                                } else {
-                                    Ok(value)
+                                    Err(e) => Err(AppError::Generic(format!(
+                                        "Failed to serialize tool response: {}",
+                                        e
+                                    ))),
                                 }
                             }
-                            Err(e) => Err(AppError::Generic(format!(
-                                "Failed to serialize tool response: {}",
-                                e
-                            ))),
+                            Ok(Err(e)) => Err(AppError::Generic(format!("Tool execution failed: {}", e))),
+                            Err(_) => Err(AppError::Generic(
+                                "Tool execution timed out after 60 seconds".to_string(),
+                            )),
                         }
                     }
-                    Ok(Err(e)) => Err(AppError::Generic(format!("Tool execution failed: {}", e))),
-                    Err(_) => Err(AppError::Generic(
-                        "Tool execution timed out after 300 seconds".to_string(),
-                    )),
+                    _ = cancellation_rx.recv() => {
+                        // Cancellation received
+                        Err(AppError::Cancelled)
+                    }
                 }
             } else {
                 // Standard Execution
@@ -1174,9 +1224,26 @@ impl ChatService {
                     })?
                 };
 
-                self.tool_service
-                    .execute_tool(connection_id, &tool_call.function.name, arguments)
-                    .await
+                // Execute with timeout and cancellation support
+                let tool_exec_future = self.tool_service.execute_tool(
+                    connection_id,
+                    &tool_call.function.name,
+                    arguments,
+                );
+
+                tokio::select! {
+                    result = tokio::time::timeout(tokio::time::Duration::from_secs(60), tool_exec_future) => {
+                        match result {
+                            Ok(r) => r,
+                            Err(_) => Err(AppError::Generic(
+                                "Tool execution timed out after 60 seconds".to_string(),
+                            )),
+                        }
+                    }
+                    _ = cancellation_rx.recv() => {
+                        Err(AppError::Cancelled)
+                    }
+                }
             };
 
             let result = match execution_result {

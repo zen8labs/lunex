@@ -19,12 +19,14 @@ interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
   streamingMessageId: string | null;
+  onCancelToolExecution?: () => void;
 }
 
 export function ChatMessages({
   messages,
   isLoading,
   streamingMessageId,
+  onCancelToolExecution,
 }: ChatMessagesProps) {
   // Track render performance
   useComponentPerformance({
@@ -233,6 +235,7 @@ export function ChatMessages({
         onSaveEdit={handleSaveEdit}
         onPermissionRespond={handlePermissionRespond}
         onViewAgentDetails={handleViewAgentDetails}
+        onCancelToolExecution={onCancelToolExecution}
         userMode={userMode}
         t={t}
         isLoading={isLoading && !streamingMessageId}

@@ -46,6 +46,9 @@ pub enum AppError {
     #[error("[Prompt] {0}")]
     Prompt(String),
 
+    #[error("[Cancelled] Operation cancelled by user")]
+    Cancelled,
+
     #[error("[Error] {0}")]
     Generic(String),
 }

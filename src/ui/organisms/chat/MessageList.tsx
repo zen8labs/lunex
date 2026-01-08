@@ -43,6 +43,7 @@ interface MessageListProps {
     approved: boolean
   ) => void | Promise<void>;
   onViewAgentDetails?: (sessionId: string, agentId: string) => void;
+  onCancelToolExecution?: () => void;
 
   // Other
   userMode: 'normal' | 'developer';
@@ -73,6 +74,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       onSaveEdit,
       onPermissionRespond,
       onViewAgentDetails,
+      onCancelToolExecution,
       userMode,
       t,
       className,
@@ -257,6 +259,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                 message={message}
                 isExpanded={expandedToolCalls[message.id] || false}
                 onToggle={toggleToolCall}
+                onCancel={onCancelToolExecution}
                 t={t}
                 userMode={userMode}
               />
@@ -325,6 +328,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                     }}
                     isExpanded={expandedToolCalls[tc.id] !== false} // Default to expanded
                     onToggle={toggleToolCall}
+                    onCancel={onCancelToolExecution}
                     t={t}
                     onRespond={
                       onPermissionRespond

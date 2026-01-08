@@ -59,6 +59,7 @@ export function ChatArea() {
     streamingMessageId,
     streamingError,
     timeLeft,
+    handleStopStreaming,
     handleRetryStreaming,
   } = useMessages(selectedChatId);
 
@@ -185,6 +186,7 @@ export function ChatArea() {
           !isAgentStreaming
         }
         streamingMessageId={streamingMessageId}
+        onCancelToolExecution={handleStopStreaming}
       />
 
       {/* Input Area */}

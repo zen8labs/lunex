@@ -7,6 +7,7 @@ import {
   Loader2,
   Check,
   X,
+  StopCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/ui/atoms/button/button';
@@ -28,6 +29,7 @@ export interface ToolCallItemProps {
   onToggle: (id: string) => void;
   t: (key: string) => string;
   onRespond?: (allow: boolean) => void;
+  onCancel?: () => void;
   userMode?: 'normal' | 'developer';
 }
 
@@ -39,6 +41,7 @@ export const ToolCallItem = memo(
     onToggle,
     t,
     onRespond,
+    onCancel,
     userMode = 'normal',
   }: ToolCallItemProps) {
     const { toolCallData, parseError } = useMemo(() => {
@@ -75,6 +78,14 @@ export const ToolCallItem = memo(
         onRespond?.(allow);
       },
       [onRespond]
+    );
+
+    const handleCancel = useCallback(
+      (e: MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        onCancel?.();
+      },
+      [onCancel]
     );
 
     if (!toolCallData) {
@@ -177,6 +188,19 @@ export const ToolCallItem = memo(
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
+                )}
+
+                {/* Cancel button when executing */}
+                {isExecuting && !isPending && onCancel && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 mr-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleCancel}
+                    title={t('cancelToolExecution') || 'Cancel'}
+                  >
+                    <StopCircle className="h-4 w-4" />
+                  </Button>
                 )}
 
                 {(!isExecuting || isPending) &&

@@ -149,6 +149,7 @@ impl LLMService {
         chat_id: String,
         message_id: String,
         app: AppHandle,
+        cancellation_rx: Option<tokio::sync::broadcast::Receiver<()>>,
     ) -> Result<LLMChatResponse, AppError> {
         let url = format!("{}/chat/completions", base_url.trim_end_matches('/'));
 
@@ -164,8 +165,15 @@ impl LLMService {
         let request_body = serde_json::to_value(&request)?;
 
         if request.stream {
-            self.handle_streaming(req_builder, request_body, chat_id, message_id, app)
-                .await
+            self.handle_streaming(
+                req_builder,
+                request_body,
+                chat_id,
+                message_id,
+                app,
+                cancellation_rx,
+            )
+            .await
         } else {
             self.handle_non_streaming(req_builder, request_body, chat_id, message_id, app)
                 .await
@@ -179,6 +187,7 @@ impl LLMService {
         chat_id: String,
         message_id: String,
         app: AppHandle,
+        mut cancellation_rx: Option<tokio::sync::broadcast::Receiver<()>>,
     ) -> Result<LLMChatResponse, AppError> {
         let response = req_builder.json(&request_body).send().await?;
 
@@ -211,7 +220,25 @@ impl LLMService {
         let mut tool_calls_emitted = false; // Track if we've already emitted tool calls
         let mut final_usage: Option<TokenUsage> = None;
 
-        while let Some(item) = stream.next().await {
+        while let Some(item) = tokio::select! {
+            // Listen for stream chunks
+            next_item = stream.next() => next_item,
+            // Listen for cancellation signal
+            _ = async {
+                if let Some(ref mut rx) = cancellation_rx {
+                    let _ = rx.recv().await;
+                }
+                futures::future::pending::<()>().await
+            }, if cancellation_rx.is_some() => {
+                // Cancellation received
+                message_emitter.emit_message_error(
+                    chat_id.clone(),
+                    message_id.clone(),
+                    "Message cancelled by user".to_string(),
+                )?;
+                return Err(AppError::Cancelled);
+            }
+        } {
             let chunk = item.map_err(|e| AppError::Generic(format!("Stream error: {e}")))?;
             let text = String::from_utf8_lossy(&chunk);
             buffer.push_str(&text);

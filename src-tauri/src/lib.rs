@@ -164,6 +164,7 @@ pub fn run() {
             commands::message::get_messages,
             commands::message::update_message,
             commands::message::delete_messages_after,
+            commands::message::cancel_message,
             // Workspace Settings commands
             commands::settings::save_workspace_settings,
             commands::settings::get_workspace_settings,
