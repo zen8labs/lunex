@@ -45,5 +45,6 @@
   "toolPermissionTimeout": "Yêu cầu cấp quyền cho công cụ đã hết hạn.",
   "fileTooLarge": "File quá lớn ({{size}}). Tối đa {{max}}.",
   "fileTypeNotSupported": "Loại file không được hỗ trợ: {{type}}",
-  "messageTooLong": "Tin nhắn quá dài ({{length}}/{{max}} ký tự)."
+  "messageTooLong": "Tin nhắn quá dài ({{length}}/{{max}} ký tự).",
+  "agentTaskCompleted": "Tác vụ Agent đã hoàn thành"
 }
