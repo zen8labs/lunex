@@ -22,7 +22,12 @@ type Theme =
   | 'gruvbox'
   | 'dracula'
   | 'solarized-light'
-  | 'solarized-dark';
+  | 'solarized-dark'
+  | 'one-dark-pro'
+  | 'one-light'
+  | 'monokai'
+  | 'nord'
+  | 'ayu-dark';
 
 export function AppSettings() {
   const { t } = useTranslation(['settings', 'common']);
@@ -98,6 +103,13 @@ export function AppSettings() {
               <SelectItem value="solarized-dark">
                 {t('solarizedDarkTheme')}
               </SelectItem>
+              <SelectItem value="one-dark-pro">
+                {t('oneDarkProTheme')}
+              </SelectItem>
+              <SelectItem value="one-light">{t('oneLightTheme')}</SelectItem>
+              <SelectItem value="monokai">{t('monokaiTheme')}</SelectItem>
+              <SelectItem value="nord">{t('nordTheme')}</SelectItem>
+              <SelectItem value="ayu-dark">{t('ayuDarkTheme')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

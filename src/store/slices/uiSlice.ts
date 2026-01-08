@@ -29,7 +29,12 @@ interface UIState {
     | 'gruvbox'
     | 'dracula'
     | 'solarized-light'
-    | 'solarized-dark';
+    | 'solarized-dark'
+    | 'one-dark-pro'
+    | 'one-light'
+    | 'monokai'
+    | 'nord'
+    | 'ayu-dark';
 
   loading: boolean;
   agentChatHistoryDrawerOpen: boolean;
@@ -91,6 +96,11 @@ export const loadAppSettings = createAsyncThunk(
         'dracula',
         'solarized-light',
         'solarized-dark',
+        'one-dark-pro',
+        'one-light',
+        'monokai',
+        'nord',
+        'ayu-dark',
       ];
 
       if (theme && validThemes.includes(theme)) {

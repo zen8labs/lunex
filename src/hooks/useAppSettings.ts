@@ -15,7 +15,12 @@ type Theme =
   | 'gruvbox'
   | 'dracula'
   | 'solarized-light'
-  | 'solarized-dark';
+  | 'solarized-dark'
+  | 'one-dark-pro'
+  | 'one-light'
+  | 'monokai'
+  | 'nord'
+  | 'ayu-dark';
 
 /**
  * Hook to access and manage app settings (language, userMode, and theme)

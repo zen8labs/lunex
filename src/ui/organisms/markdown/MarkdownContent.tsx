@@ -13,6 +13,7 @@ import { useAppSelector } from '@/store/hooks';
 import { cn } from '@/lib/utils';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { CustomCodeComponent } from './CustomCodeComponent';
+import type { BundledTheme } from 'shiki';
 
 export function MarkdownContent({
   content,
@@ -32,6 +33,52 @@ export function MarkdownContent({
     (state) => state.messages.streamingMessageId
   );
   const isStreaming = messageId ? streamingMessageId === messageId : false;
+
+  // Get current app theme for code block syntax highlighting
+  const currentTheme = useAppSelector((state) => state.ui.theme);
+
+  // Map app themes to Shiki themes
+  const shikiTheme = useMemo<[BundledTheme, BundledTheme]>(() => {
+    // For 'system' and 'light'/'dark', use default GitHub themes
+    if (currentTheme === 'light' || currentTheme === 'system') {
+      return ['github-light', 'github-dark'];
+    }
+    if (currentTheme === 'dark') {
+      return ['github-light', 'github-dark'];
+    }
+
+    // Map custom themes to appropriate Shiki themes
+    switch (currentTheme) {
+      case 'github-light':
+        return ['github-light', 'github-light'];
+      case 'github-dark':
+        return ['github-dark', 'github-dark'];
+      case 'gruvbox':
+        // gruvbox-dark-hard is available, using material-theme-lighter as fallback for light
+        return ['material-theme-lighter', 'material-theme-darker'] as [
+          BundledTheme,
+          BundledTheme,
+        ];
+      case 'dracula':
+        return ['dracula', 'dracula'];
+      case 'solarized-light':
+        return ['solarized-light', 'solarized-light'];
+      case 'solarized-dark':
+        return ['solarized-dark', 'solarized-dark'];
+      case 'one-dark-pro':
+        return ['one-dark-pro', 'one-dark-pro'];
+      case 'one-light':
+        return ['one-light', 'one-light'];
+      case 'monokai':
+        return ['monokai', 'monokai'];
+      case 'nord':
+        return ['nord', 'nord'];
+      case 'ayu-dark':
+        return ['ayu-dark', 'ayu-dark'];
+      default:
+        return ['github-light', 'github-dark'];
+    }
+  }, [currentTheme]);
 
   const [streamBuffer, setStreamBuffer] = useState(sanitizedContent);
   const lastUpdateLength = useRef(sanitizedContent.length);
@@ -114,6 +161,7 @@ export function MarkdownContent({
           parseIncompleteMarkdown={true}
           controls
           components={components}
+          shikiTheme={shikiTheme}
           className={cn(
             isStreaming &&
               '[&>*]:animate-in [&>*]:fade-in [&>*]:slide-in-from-bottom-1 [&>*]:duration-1000'
