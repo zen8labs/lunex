@@ -12,8 +12,11 @@ import chatSearchReducer from './slices/chatSearchSlice';
 import toolPermissionReducer from './slices/toolPermissionSlice';
 import { sentryMiddleware } from './sentryMiddleware';
 
+import { baseApi } from './api/baseApi';
+
 export const store = configureStore({
   reducer: {
+    [baseApi.reducerPath]: baseApi.reducer,
     llmConnections: llmConnectionsReducer,
     mcpConnections: mcpConnectionsReducer,
     workspaces: workspacesReducer,
@@ -27,7 +30,7 @@ export const store = configureStore({
     toolPermission: toolPermissionReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(sentryMiddleware),
+    getDefaultMiddleware().concat(sentryMiddleware, baseApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

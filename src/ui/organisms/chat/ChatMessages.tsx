@@ -4,7 +4,7 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { editAndResendMessage, addMessage } from '@/store/slices/messages';
+import { editAndResendMessage } from '@/store/slices/messages';
 import { removePermissionRequest } from '@/store/slices/toolPermissionSlice';
 import { setLoading } from '@/store/slices/chatInputSlice';
 import { showError } from '@/store/slices/notificationSlice';
@@ -13,6 +13,7 @@ import { MessageList } from '@/ui/organisms/chat/MessageList';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import type { Message } from '@/store/types';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
+import { messagesApi } from '@/store/api/messagesApi';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -69,17 +70,11 @@ export function ChatMessages({
             toolCallId: null,
           });
 
-          // Update Redux state
+          // Refresh messages (Server State)
           dispatch(
-            addMessage({
-              chatId: selectedChatId,
-              message: {
-                id,
-                role: 'assistant',
-                content,
-                timestamp,
-              },
-            })
+            messagesApi.util.invalidateTags([
+              { type: 'Message', id: `LIST_${selectedChatId}` },
+            ])
           );
         }
 
@@ -167,8 +162,11 @@ export function ChatMessages({
           });
 
           // Refresh messages to show updated content
-          const { fetchMessages } = await import('@/store/slices/messages');
-          await dispatch(fetchMessages(selectedChatId));
+          dispatch(
+            messagesApi.util.invalidateTags([
+              { type: 'Message', id: `LIST_${selectedChatId}` },
+            ])
+          );
         }
       } catch (error: unknown) {
         console.error('Error editing message:', error);

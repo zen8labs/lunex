@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { invokeCommand, TauriCommands } from '@/lib/tauri';
+import { useState, useMemo, useCallback } from 'react';
 import type { InstalledAgent } from '@/store/types';
+import { useGetInstalledAgentsQuery } from '@/store/api/agentsApi';
 
 interface UseAgentMentionOptions {
   input: string;
@@ -21,53 +21,28 @@ export function useAgentMention({
   input,
   onSelectAgent,
 }: UseAgentMentionOptions): UseAgentMentionReturn {
-  const [agents, setAgents] = useState<InstalledAgent[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [, setIsLoading] = useState(false);
   const [forceClosed, setForceClosed] = useState(false);
-  const prevInputRef = useRef<string>('');
+  // State to track previous values for render-time updates
+  const [prevInput, setPrevInput] = useState(input);
+  const [prevFilteredAgentsLen, setPrevFilteredAgentsLen] = useState(0);
 
-  // Load agents function
-  const loadAgents = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await invokeCommand<InstalledAgent[]>(
-        TauriCommands.GET_INSTALLED_AGENTS
-      );
-      setAgents(data);
-    } catch (error) {
-      console.error('Error loading agents:', error);
-    } finally {
-      setIsLoading(false);
+  // Logic to reset forceClosed (update during render)
+  if (input !== prevInput) {
+    const prevHasValidTrigger =
+      prevInput.startsWith('@') &&
+      (prevInput.length === 1 || !/\s/.test(prevInput[1]));
+
+    const hasValidTrigger =
+      input.startsWith('@') && (input.length === 1 || !/\s/.test(input[1]));
+
+    const isNewTrigger = !prevHasValidTrigger && hasValidTrigger;
+
+    if (isNewTrigger) {
+      setForceClosed(false);
     }
-  }, []);
-
-  // Load agents on mount
-  useEffect(() => {
-    loadAgents();
-  }, [loadAgents]);
-
-  // Reset forceClosed when input changes and starts with "@" followed by non-whitespace
-  useEffect(() => {
-    if (forceClosed) {
-      const prevInput = prevInputRef.current;
-      const prevHasValidTrigger =
-        prevInput.startsWith('@') &&
-        (prevInput.length === 1 || !/\s/.test(prevInput[1]));
-
-      const hasValidTrigger =
-        input.startsWith('@') && (input.length === 1 || !/\s/.test(input[1]));
-
-      const inputChanged = input !== prevInput;
-      const isNewTrigger =
-        inputChanged && !prevHasValidTrigger && hasValidTrigger;
-
-      if (isNewTrigger) {
-        setForceClosed(false);
-      }
-    }
-    prevInputRef.current = input;
-  }, [input, forceClosed]);
+    setPrevInput(input);
+  }
 
   // Detect mention command and extract query
   const { isActive, query } = useMemo(() => {
@@ -93,12 +68,10 @@ export function useAgentMention({
     return { isActive: true, query };
   }, [input, forceClosed]);
 
-  // Reload agents when active
-  useEffect(() => {
-    if (isActive) {
-      loadAgents();
-    }
-  }, [isActive, loadAgents]);
+  // Load agents using RTK Query, skip if not active to save resources
+  const { data: agents = [] } = useGetInstalledAgentsQuery(undefined, {
+    skip: !isActive,
+  });
 
   // Filter agents
   const filteredAgents = useMemo(() => {
@@ -118,12 +91,13 @@ export function useAgentMention({
     );
   }, [agents, query, isActive]);
 
-  // Reset selected index
-  useEffect(() => {
+  // Reset selected index when filtered list changes (update during render)
+  if (filteredAgents.length !== prevFilteredAgentsLen) {
+    setPrevFilteredAgentsLen(filteredAgents.length);
     if (filteredAgents.length > 0) {
       setSelectedIndex(0);
     }
-  }, [filteredAgents.length]);
+  }
 
   // Handle selection
   const handleSelect = useCallback(

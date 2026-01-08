@@ -23,6 +23,8 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/ui/atoms/dropdown-menu';
+import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
+import { useGetMCPConnectionsQuery } from '@/store/api/mcpConnectionsApi';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { cn, formatFileSize } from '@/lib/utils';
 import { showError } from '@/store/slices/notificationSlice';
@@ -71,9 +73,7 @@ export function ChatInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
-  const llmConnections = useAppSelector(
-    (state) => state.llmConnections.llmConnections
-  );
+  const { data: llmConnections = [] } = useGetLLMConnectionsQuery();
 
   // State for variable input dialog
   const [variableDialogOpen, setVariableDialogOpen] = useState(false);
@@ -102,9 +102,7 @@ export function ChatInput({
       ? state.workspaceSettings.settingsByWorkspaceId[selectedWorkspaceId]
       : null
   );
-  const mcpConnections = useAppSelector(
-    (state) => state.mcpConnections.mcpConnections
-  );
+  const { data: mcpConnections = [] } = useGetMCPConnectionsQuery();
 
   // Calculate active tools from workspace settings
   const activeTools = (() => {

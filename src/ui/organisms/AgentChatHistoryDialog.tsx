@@ -14,6 +14,7 @@ import { MessageList } from '@/ui/organisms/chat/MessageList';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import type { Message } from '@/store/types';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
+import { useGetInstalledAgentsQuery } from '@/store/api/agentsApi';
 
 interface AgentChatHistoryDialogProps {
   open: boolean;
@@ -32,7 +33,14 @@ export function AgentChatHistoryDialog({
   const { userMode } = useAppSettings();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const [agentName, setAgentName] = useState<string | null>(null);
+
+  // Use RTK Query for agents
+  const { data: agents = [] } = useGetInstalledAgentsQuery(undefined, {
+    skip: !agentId,
+  });
+
+  const agentName =
+    agents.find((a) => a.manifest.id === agentId)?.manifest.name ?? null;
 
   // Setup auto scroll hook
   const { scrollRef, contentRef, scrollToBottom } = useStickToBottom({
@@ -74,38 +82,7 @@ export function AgentChatHistoryDialog({
     }
   }, [open, messages.length, loading, scrollToBottom]);
 
-  // Fetch agent name when agentId changes
-  useEffect(() => {
-    if (!agentId) {
-      setAgentName(null);
-      return;
-    }
-
-    const fetchAgentName = async () => {
-      try {
-        const agents = await invokeCommand<
-          Array<{
-            manifest: {
-              id: string;
-              name: string;
-              description: string;
-              author: string;
-              schema_version: number;
-            };
-            path: string;
-          }>
-        >(TauriCommands.GET_INSTALLED_AGENTS);
-        const agent = agents.find((a) => a.manifest.id === agentId);
-        if (agent) {
-          setAgentName(agent.manifest.name);
-        }
-      } catch (error) {
-        console.error('Failed to fetch agent name:', error);
-      }
-    };
-
-    fetchAgentName();
-  }, [agentId]);
+  // Fetch agent name effect removed - derived from RTK Query
 
   // Fetch messages when dialog opens and sessionId changes
   useEffect(() => {

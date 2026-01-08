@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  fetchMessages,
   stopStreaming,
   setStreamingError,
   clearStreamingError,
@@ -9,6 +8,7 @@ import {
   clearStreamingStartTime,
 } from '@/store/slices/messages';
 import { showError } from '@/store/slices/notificationSlice';
+import { useGetMessagesQuery } from '@/store/api/messagesApi';
 
 import { useTranslation } from 'react-i18next';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
@@ -23,11 +23,12 @@ export function useMessages(selectedChatId: string | null) {
   const { t } = useTranslation('chat');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
-  // Selectors
-  const messages = useAppSelector((state) => {
-    if (!selectedChatId) return [];
-    return state.messages.messagesByChatId[selectedChatId] || [];
+  // RTK Query for messages
+  const { data: messages = [] } = useGetMessagesQuery(selectedChatId || '', {
+    skip: !selectedChatId,
   });
+
+  // Selectors for UI state (streaming status)
   const streamingMessageId = useAppSelector(
     (state) => state.messages.streamingMessageId
   );
@@ -54,42 +55,6 @@ export function useMessages(selectedChatId: string | null) {
     ? streamingErrors[selectedChatId]
     : undefined;
 
-  // Load messages when chat changes
-  // Only depend on selectedChatId to avoid infinite loops when messagesByChatId reference changes
-  useEffect(() => {
-    if (!selectedChatId) return;
-
-    // Race condition protection: cancelled flag to ignore stale responses
-    let cancelled = false;
-
-    const loadMessages = async () => {
-      try {
-        const result = await dispatch(fetchMessages(selectedChatId));
-
-        // Check if this effect was cancelled (user switched chat)
-        if (cancelled) {
-          return;
-        }
-
-        // Messages loaded successfully (or error handled in reducer)
-        if (fetchMessages.fulfilled.match(result)) {
-          // Success - messages are now in Redux state
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error('Failed to load messages:', error);
-          // Error is already handled in the reducer
-        }
-      }
-    };
-
-    loadMessages();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedChatId, dispatch]); // Only depend on selectedChatId - this prevents infinite loops
-
   // Timeout mechanism for streaming
   useEffect(() => {
     if (!selectedChatId) return;
@@ -103,12 +68,12 @@ export function useMessages(selectedChatId: string | null) {
 
     const startTime = streamingStartTimes[selectedChatId];
 
-    // Set initial start time if not already set
+    // Set initial start time if not already set (recovering state)
     if (!startTime) {
       dispatch(
         setStreamingStartTime({ chatId: selectedChatId, timestamp: Date.now() })
       );
-      return; // Let the next render handle the rest
+      return;
     }
 
     // Timeout timer

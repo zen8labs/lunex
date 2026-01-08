@@ -1,5 +1,7 @@
 import type { RootState } from '@/store/index';
 import type { SendMessageContext } from '../types';
+import { llmConnectionsApi } from '@/store/api/llmConnectionsApi';
+import { mcpConnectionsApi } from '@/store/api/mcpConnectionsApi';
 
 /**
  * Validate and extract state values from Redux state
@@ -20,7 +22,11 @@ export function validateAndExtractState(
     throw new Error('No LLM connection configured for workspace');
   }
 
-  const llmConnections = state.llmConnections.llmConnections;
+  // Use RTK Query selectors
+  const llmConnectionsResult =
+    llmConnectionsApi.endpoints.getLLMConnections.select()(state);
+  const llmConnections = llmConnectionsResult.data || [];
+
   const llmConnection = llmConnections.find(
     (conn) => conn.id === workspaceSettings.llmConnectionId
   );
@@ -39,10 +45,14 @@ export function validateAndExtractState(
   const existingMessages = state.messages.messagesByChatId[chatId] || [];
 
   // Get MCP connections from workspace settings
-  // mcpToolIds is a Record<string, string> mapping tool names to connection IDs
   const mcpToolIds = workspaceSettings.mcpToolIds || {};
   const mcpConnectionIds = Array.from(new Set(Object.values(mcpToolIds)));
-  const mcpConnections = state.mcpConnections.mcpConnections.filter((conn) =>
+
+  const mcpConnectionsResult =
+    mcpConnectionsApi.endpoints.getMCPConnections.select()(state);
+  const allMcpConnections = mcpConnectionsResult.data || [];
+
+  const mcpConnections = allMcpConnections.filter((conn) =>
     mcpConnectionIds.includes(conn.id)
   );
 

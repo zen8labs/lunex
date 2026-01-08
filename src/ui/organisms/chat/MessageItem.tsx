@@ -305,27 +305,57 @@ export const MessageItem = memo(
                 )}
               </div>
 
-              {/* Action buttons - Outside message bubble */}
+              {/* Footer: Tokens + Actions */}
               <div
                 className={cn(
-                  'flex items-center gap-1',
-                  'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
+                  'flex items-center mt-1 gap-2',
                   message.role === 'user'
                     ? 'justify-start pl-2'
-                    : 'justify-end pr-2'
+                    : 'justify-between pr-2' // Spread content for assistant
                 )}
               >
-                {message.role === 'user' && (
-                  <button
-                    className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
-                    onClick={handleEdit}
-                    title={t('edit') || 'Edit'}
-                  >
-                    <Pencil className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
-                  </button>
+                {/* Token usage info for developer mode */}
+                {userMode === 'developer' &&
+                message.role === 'assistant' &&
+                message.tokenUsage ? (
+                  <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 select-text">
+                    {message.tokenUsage.promptTokens !== undefined && (
+                      <span>
+                        {t('promptTokens')}:{' '}
+                        {message.tokenUsage.promptTokens.toLocaleString()}
+                      </span>
+                    )}
+                    {message.tokenUsage.completionTokens !== undefined && (
+                      <span>
+                        {t('completionTokens')}:{' '}
+                        {message.tokenUsage.completionTokens.toLocaleString()}
+                      </span>
+                    )}
+                    {message.tokenUsage.totalTokens !== undefined && (
+                      <span>
+                        {t('totalTokens')}:{' '}
+                        {message.tokenUsage.totalTokens.toLocaleString()}
+                      </span>
+                    )}
+                    {message.tokenUsage.tokensPerSecond !== undefined && (
+                      <span>
+                        {t('tokensPerSecond')}:{' '}
+                        {message.tokenUsage.tokensPerSecond.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div /> // Spacer
                 )}
-                {message.role === 'assistant' && (
-                  <>
+
+                {/* Action buttons */}
+                <div
+                  className={cn(
+                    'flex items-center gap-1',
+                    'opacity-0 group-hover:opacity-100 transition-opacity duration-150'
+                  )}
+                >
+                  {message.role === 'user' && (
                     <button
                       className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
                       onClick={handleEdit}
@@ -333,69 +363,46 @@ export const MessageItem = memo(
                     >
                       <Pencil className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
                     </button>
-                    <button
-                      className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
-                      onClick={handleToggleMarkdown}
-                      title={
-                        markdownEnabled ? t('showRawText') : t('showMarkdown')
-                      }
-                    >
-                      {markdownEnabled ? (
-                        <FileText className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
-                      ) : (
-                        <Code className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
-                      )}
-                    </button>
-                  </>
-                )}
-                <button
-                  className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
-                  onClick={handleCopy}
-                  title={t('copy')}
-                >
-                  {isCopied ? (
-                    <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
                   )}
-                </button>
+                  {message.role === 'assistant' && (
+                    <>
+                      <button
+                        className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                        onClick={handleEdit}
+                        title={t('edit') || 'Edit'}
+                      >
+                        <Pencil className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                      </button>
+                      <button
+                        className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                        onClick={handleToggleMarkdown}
+                        title={
+                          markdownEnabled ? t('showRawText') : t('showMarkdown')
+                        }
+                      >
+                        {markdownEnabled ? (
+                          <FileText className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                        ) : (
+                          <Code className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                        )}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors group/btn"
+                    onClick={handleCopy}
+                    title={t('copy')}
+                  >
+                    {isCopied ? (
+                      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 opacity-50 group-hover/btn:opacity-100 transition-opacity" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}
-
-          {/* Token usage info for developer mode */}
-          {userMode === 'developer' &&
-            message.role === 'assistant' &&
-            message.tokenUsage && (
-              <div className="text-xs text-muted-foreground space-y-1 px-1">
-                <div className="flex gap-4 flex-wrap">
-                  {message.tokenUsage.promptTokens !== undefined && (
-                    <span>
-                      {t('promptTokens')}:{' '}
-                      {message.tokenUsage.promptTokens.toLocaleString()}
-                    </span>
-                  )}
-                  {message.tokenUsage.completionTokens !== undefined && (
-                    <span>
-                      {t('completionTokens')}:{' '}
-                      {message.tokenUsage.completionTokens.toLocaleString()}
-                    </span>
-                  )}
-                  {message.tokenUsage.totalTokens !== undefined && (
-                    <span>
-                      {t('totalTokens')}:{' '}
-                      {message.tokenUsage.totalTokens.toLocaleString()}
-                    </span>
-                  )}
-                  {message.tokenUsage.tokensPerSecond !== undefined && (
-                    <span>
-                      {t('tokensPerSecond')}:{' '}
-                      {message.tokenUsage.tokensPerSecond.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
         </div>
       </div>
     );

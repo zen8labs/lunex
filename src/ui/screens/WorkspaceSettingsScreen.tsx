@@ -21,6 +21,8 @@ import {
   stopStreaming,
 } from '@/store/slices/messages';
 import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
+import { useGetMCPConnectionsQuery } from '@/store/api/mcpConnectionsApi';
 import type { WorkspaceSettings } from '@/store/types';
 
 export function WorkspaceSettingsScreen() {
@@ -35,12 +37,8 @@ export function WorkspaceSettingsScreen() {
     handleDeleteWorkspace,
   } = useWorkspaces();
 
-  const llmConnections = useAppSelector(
-    (state) => state.llmConnections.llmConnections
-  );
-  const allMcpConnections = useAppSelector(
-    (state) => state.mcpConnections.mcpConnections
-  );
+  const { data: llmConnections = [] } = useGetLLMConnectionsQuery();
+  const { data: allMcpConnections = [] } = useGetMCPConnectionsQuery();
 
   const chats = useAppSelector((state) =>
     selectedWorkspace

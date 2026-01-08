@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Button } from '@/ui/atoms/button/button';
@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { TauriCommands } from '@/bindings/commands';
 import { invokeCommand } from '@/lib/tauri';
+import { useGetInstalledAgentsQuery } from '@/store/api/agentsApi';
 
 interface Manifest {
   id: string;
@@ -73,8 +74,11 @@ interface InstalledAgent {
 }
 
 export function AgentSettings() {
-  const [agents, setAgents] = useState<InstalledAgent[]>([]);
-  const [_loading, setLoading] = useState(false);
+  const {
+    data: agents = [],
+    isLoading: _loading,
+    refetch: fetchAgents,
+  } = useGetInstalledAgentsQuery();
   const [installing, setInstalling] = useState(false);
 
   // Git Install State
@@ -96,22 +100,6 @@ export function AgentSettings() {
   >([]);
   const [agentInstructions, setAgentInstructions] = useState<string>('');
   const [loadingAgentInfo, setLoadingAgentInfo] = useState(false);
-
-  const fetchAgents = async () => {
-    setLoading(true);
-    try {
-      const installed = await invoke<InstalledAgent[]>('get_installed_agents');
-      setAgents(installed);
-    } catch (error) {
-      toast.error('Failed to fetching agents: ' + error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAgents();
-  }, []);
 
   const handleInstallLocal = async () => {
     try {

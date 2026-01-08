@@ -11,6 +11,7 @@ import { sendMessage } from '@/store/slices/messages';
 import { setLoading, clearInput } from '@/store/slices/chatInputSlice';
 import { showError } from '@/store/slices/notificationSlice';
 import { setAgentChatHistoryDrawerOpen } from '@/store/slices/uiSlice';
+import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
 
 export function ChatArea() {
   const { t } = useTranslation(['common', 'settings']);
@@ -47,9 +48,7 @@ export function ChatArea() {
     (state) => state.chatInput.attachedFiles
   );
 
-  const llmConnections = useAppSelector(
-    (state) => state.llmConnections.llmConnections
-  );
+  const { data: llmConnections = [] } = useGetLLMConnectionsQuery();
 
   // Use messages hook
   const {

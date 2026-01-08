@@ -29,15 +29,15 @@ import {
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { HeadersEditor } from '@/ui/organisms/settings/HeadersEditor';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch } from '@/store/hooks';
 import {
-  addMCPConnection,
-  updateMCPConnection,
-  removeMCPConnection,
-  connectMCPConnection,
-  disconnectMCPConnection,
-} from '@/store/slices/mcpConnectionsSlice';
-import { refreshMCPConnections } from '@/store/slices/mcpConnectionsSlice';
+  useGetMCPConnectionsQuery,
+  useCreateMCPConnectionMutation,
+  useConnectMCPConnectionMutation,
+  useDisconnectMCPConnectionMutation,
+  useUpdateMCPConnectionMutation,
+  useRemoveMCPConnectionMutation,
+} from '@/store/api/mcpConnectionsApi';
 import { navigateToChat } from '@/store/slices/uiSlice';
 import { showError, showSuccess } from '@/store/slices/notificationSlice';
 import type { MCPToolType, MCPServerConnection } from '@/lib/mcp/types';
@@ -59,9 +59,15 @@ interface NodeRuntimeStatus {
 export function MCPServerConnections() {
   const { t } = useTranslation('settings');
   const dispatch = useAppDispatch();
-  const mcpConnections = useAppSelector(
-    (state) => state.mcpConnections.mcpConnections
-  );
+
+  // RTK Query Hooks
+  const { data: mcpConnections = [] } = useGetMCPConnectionsQuery();
+  const [createConnection] = useCreateMCPConnectionMutation();
+  const [connectConnection] = useConnectMCPConnectionMutation();
+  const [disconnectConnection] = useDisconnectMCPConnectionMutation();
+  const [updateConnection] = useUpdateMCPConnectionMutation();
+  const [removeConnection] = useRemoveMCPConnectionMutation();
+
   const [editingConnection, setEditingConnection] =
     useState<MCPServerConnection | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -110,9 +116,7 @@ export function MCPServerConnections() {
     if (!connectionToDelete) return;
 
     try {
-      await dispatch(removeMCPConnection(connectionToDelete)).unwrap();
-      // Refresh connections from database
-      await dispatch(refreshMCPConnections()).unwrap();
+      await removeConnection(connectionToDelete).unwrap();
       setDeleteDialogOpen(false);
       setConnectionToDelete(null);
       dispatch(
@@ -126,18 +130,13 @@ export function MCPServerConnections() {
 
   const handleReload = async (connection: MCPServerConnection) => {
     try {
-      await dispatch(
-        connectMCPConnection({
-          id: connection.id,
-          url: connection.url,
-          type: connection.type,
-          headers: connection.headers,
-          runtime_path: connection.runtime_path,
-        })
-      ).unwrap();
-
-      // Refresh connections to get updated status
-      await dispatch(refreshMCPConnections()).unwrap();
+      await connectConnection({
+        id: connection.id,
+        url: connection.url,
+        type: connection.type,
+        headers: connection.headers,
+        runtime_path: connection.runtime_path,
+      }).unwrap();
 
       dispatch(
         showSuccess(
@@ -153,10 +152,7 @@ export function MCPServerConnections() {
 
   const handleDisconnect = async (connection: MCPServerConnection) => {
     try {
-      await dispatch(disconnectMCPConnection(connection.id)).unwrap();
-
-      // Refresh connections to get updated status
-      await dispatch(refreshMCPConnections()).unwrap();
+      await disconnectConnection(connection.id).unwrap();
 
       dispatch(
         showSuccess(
@@ -174,19 +170,17 @@ export function MCPServerConnections() {
     try {
       if (editingConnection) {
         // Update existing connection
-        const updateResult = await dispatch(
-          updateMCPConnection({
-            id: editingConnection.id,
-            connection: {
-              name: connection.name,
-              url: connection.url,
-              type: connection.type,
-              headers: connection.headers,
-              runtime_path: connection.runtime_path,
-              tools: connection.tools,
-            },
-          })
-        ).unwrap();
+        const result = await updateConnection({
+          id: editingConnection.id,
+          connection: {
+            name: connection.name,
+            url: connection.url,
+            type: connection.type,
+            headers: connection.headers,
+            runtime_path: connection.runtime_path,
+            tools: connection.tools,
+          },
+        }).unwrap();
 
         // Close dialog immediately
         setDialogOpen(false);
@@ -196,27 +190,25 @@ export function MCPServerConnections() {
         dispatch(showSuccess(t('connectionSaved'), t('mcpConnectionUpdated')));
         dispatch(navigateToChat());
 
-        // If connection needs reconnect, trigger async connection immediately
-        if (updateResult.updates.status === 'connecting') {
-          dispatch(
-            connectMCPConnection({
-              id: editingConnection.id,
-              url: connection.url,
-              type: connection.type,
-              headers: connection.headers,
-              runtime_path: connection.runtime_path,
-            })
-          ).catch((error) => {
+        // If connection needs reconnect
+        if (result.needsReconnect) {
+          connectConnection({
+            id: editingConnection.id,
+            url: connection.url,
+            type: connection.type,
+            headers: connection.headers,
+            runtime_path: connection.runtime_path,
+          }).catch((error) => {
             console.error('Error reconnecting MCP server:', error);
           });
         }
 
         return; // Exit early for updates
       } else {
-        // Create new connection - this returns immediately with "connecting" status
-        const result = await dispatch(addMCPConnection(connection)).unwrap();
+        // Create new connection
+        const result = await createConnection(connection).unwrap();
 
-        // Close dialog immediately after saving to DB
+        // Close dialog immediately
         setDialogOpen(false);
         setEditingConnection(null);
 
@@ -226,30 +218,19 @@ export function MCPServerConnections() {
         );
         dispatch(navigateToChat());
 
-        // Start async connection immediately in background (don't await)
-        dispatch(
-          connectMCPConnection({
-            id: result.id,
-            url: connection.url,
-            type: connection.type,
-            headers: connection.headers,
-            runtime_path: connection.runtime_path,
-          })
-        ).catch((error) => {
+        // Start async connection immediately in background
+        connectConnection({
+          id: result.id,
+          url: connection.url,
+          type: connection.type,
+          headers: connection.headers,
+          runtime_path: connection.runtime_path,
+        }).catch((error) => {
           console.error('Error connecting MCP server:', error);
         });
 
         return; // Exit early for new connections
       }
-
-      // For updates, refresh and close
-      await dispatch(refreshMCPConnections()).unwrap();
-      setDialogOpen(false);
-      setEditingConnection(null);
-
-      // Show success notification
-      dispatch(showSuccess(t('connectionSaved'), t('mcpConnectionUpdated')));
-      dispatch(navigateToChat());
     } catch (error) {
       console.error('Error saving MCP connection:', error);
       dispatch(showError(t('cannotSaveConnection')));

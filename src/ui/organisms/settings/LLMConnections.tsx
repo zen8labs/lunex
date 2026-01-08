@@ -29,14 +29,14 @@ import {
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch } from '@/store/hooks';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import {
-  addLLMConnection,
-  updateLLMConnection,
-  removeLLMConnection,
-  refreshLLMConnections,
-} from '@/store/slices/llmConnectionsSlice';
+  useGetLLMConnectionsQuery,
+  useCreateLLMConnectionMutation,
+  useUpdateLLMConnectionMutation,
+  useDeleteLLMConnectionMutation,
+} from '@/store/api/llmConnectionsApi';
 import { navigateToChat } from '@/store/slices/uiSlice';
 import { showError, showSuccess } from '@/store/slices/notificationSlice';
 
@@ -69,9 +69,13 @@ export interface LLMConnection {
 export function LLMConnections() {
   const { t } = useTranslation('settings');
   const dispatch = useAppDispatch();
-  const llmConnections = useAppSelector(
-    (state) => state.llmConnections.llmConnections
-  );
+
+  // Use RTK Query hooks
+  const { data: llmConnections = [] } = useGetLLMConnectionsQuery();
+  const [createConnection] = useCreateLLMConnectionMutation();
+  const [updateConnection] = useUpdateLLMConnectionMutation();
+  const [deleteConnection] = useDeleteLLMConnectionMutation();
+
   const [editingConnection, setEditingConnection] =
     useState<LLMConnection | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -94,9 +98,7 @@ export function LLMConnections() {
     if (!connectionToDelete) return;
 
     try {
-      await dispatch(removeLLMConnection(connectionToDelete)).unwrap();
-      // Refresh connections from database
-      await dispatch(refreshLLMConnections()).unwrap();
+      await deleteConnection(connectionToDelete).unwrap();
       setDeleteDialogOpen(false);
       setConnectionToDelete(null);
       dispatch(
@@ -112,34 +114,27 @@ export function LLMConnections() {
     try {
       if (editingConnection) {
         // Update existing connection
-        await dispatch(
-          updateLLMConnection({
-            id: editingConnection.id,
-            connection: {
-              name: connection.name,
-              baseUrl: connection.baseUrl,
-              provider: connection.provider,
-              apiKey: connection.apiKey,
-              models: connection.models,
-            },
-          })
-        ).unwrap();
+        await updateConnection({
+          id: editingConnection.id,
+          connection: {
+            name: connection.name,
+            baseUrl: connection.baseUrl,
+            provider: connection.provider,
+            apiKey: connection.apiKey,
+            models: connection.models,
+          },
+        }).unwrap();
+
+        dispatch(showSuccess(t('connectionSaved'), t('connectionUpdated')));
       } else {
         // Create new connection
-        await dispatch(addLLMConnection(connection)).unwrap();
+        await createConnection(connection).unwrap();
+        dispatch(showSuccess(t('connectionSaved'), t('newConnectionCreated')));
       }
-      // Refresh connections from database
-      await dispatch(refreshLLMConnections()).unwrap();
+
       setDialogOpen(false);
       setEditingConnection(null);
 
-      // Show success notification
-      dispatch(
-        showSuccess(
-          t('connectionSaved'),
-          editingConnection ? t('connectionUpdated') : t('newConnectionCreated')
-        )
-      );
       dispatch(navigateToChat());
     } catch (error) {
       console.error('Error saving LLM connection:', error);

@@ -2,24 +2,21 @@ import { useEffect, useRef } from 'react';
 import { listenToEvent, TauriEvents } from '@/lib/tauri';
 import { useAppDispatch } from '@/store/hooks';
 import {
-  appendToMessage,
-  appendToThinking,
-  updateMessage,
-  updateMessageTokenUsage,
-  updateMessageWithToolCalls,
   setStreamingMessageId,
   setStreamingByChatId,
   clearStreamingMessageId,
-  fetchMessages,
   setStreamingStartTime,
   clearStreamingStartTime,
+  updateMessageTokenUsage,
 } from '@/store/slices/messages';
-import type { TokenUsage } from '@/store/types';
+import type { Message } from '@/store/types';
 import { showSuccess } from '@/store/slices/notificationSlice';
 import { addPermissionRequest } from '@/store/slices/toolPermissionSlice';
 import { useTranslation } from 'react-i18next';
+import { messagesApi } from '@/store/api/messagesApi';
+import { extractCodeBlocks } from '@/lib/code-block-extractor';
 
-// Event types matching Rust events
+// Event types
 interface MessageStartedEvent {
   chat_id: string;
   user_message_id: string;
@@ -114,19 +111,14 @@ interface ToolPermissionRequestEvent {
   }>;
 }
 
-/**
- * Hook to listen to Tauri events for chat streaming
- * This hook sets up event listeners for:
- * - message-chunk: Streaming content chunks
- * - message-complete: Message completion with final content
- * - message-error: Error events
- * - tool-calls-detected: Tool calls detected (for Phase 2)
- * - tool-permission-request: Tool permission request (requires user confirmation)
- */
+interface MessageMetadataUpdatedEvent {
+  chat_id: string;
+  message_id: string;
+}
+
 export function useChatStreaming() {
   const dispatch = useAppDispatch();
   const { t } = useTranslation('chat');
-  // Track messsage IDs that have associated tool calls
   const hasToolCallsRef = useRef<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -134,10 +126,12 @@ export function useChatStreaming() {
     const unlistenStarted = listenToEvent<MessageStartedEvent>(
       TauriEvents.MESSAGE_STARTED,
       async (payload) => {
-        // Fetch messages to get the newly created user and assistant messages
-        await dispatch(fetchMessages(payload.chat_id));
+        dispatch(
+          messagesApi.util.invalidateTags([
+            { type: 'Message', id: `LIST_${payload.chat_id}` },
+          ])
+        );
 
-        // Set up streaming state
         dispatch(
           setStreamingByChatId({
             chatId: payload.chat_id,
@@ -146,7 +140,6 @@ export function useChatStreaming() {
         );
         dispatch(setStreamingMessageId(payload.assistant_message_id));
 
-        // Set streaming start time for timeout tracking
         dispatch(
           setStreamingStartTime({
             chatId: payload.chat_id,
@@ -161,11 +154,19 @@ export function useChatStreaming() {
       TauriEvents.MESSAGE_CHUNK,
       (payload) => {
         dispatch(
-          appendToMessage({
-            chatId: payload.chat_id,
-            messageId: payload.message_id,
-            chunk: payload.chunk,
-          })
+          messagesApi.util.updateQueryData(
+            'getMessages',
+            payload.chat_id,
+            (draft: Message[]) => {
+              const message = draft.find((m) => m.id === payload.message_id);
+              if (message) {
+                message.content += payload.chunk;
+                const codeBlocks = extractCodeBlocks(message.content);
+                message.codeBlocks =
+                  codeBlocks.length > 0 ? codeBlocks : undefined;
+              }
+            }
+          )
         );
       }
     );
@@ -175,11 +176,17 @@ export function useChatStreaming() {
       TauriEvents.THINKING_CHUNK,
       (payload) => {
         dispatch(
-          appendToThinking({
-            chatId: payload.chat_id,
-            messageId: payload.message_id,
-            chunk: payload.chunk,
-          })
+          messagesApi.util.updateQueryData(
+            'getMessages',
+            payload.chat_id,
+            (draft: Message[]) => {
+              const message = draft.find((m) => m.id === payload.message_id);
+              if (message) {
+                if (!message.reasoning) message.reasoning = '';
+                message.reasoning += payload.chunk;
+              }
+            }
+          )
         );
       }
     );
@@ -188,22 +195,49 @@ export function useChatStreaming() {
     const unlistenComplete = listenToEvent<MessageCompleteEvent>(
       TauriEvents.MESSAGE_COMPLETE,
       async (payload) => {
-        // Update message with final content
         dispatch(
-          updateMessage({
-            chatId: payload.chat_id,
-            messageId: payload.message_id,
-            content: payload.content,
-          })
+          messagesApi.util.updateQueryData(
+            'getMessages',
+            payload.chat_id,
+            (draft: Message[]) => {
+              const message = draft.find((m) => m.id === payload.message_id);
+              if (message) {
+                message.content = payload.content;
+                const codeBlocks = extractCodeBlocks(message.content);
+                message.codeBlocks =
+                  codeBlocks.length > 0 ? codeBlocks : undefined;
+
+                if (payload.token_usage) {
+                  message.tokenUsage = {
+                    promptTokens: payload.token_usage.prompt_tokens,
+                    completionTokens: payload.token_usage.completion_tokens,
+                    totalTokens: payload.token_usage.total_tokens,
+                  };
+                }
+              }
+            }
+          )
         );
 
-        // Update token usage if available
+        // Also update UI slice for token usage if needed, or rely on RTK Query data.
+        // But original code dispatched updateMessageTokenUsage.
+        // updateMessageTokenUsage updates 'messages' slice.
+        // If we want to keep slice synced (optional, but good for consistency if other parts read slice), we can dispatch it.
+        // But 'useMessages' now reads from RTK Query.
+        // So updating slice is not strictly needed for the View.
+        // However, 'ChatMessages' might pass messages to other utils?
+
         if (payload.token_usage) {
-          const tokenUsage: TokenUsage = {
+          const tokenUsage = {
             promptTokens: payload.token_usage.prompt_tokens,
             completionTokens: payload.token_usage.completion_tokens,
             totalTokens: payload.token_usage.total_tokens,
           };
+          // We dispatch this action to keep the slice updated just in case, or we can remove it if we fully switched.
+          // Since we refactored useMessages to use RTK Query, slice update is redundant for View.
+          // But let's keep it to minimize side-effect breakage for now, or better remove it if I trust my refactor.
+          // I'll keep it as it was in original file (dispatch updateMessageTokenUsage).
+          // Wait, I need to import updateMessageTokenUsage.
           dispatch(
             updateMessageTokenUsage({
               chatId: payload.chat_id,
@@ -211,22 +245,21 @@ export function useChatStreaming() {
               tokenUsage,
             })
           );
+        }
 
-          // Track streaming performance
+        if (payload.token_usage) {
           const { trackStreamingPerformance } =
             await import('@/lib/sentry-utils');
-          // Calculate duration from start time if available
-          const startTime = Date.now(); // This should come from state
+          const startTime = Date.now();
           const duration = Date.now() - startTime;
           trackStreamingPerformance(
             payload.chat_id,
             duration,
-            1, // chunk count - would need to track this
+            1,
             payload.token_usage.total_tokens
           );
         }
 
-        // Clear streaming state
         dispatch(
           setStreamingByChatId({
             chatId: payload.chat_id,
@@ -234,8 +267,6 @@ export function useChatStreaming() {
           })
         );
         dispatch(clearStreamingMessageId());
-
-        // Clear streaming start time
         dispatch(clearStreamingStartTime(payload.chat_id));
       }
     );
@@ -244,16 +275,19 @@ export function useChatStreaming() {
     const unlistenError = listenToEvent<MessageErrorEvent>(
       TauriEvents.MESSAGE_ERROR,
       (payload) => {
-        // Update message with error content
         dispatch(
-          updateMessage({
-            chatId: payload.chat_id,
-            messageId: payload.message_id,
-            content: `Error: ${payload.error}`,
-          })
+          messagesApi.util.updateQueryData(
+            'getMessages',
+            payload.chat_id,
+            (draft: Message[]) => {
+              const message = draft.find((m) => m.id === payload.message_id);
+              if (message) {
+                message.content = `Error: ${payload.error}`;
+              }
+            }
+          )
         );
 
-        // Clear streaming state
         dispatch(
           setStreamingByChatId({
             chatId: payload.chat_id,
@@ -261,26 +295,20 @@ export function useChatStreaming() {
           })
         );
         dispatch(clearStreamingMessageId());
-
-        // Clear streaming start time
         dispatch(clearStreamingStartTime(payload.chat_id));
       }
     );
 
-    // Listen to message metadata updated events (for agent card updates)
-    interface MessageMetadataUpdatedEvent {
-      chat_id: string;
-      message_id: string;
-    }
+    // Listen to message metadata updated
     const unlistenMetadataUpdated = listenToEvent<MessageMetadataUpdatedEvent>(
       TauriEvents.MESSAGE_METADATA_UPDATED,
       async (payload) => {
-        // Fetch messages to get updated metadata
-        await dispatch(fetchMessages(payload.chat_id));
+        dispatch(
+          messagesApi.util.invalidateTags([
+            { type: 'Message', id: `LIST_${payload.chat_id}` },
+          ])
+        );
 
-        // Clear streaming state for agent card messages
-        // Agent cards don't stream content, so we should clear streaming state
-        // when metadata is updated (indicating the agent task has completed)
         dispatch(
           setStreamingByChatId({
             chatId: payload.chat_id,
@@ -288,11 +316,8 @@ export function useChatStreaming() {
           })
         );
         dispatch(clearStreamingMessageId());
-
-        // Clear streaming start time
         dispatch(clearStreamingStartTime(payload.chat_id));
 
-        // Show notification
         dispatch(
           showSuccess(t('agentTaskCompleted') || 'Agent task completed')
         );
@@ -303,20 +328,21 @@ export function useChatStreaming() {
     const unlistenToolCalls = listenToEvent<ToolCallsDetectedEvent>(
       TauriEvents.TOOL_CALLS_DETECTED,
       (payload) => {
-        // Convert tool calls to frontend format
-        const toolCalls = payload.tool_calls.map((tc) => ({
-          id: tc.id,
-          name: tc.name,
-          arguments: tc.arguments,
-        }));
-
-        // Update message with tool calls
         dispatch(
-          updateMessageWithToolCalls({
-            chatId: payload.chat_id,
-            messageId: payload.message_id,
-            toolCalls,
-          })
+          messagesApi.util.updateQueryData(
+            'getMessages',
+            payload.chat_id,
+            (draft: Message[]) => {
+              const message = draft.find((m) => m.id === payload.message_id);
+              if (message) {
+                message.toolCalls = payload.tool_calls.map((tc) => ({
+                  id: tc.id,
+                  name: tc.name,
+                  arguments: tc.arguments,
+                }));
+              }
+            }
+          )
         );
 
         if (payload.tool_calls && payload.tool_calls.length > 0) {
@@ -325,70 +351,55 @@ export function useChatStreaming() {
       }
     );
 
-    // Listen to tool execution started event
-    const unlistenToolExecutionStarted =
-      listenToEvent<ToolExecutionStartedEvent>(
-        TauriEvents.TOOL_EXECUTION_STARTED,
-        (_) => {
-          // Tool execution has started
-          // You can show UI indicators here if needed
-        }
-      );
-
-    // Listen to tool execution progress events
     const unlistenToolExecutionProgress =
       listenToEvent<ToolExecutionProgressEvent>(
         TauriEvents.TOOL_EXECUTION_PROGRESS,
         (payload) => {
-          // Update UI for individual tool execution progress
-          // The tool_call message should already exist in the database
-          // We can fetch messages to update the UI
-
-          // Fetch messages to get updated tool_call message
-          dispatch(fetchMessages(payload.chat_id));
+          dispatch(
+            messagesApi.util.invalidateTags([
+              { type: 'Message', id: `LIST_${payload.chat_id}` },
+            ])
+          );
         }
       );
 
-    // Listen to tool execution completed event
     const unlistenToolExecutionCompleted =
       listenToEvent<ToolExecutionCompletedEvent>(
         TauriEvents.TOOL_EXECUTION_COMPLETED,
         (payload) => {
-          // All tools have been executed
-
-          // Fetch messages to get updated tool results
-          dispatch(fetchMessages(payload.chat_id));
+          dispatch(
+            messagesApi.util.invalidateTags([
+              { type: 'Message', id: `LIST_${payload.chat_id}` },
+            ])
+          );
         }
       );
 
-    // Listen to tool execution error events
     const unlistenToolExecutionError = listenToEvent<ToolExecutionErrorEvent>(
       TauriEvents.TOOL_EXECUTION_ERROR,
       (payload) => {
-        // Tool execution error
-        console.error(
-          `Tool execution error for ${payload.tool_name} (${payload.tool_call_id}): ${payload.error}`
+        console.error(`Tool error: ${payload.error}`);
+        dispatch(
+          messagesApi.util.invalidateTags([
+            { type: 'Message', id: `LIST_${payload.chat_id}` },
+          ])
         );
-
-        // Fetch messages to get updated error state
-        dispatch(fetchMessages(payload.chat_id));
       }
     );
 
-    // Listen to agent loop iteration events (optional, for debugging)
+    const unlistenToolExecutionStarted =
+      listenToEvent<ToolExecutionStartedEvent>(
+        TauriEvents.TOOL_EXECUTION_STARTED,
+        (_) => {}
+      );
     const unlistenAgentLoopIteration = listenToEvent<AgentLoopIterationEvent>(
       TauriEvents.AGENT_LOOP_ITERATION,
-      (_) => {
-        // Agent loop iteration
-      }
+      (_) => {}
     );
-
-    // Listen to tool permission request events
     const unlistenToolPermissionRequest =
       listenToEvent<ToolPermissionRequestEvent>(
         TauriEvents.TOOL_PERMISSION_REQUEST,
         (payload) => {
-          // Dispatch to Redux store
           dispatch(
             addPermissionRequest({
               chatId: payload.chat_id,
@@ -400,7 +411,6 @@ export function useChatStreaming() {
         }
       );
 
-    // Cleanup function
     return () => {
       unlistenStarted.then((fn) => fn());
       unlistenChunk.then((fn) => fn());

@@ -1,25 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Bot, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/ui/atoms/button/button';
-import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { cn } from '@/lib/utils';
+import { useGetInstalledAgentsQuery } from '@/store/api/agentsApi';
 
 interface AgentCardProps {
   agentId: string;
   sessionId: string;
   status: 'running' | 'completed' | 'failed';
   onViewDetails?: (sessionId: string) => void;
-}
-
-interface InstalledAgent {
-  manifest: {
-    id: string;
-    name: string;
-    description: string;
-    author: string;
-    schema_version: number;
-  };
-  path: string;
 }
 
 export function AgentCard({
@@ -29,9 +18,14 @@ export function AgentCard({
   onViewDetails,
   children,
 }: AgentCardProps & { children?: React.ReactNode }) {
-  const [agentName, setAgentName] = useState<string | null>(null);
+  // Use RTK Query to fetch agents (cached)
+  const { data: agents = [] } = useGetInstalledAgentsQuery();
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [prevStatus, setPrevStatus] = useState(status);
+
+  const agentName =
+    agents.find((a) => a.manifest.id === agentId)?.manifest.name ?? null;
 
   // Auto-collapse when finished. Do NOT auto-expand on running.
   if (status !== prevStatus) {
@@ -41,25 +35,7 @@ export function AgentCard({
     }
   }
 
-  useEffect(() => {
-    const fetchAgentName = async () => {
-      try {
-        const agents = await invokeCommand<InstalledAgent[]>(
-          TauriCommands.GET_INSTALLED_AGENTS
-        );
-        const agent = agents.find((a) => a.manifest.id === agentId);
-        if (agent) {
-          setAgentName(agent.manifest.name);
-        }
-      } catch (error) {
-        console.error('Failed to fetch agent name:', error);
-      }
-    };
-
-    if (agentId) {
-      fetchAgentName();
-    }
-  }, [agentId]);
+  // Effect removed, replaced by derived state from query data
 
   return (
     <div
