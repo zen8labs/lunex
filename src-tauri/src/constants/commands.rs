@@ -83,4 +83,5 @@ impl TauriCommands {
     pub const GET_INSTALLED_AGENTS: &'static str = "get_installed_agents";
     pub const DELETE_AGENT: &'static str = "delete_agent";
     pub const GET_AGENT_INFO: &'static str = "get_agent_info";
+    pub const UPDATE_AGENT: &'static str = "update_agent";
 }

@@ -152,7 +152,9 @@ impl ChatService {
         app: AppHandle,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<String, AppError>> + Send>> {
         Box::pin(async move {
-            let result = self.send_message(chat_id.clone(), prompt.clone(), None, None, app.clone()).await;
+            let result = self
+                .send_message(chat_id.clone(), prompt.clone(), None, None, app.clone())
+                .await;
             result.map(|(_, content)| content)
         })
     }
@@ -290,7 +292,6 @@ impl ChatService {
                 let agent_id_owned = agent_id.to_string();
 
                 tokio::spawn(async move {
-
                     let chat_service = {
                         let state = app_handle.state::<crate::state::AppState>();
                         state.chat_service.clone()
@@ -1058,7 +1059,7 @@ impl ChatService {
                 None,
                 None,
             )?;
-            
+
             // Log tool execution start for debugging
             eprintln!(
                 "Starting tool execution: tool={}, chat_id={}, tool_call_id={}",
@@ -1089,32 +1090,59 @@ impl ChatService {
 
                 // Call tool on agent client with timeout (300 seconds, same as LLM timeout)
                 let tool_call_future = client.call_tool(params);
-                match tokio::time::timeout(
-                    tokio::time::Duration::from_secs(300),
-                    tool_call_future,
-                )
-                .await
+                match tokio::time::timeout(tokio::time::Duration::from_secs(300), tool_call_future)
+                    .await
                 {
                     Ok(Ok(res)) => {
                         // Serialize content to match expected generic JSON
-                        match serde_json::to_string(&res.content) {
-                            Ok(s) => match serde_json::from_str(&s) {
-                                Ok(v) => Ok(v),
-                                Err(e) => Err(AppError::Generic(format!(
-                                    "Failed to parse tool response JSON: {}",
-                                    e
-                                ))),
-                            },
+                        match serde_json::to_value(&res.content) {
+                            Ok(value) => {
+                                // Try to extract text content to simplify response for LLM
+                                let extracted_text = if let serde_json::Value::Array(items) = &value
+                                {
+                                    let mut texts = Vec::new();
+                                    let mut has_text = false;
+
+                                    for item in items {
+                                        if let Some(type_str) =
+                                            item.get("type").and_then(|t| t.as_str())
+                                        {
+                                            if type_str == "text" {
+                                                if let Some(text) =
+                                                    item.get("text").and_then(|t| t.as_str())
+                                                {
+                                                    texts.push(text);
+                                                    has_text = true;
+                                                }
+                                            } else if type_str == "image" {
+                                                // Used by some tools to return screenshots
+                                                texts.push("[Image Content]");
+                                            }
+                                        }
+                                    }
+
+                                    if has_text {
+                                        Some(texts.join("\n\n"))
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                };
+
+                                if let Some(text) = extracted_text {
+                                    Ok(serde_json::Value::String(text))
+                                } else {
+                                    Ok(value)
+                                }
+                            }
                             Err(e) => Err(AppError::Generic(format!(
                                 "Failed to serialize tool response: {}",
                                 e
                             ))),
                         }
                     }
-                    Ok(Err(e)) => Err(AppError::Generic(format!(
-                        "Tool execution failed: {}",
-                        e
-                    ))),
+                    Ok(Err(e)) => Err(AppError::Generic(format!("Tool execution failed: {}", e))),
                     Err(_) => Err(AppError::Generic(
                         "Tool execution timed out after 300 seconds".to_string(),
                     )),
@@ -1175,7 +1203,7 @@ impl ChatService {
                         Some(result.clone()),
                         None,
                     )?;
-                    
+
                     // Log successful tool execution
                     eprintln!(
                         "Tool execution completed: tool={}, chat_id={}, tool_call_id={}",
@@ -1187,7 +1215,7 @@ impl ChatService {
                 Err(e) => {
                     failed_count += 1;
                     let error_msg = e.to_string();
-                    
+
                     // Log error for debugging
                     eprintln!(
                         "Tool execution failed: tool={}, chat_id={}, error={}",

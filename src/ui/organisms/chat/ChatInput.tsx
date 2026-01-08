@@ -135,7 +135,11 @@ export function ChatInput({
   })();
 
   // Use messages hook for streaming state
-  const { handleStopStreaming, isStreaming } = useMessages(selectedChatId);
+  const { handleStopStreaming, isStreaming, isAgentStreaming } =
+    useMessages(selectedChatId);
+
+  // If streaming is due to agent card, don't show streaming UI in input
+  const effectiveIsStreaming = isStreaming && !isAgentStreaming;
 
   // Insert prompt content into input, replacing the slash command
   const insertPromptContent = (content: string) => {
@@ -464,7 +468,7 @@ export function ChatInput({
     <>
       <div className="bg-background">
         {/* Streaming timeout countdown - sticky at top of input area */}
-        {isStreaming &&
+        {effectiveIsStreaming &&
           timeLeft !== null &&
           timeLeft !== undefined &&
           timeLeft > 0 && (
@@ -791,32 +795,34 @@ export function ChatInput({
                   onClick={
                     input.trim()
                       ? onSend
-                      : isStreaming
+                      : effectiveIsStreaming
                         ? handleStopStreaming
                         : onSend
                   }
                   disabled={
                     input.trim()
                       ? disabled || input.length > MAX_MESSAGE_LENGTH
-                      : !isStreaming
+                      : !effectiveIsStreaming
                   }
                   size="icon"
                   variant={
-                    isStreaming && !input.trim() ? 'destructive' : 'ghost'
+                    effectiveIsStreaming && !input.trim()
+                      ? 'destructive'
+                      : 'ghost'
                   }
                   className={cn(
                     'h-7 w-7 shrink-0',
-                    isStreaming && !input.trim()
+                    effectiveIsStreaming && !input.trim()
                       ? 'hover:bg-destructive/90'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   )}
                   aria-label={
-                    isStreaming && !input.trim()
+                    effectiveIsStreaming && !input.trim()
                       ? t('stopStreaming', { ns: 'chat' })
                       : t('sendMessage', { ns: 'common' })
                   }
                 >
-                  {isStreaming && !input.trim() ? (
+                  {effectiveIsStreaming && !input.trim() ? (
                     <Square className="size-4" />
                   ) : (
                     <Send className="size-4" />

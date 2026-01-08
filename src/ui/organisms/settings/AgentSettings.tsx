@@ -34,6 +34,7 @@ import {
   Trash2,
   Wrench,
   FileText,
+  RefreshCw,
 } from 'lucide-react';
 import { TauriCommands } from '@/bindings/commands';
 import { invokeCommand } from '@/lib/tauri';
@@ -50,10 +51,25 @@ interface Manifest {
   permissions?: string[];
 }
 
+interface AgentSource {
+  type: 'git' | 'local';
+  url?: string;
+  revision?: string;
+  sub_path?: string;
+  path?: string;
+}
+
+interface InstallInfo {
+  source: AgentSource;
+  installed_at: number;
+  updated_at: number;
+}
+
 interface InstalledAgent {
   manifest: Manifest;
   version_ref: string;
   path: string;
+  install_info?: InstallInfo;
 }
 
 export function AgentSettings() {
@@ -74,6 +90,7 @@ export function AgentSettings() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [agentTools, setAgentTools] = useState<
     Array<{ name: string; description?: string }>
   >([]);
@@ -156,6 +173,33 @@ export function AgentSettings() {
       toast.error('Installation failed: ' + error);
     } finally {
       setInstalling(false);
+    }
+  };
+
+  const handleUpdateAgent = async () => {
+    if (!selectedAgent) return;
+
+    setUpdating(true);
+    toast.info(`Updating agent ${selectedAgent.manifest.name}...`);
+
+    try {
+      await invoke(TauriCommands.UPDATE_AGENT, {
+        agentId: selectedAgent.manifest.id,
+      });
+
+      toast.success('Agent updated successfully!');
+      // Refresh list and keep dialog open but refresh details maybe?
+      // Actually fetchAgents will update the list state.
+      // We might want to re-select the agent to show new version ref.
+      await fetchAgents();
+
+      // Close dialog for now as simpler UX, or find the updated agent in new list
+      setDialogOpen(false);
+      setSelectedAgent(null);
+    } catch (error) {
+      toast.error('Failed to update agent: ' + error);
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -461,12 +505,32 @@ export function AgentSettings() {
                         </p>
                       </div>
                     )}
+                    {selectedAgent.install_info && (
+                      <>
+                        <div>
+                          <p className="text-muted-foreground mb-1">Source</p>
+                          <p className="font-medium capitalize">
+                            {selectedAgent.install_info.source.type}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground mb-1">Updated</p>
+                          <p className="font-medium text-xs">
+                            {new Date(
+                              selectedAgent.install_info.updated_at * 1000
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 {/* Links */}
                 {(selectedAgent.manifest.homepage ||
-                  selectedAgent.manifest.repository) && (
+                  selectedAgent.manifest.repository ||
+                  (selectedAgent.install_info?.source.type === 'git' &&
+                    selectedAgent.install_info.source.url)) && (
                   <>
                     <Separator />
                     <div className="space-y-3">
@@ -494,6 +558,21 @@ export function AgentSettings() {
                             <span>Repository</span>
                           </a>
                         )}
+                        {/* Show source URL if different from repo or if repo missing */}
+                        {selectedAgent.install_info?.source.type === 'git' &&
+                          selectedAgent.install_info.source.url &&
+                          selectedAgent.install_info.source.url !==
+                            selectedAgent.manifest.repository && (
+                            <a
+                              href={selectedAgent.install_info.source.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm text-primary hover:underline"
+                            >
+                              <GitBranch className="h-4 w-4" />
+                              <span>Source Repository</span>
+                            </a>
+                          )}
                       </div>
                     </div>
                   </>
@@ -595,7 +674,7 @@ export function AgentSettings() {
               </div>
             )}
           </DialogBody>
-          <DialogFooter>
+          <DialogFooter className="flex justify-between items-center sm:justify-between w-full">
             <Button
               type="button"
               variant="destructive"
@@ -605,6 +684,28 @@ export function AgentSettings() {
               <Trash2 className="h-4 w-4" />
               Delete Agent
             </Button>
+
+            {selectedAgent?.install_info?.source.type === 'git' && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleUpdateAgent}
+                disabled={updating}
+                className="gap-2"
+              >
+                {updating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Update from Git
+                  </>
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

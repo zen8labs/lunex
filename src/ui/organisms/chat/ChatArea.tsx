@@ -56,6 +56,7 @@ export function ChatArea() {
     messages,
     pausedStreaming,
     isStreaming,
+    isAgentStreaming,
     streamingMessageId,
     streamingError,
     timeLeft,
@@ -179,7 +180,11 @@ export function ChatArea() {
       {/* Messages Area */}
       <ChatMessages
         messages={messages}
-        isLoading={isStreaming && !pausedStreaming[selectedChatId || '']}
+        isLoading={
+          isStreaming &&
+          !pausedStreaming[selectedChatId || ''] &&
+          !isAgentStreaming
+        }
         streamingMessageId={streamingMessageId}
       />
 

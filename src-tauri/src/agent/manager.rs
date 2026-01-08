@@ -8,10 +8,31 @@ use std::path::{Path, PathBuf};
 // use tauri::AppHandle; // If we need to emit events
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(tag = "type")]
+pub enum AgentSource {
+    #[serde(rename = "local")]
+    Local { path: Option<String> },
+    #[serde(rename = "git")]
+    Git {
+        url: String,
+        revision: Option<String>,
+        sub_path: Option<String>,
+    },
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct InstallInfo {
+    pub source: AgentSource,
+    pub installed_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct InstalledAgent {
     pub manifest: common::Manifest,
     pub version_ref: String,
     pub path: PathBuf,
+    pub install_info: Option<InstallInfo>,
 }
 
 pub struct AgentManager {
@@ -51,7 +72,25 @@ impl AgentManager {
         common::extract_zip(zip_path, &extract_dir)?;
 
         // 3. Install
-        self.install_from_directory(&extract_dir, &hash).await
+        let agent_id = self.install_from_directory(&extract_dir, &hash).await?;
+
+        // 4. Save Install Info
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs() as i64;
+
+        let info = InstallInfo {
+            source: AgentSource::Local {
+                path: zip_path.to_str().map(|s| s.to_string()),
+            },
+            installed_at: now,
+            updated_at: now,
+        };
+
+        self.save_install_info(&agent_id, &info)?;
+
+        Ok(agent_id)
     }
 
     /// Install an agent from a git repository
@@ -87,7 +126,73 @@ impl AgentManager {
         }
 
         // 3. Install
-        self.install_from_directory(&target_dir, &commit_hash).await
+        let agent_id = self
+            .install_from_directory(&target_dir, &commit_hash)
+            .await?;
+
+        // 4. Save Install Info
+        // Check if existing info exists to preserve installed_at
+        let existing_info = self.get_install_info(&agent_id).ok();
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs() as i64;
+
+        let installed_at = existing_info.map(|i| i.installed_at).unwrap_or(now);
+
+        let info = InstallInfo {
+            source: AgentSource::Git {
+                url: repo_url.to_string(),
+                revision: revision.map(|s| s.to_string()),
+                sub_path: sub_path.map(|s| s.to_string()),
+            },
+            installed_at,
+            updated_at: now,
+        };
+
+        self.save_install_info(&agent_id, &info)?;
+
+        Ok(agent_id)
+    }
+
+    /// Update an agent if source allows it
+    pub async fn update_agent(&self, agent_id: &str) -> Result<String> {
+        let info = self
+            .get_install_info(agent_id)
+            .context("Cannot update agent: Missing installation info")?;
+
+        match info.source {
+            AgentSource::Git {
+                url,
+                revision,
+                sub_path,
+            } => {
+                // Re-install from git
+                self.install_from_git(&url, revision.as_deref(), sub_path.as_deref())
+                    .await
+            }
+            AgentSource::Local { .. } => {
+                anyhow::bail!("Cannot auto-update local agent. Please reinstall from zip.")
+            }
+        }
+    }
+
+    fn save_install_info(&self, agent_id: &str, info: &InstallInfo) -> Result<()> {
+        let agent_root = self.agents_dir().join(agent_id);
+        if !agent_root.exists() {
+            fs::create_dir_all(&agent_root)?;
+        }
+        let path = agent_root.join("install.json");
+        let item = serde_json::to_string_pretty(info)?;
+        fs::write(path, item)?;
+        Ok(())
+    }
+
+    fn get_install_info(&self, agent_id: &str) -> Result<InstallInfo> {
+        let path = self.agents_dir().join(agent_id).join("install.json");
+        let content = fs::read_to_string(path)?;
+        let info: InstallInfo = serde_json::from_str(&content)?;
+        Ok(info)
     }
 
     /// Core installation logic
@@ -176,10 +281,15 @@ impl AgentManager {
                             .to_string_lossy()
                             .to_string();
 
+                        // Try read install info
+                        let agent_id = &manifest.id;
+                        let install_info = self.get_install_info(agent_id).ok();
+
                         agents.push(InstalledAgent {
                             manifest,
                             version_ref,
                             path: current_link,
+                            install_info,
                         });
                     }
                 }
@@ -372,14 +482,16 @@ impl AgentManager {
     /// Delete an installed agent
     pub fn delete_agent(&self, agent_id: &str) -> Result<()> {
         let agent_root = self.agents_dir().join(agent_id);
-        
+
         if !agent_root.exists() {
             anyhow::bail!("Agent not found: {}", agent_id);
         }
 
         // Remove the entire agent directory (includes all versions and the current symlink)
-        fs::remove_dir_all(&agent_root)
-            .context(format!("Failed to delete agent directory: {}", agent_root.display()))?;
+        fs::remove_dir_all(&agent_root).context(format!(
+            "Failed to delete agent directory: {}",
+            agent_root.display()
+        ))?;
 
         Ok(())
     }

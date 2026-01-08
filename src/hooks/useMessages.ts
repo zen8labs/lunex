@@ -179,6 +179,19 @@ export function useMessages(selectedChatId: string | null) {
     }
   }, [selectedChatId, streamingError, isStreaming, dispatch]);
 
+  // Check if streaming message is an agent card
+  const isAgentStreaming =
+    messages.some((m) => {
+      if (m.id !== streamingByChatId[selectedChatId || '']) return false;
+      if (!m.metadata) return false;
+      try {
+        const parsed = JSON.parse(m.metadata);
+        return parsed.type === 'agent_card' && parsed.status === 'running';
+      } catch {
+        return false;
+      }
+    }) && isStreaming;
+
   // Handlers
   const handleStopStreaming = () => {
     if (selectedChatId) {
@@ -208,6 +221,7 @@ export function useMessages(selectedChatId: string | null) {
     streamingByChatId,
     pausedStreaming,
     isStreaming,
+    isAgentStreaming,
     streamingError,
     timeLeft: isStreaming ? timeLeft : null,
     handleStopStreaming,

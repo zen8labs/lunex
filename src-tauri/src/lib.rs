@@ -29,7 +29,7 @@ fn init_sentry() -> sentry::ClientInitGuard {
     let dsn = option_env!("RUST_SENTRY_DSN")
         .and_then(|s| if s.is_empty() { None } else { Some(s) })
         .and_then(|s| s.parse().ok());
-    
+
     let guard = sentry::init(sentry::ClientOptions {
         dsn,
         release: sentry::release_name!(),
@@ -83,7 +83,12 @@ pub fn run() {
                     let window_clone = window.clone();
                     std::thread::spawn(move || {
                         std::thread::sleep(std::time::Duration::from_millis(100));
-                        if let Err(e) = window_clone.set_position(Position::Physical(tauri::PhysicalPosition { x: 0, y: 0 })) {
+                        if let Err(e) =
+                            window_clone.set_position(Position::Physical(tauri::PhysicalPosition {
+                                x: 0,
+                                y: 0,
+                            }))
+                        {
                             eprintln!("Failed to set window position: {}", e);
                         }
                     });
@@ -199,6 +204,7 @@ pub fn run() {
             agent::commands::get_installed_agents,
             agent::commands::delete_agent,
             agent::commands::get_agent_info,
+            agent::commands::update_agent,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

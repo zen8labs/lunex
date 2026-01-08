@@ -60,13 +60,19 @@ pub async fn get_installed_agents(
 }
 
 #[tauri::command]
-pub async fn delete_agent(
-    state: State<'_, AppState>,
-    agent_id: String,
-) -> Result<(), String> {
+pub async fn delete_agent(state: State<'_, AppState>, agent_id: String) -> Result<(), String> {
     state
         .agent_manager
         .delete_agent(&agent_id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn update_agent(state: State<'_, AppState>, agent_id: String) -> Result<String, String> {
+    state
+        .agent_manager
+        .update_agent(&agent_id)
+        .await
         .map_err(|e| e.to_string())
 }
 
@@ -88,5 +94,8 @@ pub async fn get_agent_info(
         .await
         .map_err(|e| e.to_string())?;
 
-    Ok(AgentInfo { tools, instructions })
+    Ok(AgentInfo {
+        tools,
+        instructions,
+    })
 }
