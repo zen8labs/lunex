@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 python-runtime
+
+# Allow .agent directory for AI agent configuration
+!.agent/
+!.agent/**
