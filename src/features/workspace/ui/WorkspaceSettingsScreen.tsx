@@ -106,7 +106,7 @@ export function WorkspaceSettingsScreen() {
         </div>
 
         {/* Content */}
-        <ScrollArea className="flex-1 [&_[data-slot='scroll-area-scrollbar']]:hidden">
+        <ScrollArea className="flex-1">
           <div className="p-4 max-w-4xl mx-auto w-full">
             {selectedWorkspace ? (
               <WorkspaceSettingsForm

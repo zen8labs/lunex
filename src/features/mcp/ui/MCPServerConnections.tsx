@@ -294,7 +294,7 @@ export function MCPServerConnections() {
               }
             />
           ) : (
-            <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+            <ScrollArea className="h-full">
               <div className="space-y-2">
                 {mcpConnections.map((connection) => (
                   <div
@@ -397,11 +397,18 @@ export function MCPServerConnections() {
           )}
         </TabsContent>
 
-        <TabsContent value="community" className="mt-6 space-y-4">
-          <CommunityMCPServersSection
-            installedServerIds={installedServerIds}
-            onInstall={handleInstallClick}
-          />
+        <TabsContent
+          value="community"
+          className="mt-6 space-y-4 flex-1 overflow-hidden"
+        >
+          <ScrollArea className="h-full">
+            <div className="pr-4">
+              <CommunityMCPServersSection
+                installedServerIds={installedServerIds}
+                onInstall={handleInstallClick}
+              />
+            </div>
+          </ScrollArea>
         </TabsContent>
       </Tabs>
 
@@ -558,17 +565,17 @@ function MCPServerConnectionDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl flex flex-col max-h-[90vh]">
+        <DialogHeader className="shrink-0">
+          <DialogTitle>
+            {connection ? t('editConnection') : t('addNewConnection')}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            {t('configureMCPConnection')}
+          </p>
+        </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <DialogHeader className="shrink-0">
-            <DialogTitle>
-              {connection ? t('editConnection') : t('addNewConnection')}
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              {t('configureMCPConnection')}
-            </p>
-          </DialogHeader>
-          <DialogBody>
-            <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+          <DialogBody className="">
+            <ScrollArea className="h-full">
               <div className="space-y-4 pr-4">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="mcp-name">{t('connectionName')}</Label>
@@ -685,7 +692,7 @@ function MCPServerConnectionDialog({
                     <Label>
                       {t('toolsList', { count: connection.tools.length })}
                     </Label>
-                    <div className="max-h-[200px] w-full rounded-md border p-3 overflow-y-auto">
+                    <ScrollArea className="h-[200px] w-full rounded-md border p-3">
                       <div className="space-y-1">
                         {connection.tools.map((tool, index) => (
                           <div
@@ -701,7 +708,7 @@ function MCPServerConnectionDialog({
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </ScrollArea>
                   </div>
                 )}
               </div>

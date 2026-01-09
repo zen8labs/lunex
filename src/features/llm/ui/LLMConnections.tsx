@@ -144,7 +144,7 @@ export function LLMConnections() {
           }
         />
       ) : (
-        <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+        <ScrollArea className="h-full">
           <div className="space-y-2">
             {llmConnections.map((connection) => (
               <div
@@ -419,8 +419,8 @@ function LLMConnectionForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-      <DialogBody>
-        <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+      <DialogBody className="overflow-hidden">
+        <ScrollArea className="h-full">
           <div className="space-y-4 pr-4">
             <div className="space-y-2 w-full">
               <Label htmlFor="name">{t('connectionName')}</Label>
@@ -535,7 +535,7 @@ function LLMConnectionForm({
             {models.length > 0 && (
               <div className="space-y-2 w-full">
                 <Label>{t('modelsList', { count: models.length })}</Label>
-                <ScrollArea className="h-[200px] w-full rounded-md border p-3 [&_[data-slot='scroll-area-scrollbar']]:hidden">
+                <ScrollArea className="h-[200px] w-full rounded-md border p-3">
                   <div className="space-y-1">
                     {models.map((model) => (
                       <div

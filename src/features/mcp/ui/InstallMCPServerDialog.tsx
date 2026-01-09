@@ -121,8 +121,8 @@ export function InstallMCPServerDialog({
           <p className="text-sm text-muted-foreground">{server.description}</p>
         </DialogHeader>
 
-        <DialogBody>
-          <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+        <DialogBody className="overflow-hidden">
+          <ScrollArea className="h-full">
             <div className="space-y-4 pr-4">
               <div className="space-y-2">
                 <Label>

@@ -266,8 +266,8 @@ export function WorkspaceSettingsForm({
         onSubmit={handleSubmit}
         className="flex flex-col flex-1 min-h-0 overflow-hidden"
       >
-        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
-          <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+        <div className="flex-1 overflow-hidden px-6 py-4 min-h-0">
+          <ScrollArea className="h-full">
             <div className="space-y-6 pr-4">
               {/* Basic Settings Section */}
               <div className="space-y-4">

@@ -33,16 +33,12 @@ export function SettingsLayout({
           </Button>
           <h2 className="text-lg font-semibold">{title}</h2>
         </div>
-        <ScrollArea className="flex-1 [&_[data-slot='scroll-area-scrollbar']]:hidden">
-          {sidebar}
-        </ScrollArea>
+        <ScrollArea className="flex-1">{sidebar}</ScrollArea>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 [&_[data-slot='scroll-area-scrollbar']]:hidden">
-          {children}
-        </ScrollArea>
+        <ScrollArea className="flex-1">{children}</ScrollArea>
       </div>
     </div>
   );
