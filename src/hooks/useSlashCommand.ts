@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
-import type { Prompt } from '@/store/types';
+import type { Prompt } from '@/app/types';
 
 interface UseSlashCommandOptions {
   input: string;

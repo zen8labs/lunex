@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { Button } from '@/ui/atoms/button/button';
-import { useAppDispatch } from '@/store/hooks';
-import { navigateToChat } from '@/store/slices/uiSlice';
+import { useAppDispatch } from '@/app/hooks';
+import { navigateToChat } from '@/features/ui/state/uiSlice';
 
 interface SettingsLayoutProps {
   children: ReactNode;

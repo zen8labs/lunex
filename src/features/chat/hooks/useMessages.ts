@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
   stopStreaming,
   setStreamingError,
@@ -7,7 +7,7 @@ import {
   setStreamingStartTime,
   clearStreamingStartTime,
 } from '../state/messages';
-import { showError } from '@/store/slices/notificationSlice';
+import { showError } from '@/features/notifications/state/notificationSlice';
 import { useGetMessagesQuery } from '../state/messagesApi';
 
 import { useTranslation } from 'react-i18next';

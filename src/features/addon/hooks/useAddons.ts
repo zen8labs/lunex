@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { useAppDispatch } from '@/store/hooks';
-import { showSuccess } from '@/store/slices/notificationSlice';
+import { useAppDispatch } from '@/app/hooks';
+import { showSuccess } from '@/features/notifications/state/notificationSlice';
 import { handleCommandError } from '@/lib/tauri';
 import type {
   AddonConfig,

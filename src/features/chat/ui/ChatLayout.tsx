@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/app/hooks';
 import { cn } from '@/lib/utils';
 
 interface ChatLayoutProps {

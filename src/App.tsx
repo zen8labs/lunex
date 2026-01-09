@@ -1,21 +1,21 @@
 import { useEffect } from 'react';
 import { Provider } from 'react-redux';
-import { store } from '@/store';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { MainLayout } from '@/ui/layouts/MainLayout';
+import { store } from '@/app/store';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { MainLayout } from '@/features/ui/ui/MainLayout';
 import { Toaster } from '@/ui/atoms/sonner';
 import { DialogOriginProvider } from '@/ui/atoms/dialog/provider';
 import { ModalStackProvider } from '@/ui/atoms/modal-stack';
 import { useNotificationListener } from '@/hooks/useNotificationListener';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useMenuEvents } from '@/hooks/useMenuEvents';
-import { useChatStreaming } from '@/hooks/useChatStreaming';
+import { useChatStreaming } from '@/features/chat/hooks/useChatStreaming';
 import {
   loadAppSettings,
   checkFirstLaunch,
   setWelcomeOpen,
-} from '@/store/slices/uiSlice';
-import { WelcomeScreen } from '@/ui/screens/WelcomeScreen';
+} from '@/features/ui/state/uiSlice';
+import { WelcomeScreen } from '@/features/onboarding/ui/WelcomeScreen';
 import i18n from '@/i18n/config';
 
 function AppContent() {

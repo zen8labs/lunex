@@ -1,6 +1,6 @@
 import { ActionCreatorWithPayload, createAsyncThunk } from '@reduxjs/toolkit';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
-import type { RootState } from '@/store/index';
+import type { RootState } from '@/app/store';
 import { validateAndExtractState } from '../helpers/sendMessage/stateValidation';
 
 /**

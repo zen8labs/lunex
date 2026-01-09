@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { removeNotification } from '@/store/slices/notificationSlice';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { removeNotification } from '@/features/notifications/state/notificationSlice';
 import {
   Network,
   Database,

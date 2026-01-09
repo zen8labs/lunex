@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/app/hooks';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import {
   useGetLLMConnectionsQuery,
@@ -38,8 +38,11 @@ import {
   useDeleteLLMConnectionMutation,
 } from '../hooks/useLLMConnections';
 import type { LLMConnection, LLMModel } from '../types';
-import { navigateToChat } from '@/store/slices/uiSlice';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import { navigateToChat } from '@/features/ui/state/uiSlice';
+import {
+  showError,
+  showSuccess,
+} from '@/features/notifications/state/notificationSlice';
 
 export function LLMConnections() {
   const { t } = useTranslation('settings');

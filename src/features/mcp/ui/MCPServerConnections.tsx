@@ -29,7 +29,7 @@ import {
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { HeadersEditor } from '@/features/settings';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/app/hooks';
 import {
   useGetMCPConnectionsQuery,
   useCreateMCPConnectionMutation,
@@ -38,8 +38,11 @@ import {
   useUpdateMCPConnectionMutation,
   useRemoveMCPConnectionMutation,
 } from '../hooks/useMCPConnections';
-import { navigateToChat } from '@/store/slices/uiSlice';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import { navigateToChat } from '@/features/ui/state/uiSlice';
+import {
+  showError,
+  showSuccess,
+} from '@/features/notifications/state/notificationSlice';
 import type { MCPToolType, MCPServerConnection } from '../types';
 
 import { invokeCommand, TauriCommands } from '@/lib/tauri';

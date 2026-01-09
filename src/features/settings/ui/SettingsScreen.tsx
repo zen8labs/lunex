@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setSettingsSection } from '@/store/slices/uiSlice';
-import { SettingsLayout } from '@/ui/layouts/SettingsLayout';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { setSettingsSection } from '@/features/ui/state/uiSlice';
+import { SettingsLayout } from '@/features/settings/ui/SettingsLayout';
 
 // Section Components
 import { LLMConnections } from '@/features/llm';

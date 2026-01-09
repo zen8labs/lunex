@@ -9,3 +9,4 @@ export * from './hooks/useWorkspaces';
 export * from './ui/WorkspaceSelector';
 export * from './ui/WorkspaceSettingsForm';
 export * from './ui/AddWorkspaceDialog';
+export * from './ui/WorkspaceSettingsScreen';

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { listenToEvent, TauriEvents } from '@/lib/tauri';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/app/hooks';
 import {
   navigateToSettings,
   setAboutOpen,
   setKeyboardShortcutsOpen,
   toggleSidebar,
   setTheme,
-} from '@/store/slices/uiSlice';
+} from '@/features/ui/state/uiSlice';
 import { createChat } from '@/features/chat/state/chatsSlice';
 import { useWorkspaces } from '@/features/workspace';
 import { useTranslation } from 'react-i18next';

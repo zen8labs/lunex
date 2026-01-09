@@ -4,7 +4,7 @@ import {
   ActionCreatorWithoutPayload,
 } from '@reduxjs/toolkit';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
-import type { RootState } from '@/store/index';
+import type { RootState } from '@/app/store';
 import type { Message, ToolCall, TokenUsage } from '../../../types';
 import { validateAndExtractState } from '../helpers/sendMessage/stateValidation';
 

@@ -1,10 +1,10 @@
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
 import {
   setLanguage,
   setUserMode,
   setTheme,
   loadAppSettings,
-} from '@/store/slices/uiSlice';
+} from '@/features/ui/state/uiSlice';
 
 type Theme =
   | 'light'

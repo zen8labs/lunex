@@ -1,7 +1,10 @@
-import type { RootState } from '@/store/index';
+import type { RootState } from '@/app/store';
 import type { SendMessageContext } from '../types';
 import { llmConnectionsApi } from '@/features/llm';
 import { mcpConnectionsApi } from '@/features/mcp';
+
+import type { LLMConnection } from '@/features/llm';
+import type { MCPServerConnection } from '@/features/mcp';
 
 /**
  * Validate and extract state values from Redux state
@@ -25,7 +28,7 @@ export function validateAndExtractState(
   // Use RTK Query selectors
   const llmConnectionsResult =
     llmConnectionsApi.endpoints.getLLMConnections.select()(state);
-  const llmConnections = llmConnectionsResult.data || [];
+  const llmConnections = (llmConnectionsResult.data || []) as LLMConnection[];
 
   const llmConnection = llmConnections.find(
     (conn) => conn.id === workspaceSettings.llmConnectionId
@@ -50,7 +53,8 @@ export function validateAndExtractState(
 
   const mcpConnectionsResult =
     mcpConnectionsApi.endpoints.getMCPConnections.select()(state);
-  const allMcpConnections = mcpConnectionsResult.data || [];
+  const allMcpConnections = (mcpConnectionsResult.data ||
+    []) as MCPServerConnection[];
 
   const mcpConnections = allMcpConnections.filter((conn) =>
     mcpConnectionIds.includes(conn.id)

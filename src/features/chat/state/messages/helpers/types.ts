@@ -3,7 +3,7 @@ import type {
   WorkspaceSettings,
   LLMConnection,
   MCPServerConnection,
-} from '@/store/types';
+} from '@/app/types';
 
 /**
  * Context object containing all state needed for sendMessage thunk

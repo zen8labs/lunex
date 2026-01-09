@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { listenToEvent, TauriEvents } from '@/lib/tauri';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/app/hooks';
 import {
   setStreamingMessageId,
   setStreamingByChatId,
@@ -9,9 +9,9 @@ import {
   clearStreamingStartTime,
   updateMessageTokenUsage,
 } from '@/features/chat/state/messages';
-import type { Message } from '@/store/types';
-import { showSuccess } from '@/store/slices/notificationSlice';
-import { addPermissionRequest } from '@/store/slices/toolPermissionSlice';
+import type { Message } from '@/app/types';
+import { showSuccess } from '@/features/notifications/state/notificationSlice';
+import { addPermissionRequest } from '@/features/tools/state/toolPermissionSlice';
 import { useTranslation } from 'react-i18next';
 import { messagesApi } from '@/features/chat/state/messagesApi';
 import { extractCodeBlocks } from '@/lib/code-block-extractor';

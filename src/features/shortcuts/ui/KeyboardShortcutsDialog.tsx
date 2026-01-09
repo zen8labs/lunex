@@ -8,8 +8,8 @@ import {
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { Separator } from '@/ui/atoms/separator';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setKeyboardShortcutsOpen } from '@/store/slices/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { setKeyboardShortcutsOpen } from '@/features/ui/state/uiSlice';
 import { Keyboard } from 'lucide-react';
 
 export function KeyboardShortcutsDialog() {

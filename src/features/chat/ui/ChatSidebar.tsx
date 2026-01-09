@@ -34,12 +34,12 @@ import {
 import { ContextMenu } from '@/ui/atoms/context-menu';
 import { cn } from '@/lib/utils';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
-import type { Message } from '@/store/types';
+import type { Message } from '@/app/types';
 import { useChats } from '../hooks/useChats';
 import { useWorkspaces } from '@/features/workspace';
-import { useExportChat } from '@/hooks/useExportChat';
-import { useAppDispatch } from '@/store/hooks';
-import { navigateToWorkspaceSettings } from '@/store/slices/uiSlice';
+import { useExportChat } from '@/features/chat/hooks/useExportChat';
+import { useAppDispatch } from '@/app/hooks';
+import { navigateToWorkspaceSettings } from '@/features/ui/state/uiSlice';
 
 export function ChatSidebar() {
   // Track render performance

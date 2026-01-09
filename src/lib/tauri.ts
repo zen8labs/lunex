@@ -38,8 +38,8 @@ export async function listenToEvent<T = unknown>(
 export { TauriCommands } from '@/bindings/commands';
 export { TauriEvents } from '@/bindings/events';
 
-import { AppDispatch } from '@/store';
-import { showError } from '@/store/slices/notificationSlice';
+import { AppDispatch } from '@/app/store';
+import { showError } from '@/features/notifications/state/notificationSlice';
 import { parseBackendError } from '@/lib/utils';
 
 /**

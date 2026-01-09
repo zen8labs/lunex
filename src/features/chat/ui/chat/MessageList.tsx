@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, forwardRef } from 'react';
 import type { Message } from '../../types';
-import type { PermissionRequest } from '@/store/slices/toolPermissionSlice';
+import type { PermissionRequest } from '@/features/tools/state/toolPermissionSlice';
 import { ToolCallItem } from './ToolCallItem';
 import { ThinkingItem } from './ThinkingItem';
 import { MessageItem } from './MessageItem';

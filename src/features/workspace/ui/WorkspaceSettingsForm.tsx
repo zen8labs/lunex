@@ -39,7 +39,7 @@ import { SlashCommandDropdown } from '@/ui/molecules/SlashCommandDropdown';
 import { VariableInputDialog } from '@/ui/molecules/VariableInputDialog';
 import { parsePromptVariables, renderPrompt } from '@/lib/prompt-utils';
 import type { Workspace, WorkspaceSettings } from '../types';
-import type { LLMConnection, MCPServerConnection, Prompt } from '@/store/types';
+import type { LLMConnection, MCPServerConnection, Prompt } from '@/app/types';
 
 interface WorkspaceSettingsFormProps {
   workspace: Workspace;

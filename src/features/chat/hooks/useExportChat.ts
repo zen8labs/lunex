@@ -1,7 +1,7 @@
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import * as opener from '@tauri-apps/plugin-opener';
-import type { Message } from '@/store/types';
+import type { Message } from '@/app/types';
 
 export function useExportChat() {
   const exportFile = async (

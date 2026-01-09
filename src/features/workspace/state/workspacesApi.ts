@@ -1,4 +1,4 @@
-import { baseApi } from '@/store/api/baseApi';
+import { baseApi } from '@/app/api/baseApi';
 import { TauriCommands } from '@/bindings/commands';
 import type { Workspace } from '../types';
 

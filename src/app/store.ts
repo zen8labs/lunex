@@ -11,9 +11,9 @@ import {
   chatInputReducer,
   chatSearchReducer,
 } from '@/features/chat';
-import uiReducer from './slices/uiSlice';
-import notificationReducer from './slices/notificationSlice';
-import toolPermissionReducer from './slices/toolPermissionSlice';
+import uiReducer from '@/features/ui/state/uiSlice';
+import notificationReducer from '@/features/notifications/state/notificationSlice';
+import toolPermissionReducer from '@/features/tools/state/toolPermissionSlice';
 import { sentryMiddleware } from './sentryMiddleware';
 
 import { baseApi } from './api/baseApi';

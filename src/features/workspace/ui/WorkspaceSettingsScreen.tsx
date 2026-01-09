@@ -2,8 +2,8 @@ import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { Button } from '@/ui/atoms/button/button';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { navigateToChat } from '@/store/slices/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { navigateToChat } from '@/features/ui/state/uiSlice';
 
 // Workspace Settings Component
 import { useWorkspaces, WorkspaceSettingsForm } from '@/features/workspace';
@@ -17,7 +17,10 @@ import {
   clearStreamingByChatId,
   stopStreaming,
 } from '@/features/chat/state/messages';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import {
+  showError,
+  showSuccess,
+} from '@/features/notifications/state/notificationSlice';
 import { useGetLLMConnectionsQuery } from '@/features/llm';
 import { useGetMCPConnectionsQuery } from '@/features/mcp';
 import type { WorkspaceSettings } from '@/features/workspace/types';

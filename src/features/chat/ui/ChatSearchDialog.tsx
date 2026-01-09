@@ -11,7 +11,7 @@ import {
 import { Input } from '@/ui/atoms/input';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { cn } from '@/lib/utils';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
   setSearchOpen,
   setSearchQuery,

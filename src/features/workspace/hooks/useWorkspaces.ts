@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import type { Workspace, WorkspaceSettings } from '../types';
 import {
   setWorkspaces,
@@ -10,7 +10,10 @@ import {
   updateWorkspaceName,
 } from '../state/workspacesSlice';
 import { setWorkspaceSettings } from '../state/workspaceSettingsSlice';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import {
+  showError,
+  showSuccess,
+} from '@/features/notifications/state/notificationSlice';
 import { setSelectedModel } from '@/features/chat/state/chatInputSlice';
 import { createChat, clearAllChats } from '@/features/chat/state/chatsSlice';
 

@@ -16,13 +16,13 @@ import {
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
 import { Button } from '@/ui/atoms/button/button';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/app/hooks';
 import {
   setWelcomeOpen,
   navigateToSettings,
   setSettingsSection,
   navigateToWorkspaceSettings,
-} from '@/store/slices/uiSlice';
+} from '@/features/ui/state/uiSlice';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 
 interface WelcomeProps {

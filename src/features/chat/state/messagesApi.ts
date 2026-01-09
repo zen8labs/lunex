@@ -1,4 +1,4 @@
-import { baseApi } from '@/store/api/baseApi';
+import { baseApi } from '@/app/api/baseApi';
 import { TauriCommands } from '@/bindings/commands';
 import type { Message } from '../types';
 import { extractCodeBlocks } from '@/lib/code-block-extractor';

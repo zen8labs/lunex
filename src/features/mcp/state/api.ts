@@ -1,4 +1,4 @@
-import { baseApi } from '@/store/api/baseApi';
+import { baseApi } from '@/app/api/baseApi';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import type { MCPServerConnection, MCPToolType } from '../types';
 

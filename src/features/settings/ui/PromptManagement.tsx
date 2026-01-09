@@ -16,9 +16,12 @@ import {
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
-import { useAppDispatch } from '@/store/hooks';
-import { navigateToChat } from '@/store/slices/uiSlice';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import { useAppDispatch } from '@/app/hooks';
+import { navigateToChat } from '@/features/ui/state/uiSlice';
+import {
+  showError,
+  showSuccess,
+} from '@/features/notifications/state/notificationSlice';
 
 // Types matching Rust structs
 interface Prompt {

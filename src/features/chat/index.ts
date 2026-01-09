@@ -33,6 +33,9 @@ export * from './state/messagesApi';
 export * from './hooks/useChats';
 export * from './hooks/useMessages';
 export * from './hooks/useChatInput';
+export * from './hooks/useExportChat';
+export * from './hooks/useChatStreaming';
+export * from './hooks/useAgentMention';
 
 // UI
 
@@ -40,3 +43,5 @@ export * from './ui/chat/ChatArea';
 export * from './ui/ChatSidebar';
 export * from './ui/ChatSearchDialog';
 export * from './ui/chat/AgentCard';
+export * from './ui/ChatScreen';
+export * from './ui/ChatLayout';

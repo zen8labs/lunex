@@ -10,21 +10,21 @@ import { Button } from '@/ui/atoms/button/button';
 import { WorkspaceSelector } from '@/features/workspace';
 import { About } from '@/features/settings';
 import { ChatSearchDialog } from '@/features/chat/ui/ChatSearchDialog';
-import { KeyboardShortcutsDialog } from '@/ui/organisms/KeyboardShortcutsDialog';
-import { TitleBar } from '@/ui/organisms/TitleBar';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { KeyboardShortcutsDialog } from '@/features/shortcuts/ui/KeyboardShortcutsDialog';
+import { TitleBar } from '@/features/ui/ui/TitleBar';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { useDialogClick } from '@/hooks/useDialogClick';
 import {
   toggleSidebar,
   setAboutOpen,
   navigateToSettings,
   setSettingsSection,
-} from '@/store/slices/uiSlice';
+} from '@/features/ui/state/uiSlice';
 
 // Screens
-import { ChatScreen } from '@/ui/screens/ChatScreen';
-import { SettingsScreen } from '@/ui/screens/SettingsScreen';
-import { WorkspaceSettingsScreen } from '@/ui/screens/WorkspaceSettingsScreen';
+import { ChatScreen } from '@/features/chat/ui/ChatScreen';
+import { SettingsScreen } from '@/features/settings/ui/SettingsScreen';
+import { WorkspaceSettingsScreen } from '@/features/workspace/ui/WorkspaceSettingsScreen';
 
 export function MainLayout() {
   const { t } = useTranslation(['common', 'settings']);

@@ -9,8 +9,8 @@ import {
 } from '@/ui/atoms/select';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import i18n from '@/i18n/config';
-import { useAppDispatch } from '@/store/hooks';
-import { navigateToChat } from '@/store/slices/uiSlice';
+import { useAppDispatch } from '@/app/hooks';
+import { navigateToChat } from '@/features/ui/state/uiSlice';
 import { Button } from '@/ui/atoms/button/button';
 
 type Theme =

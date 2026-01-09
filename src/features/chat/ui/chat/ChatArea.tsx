@@ -3,14 +3,14 @@ import { ChatInput } from './ChatInput';
 import { AgentChatHistoryDialog } from '@/features/agent';
 import { useMessages } from '../../hooks/useMessages';
 import { useWorkspaces } from '@/features/workspace';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { sendMessage } from '../../state/messages';
 import { setLoading, clearInput } from '../../state/chatInputSlice';
-import { showError } from '@/store/slices/notificationSlice';
-import { setAgentChatHistoryDrawerOpen } from '@/store/slices/uiSlice';
+import { showError } from '@/features/notifications/state/notificationSlice';
+import { setAgentChatHistoryDrawerOpen } from '@/features/ui/state/uiSlice';
 import { useGetLLMConnectionsQuery } from '@/features/llm';
 
 export function ChatArea() {

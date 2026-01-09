@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Streamdown } from '@/ui/atoms/streamdown';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/app/hooks';
 import { cn } from '@/lib/utils';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { CustomCodeComponent } from './CustomCodeComponent';

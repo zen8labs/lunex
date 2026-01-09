@@ -1,4 +1,4 @@
-import type { CodeBlock } from '@/store/types';
+import type { CodeBlock } from '@/app/types';
 
 /**
  * Extracts code blocks from markdown content (python and mermaid only)

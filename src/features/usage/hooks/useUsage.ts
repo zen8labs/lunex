@@ -1,7 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { useAppDispatch } from '@/store/hooks';
-import { showSuccess, showError } from '@/store/slices/notificationSlice';
+import { useAppDispatch } from '@/app/hooks';
+import {
+  showSuccess,
+  showError,
+} from '@/features/notifications/state/notificationSlice';
 import {
   type UsageFilter,
   type UsageSummary,

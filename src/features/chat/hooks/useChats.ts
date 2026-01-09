@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
   fetchChats,
   createChat,
@@ -13,7 +13,10 @@ import {
   resumeStreaming,
   stopStreaming,
 } from '../state/messages';
-import { showError, showSuccess } from '@/store/slices/notificationSlice';
+import {
+  showError,
+  showSuccess,
+} from '@/features/notifications/state/notificationSlice';
 import { setAttachedFiles } from '../state/chatInputSlice';
 
 /**

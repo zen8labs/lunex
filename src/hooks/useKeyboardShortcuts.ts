@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { setSearchOpen } from '@/features/chat/state/chatSearchSlice';
 import {
   navigateToSettings,
@@ -7,7 +7,7 @@ import {
   setKeyboardShortcutsOpen,
   setAboutOpen,
   setWelcomeOpen,
-} from '@/store/slices/uiSlice';
+} from '@/features/ui/state/uiSlice';
 import { closeCurrentChat } from '@/features/chat/state/chatsSlice';
 import { clearInput } from '@/features/chat/state/chatInputSlice';
 import { createChat } from '@/features/chat/state/chatsSlice';

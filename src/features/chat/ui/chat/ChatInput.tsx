@@ -25,20 +25,20 @@ import {
 } from '@/ui/atoms/dropdown-menu';
 import { useGetLLMConnectionsQuery } from '@/features/llm';
 import { useGetMCPConnectionsQuery } from '@/features/mcp';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
 import { cn, formatFileSize } from '@/lib/utils';
-import { showError } from '@/store/slices/notificationSlice';
+import { showError } from '@/features/notifications/state/notificationSlice';
 import { isVisionModel } from '@/lib/model-utils';
 import { useChatInput } from '../../hooks/useChatInput';
 import { useMessages } from '../../hooks/useMessages';
 import { useSlashCommand } from '@/hooks/useSlashCommand';
-import { useAgentMention } from '@/hooks/useAgentMention';
+import { useAgentMention } from '@/features/chat/hooks/useAgentMention';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { SlashCommandDropdown } from '@/ui/molecules/SlashCommandDropdown';
 import { AgentMentionDropdown } from '@/features/agent';
 import { VariableInputDialog } from '@/ui/molecules/VariableInputDialog';
 import { parsePromptVariables, renderPrompt } from '@/lib/prompt-utils';
-import type { Prompt, InstalledAgent } from '@/store/types';
+import type { Prompt, InstalledAgent } from '@/app/types';
 
 interface ChatInputProps {
   selectedWorkspaceId: string | null;

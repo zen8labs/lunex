@@ -1,4 +1,4 @@
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/app/hooks';
 
 /**
  * Hook to access current theme from Redux store
