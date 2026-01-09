@@ -121,9 +121,9 @@ export function InstallPromptDialog({
 
         <DialogBody>
           <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
-            <div className="space-y-6 pr-4">
+            <div className="min-h-[300px] pr-4">
               {loading ? (
-                <div className="flex items-center justify-center py-12">
+                <div className="flex items-center justify-center min-h-[300px]">
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   <p className="text-sm text-muted-foreground">
                     {t('loadingTemplate', {
@@ -156,7 +156,7 @@ export function InstallPromptDialog({
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12">
+                <div className="flex items-center justify-center min-h-[300px]">
                   <p className="text-sm text-muted-foreground">
                     {t('failedToLoadTemplate', {
                       defaultValue: 'Failed to load template',

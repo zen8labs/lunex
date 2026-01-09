@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Loader2, FileText, RefreshCw, Search } from 'lucide-react';
+import { Download, FileText, RefreshCw, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/atoms/avatar';
 import { Button } from '@/ui/atoms/button/button';
@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/ui/atoms/card';
 import { EmptyState } from '@/ui/atoms/empty-state';
+import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppDispatch } from '@/app/hooks';
 import {
@@ -97,11 +98,47 @@ export function CommunityPromptsSection({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="mr-2 size-4 animate-spin" />
-        <p className="text-sm text-muted-foreground">
-          {t('loadingHubPrompts', { defaultValue: 'Loading prompts...' })}
-        </p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t('searchPrompts', {
+                defaultValue: 'Search prompts...',
+              })}
+              className="pl-9"
+              disabled
+            />
+          </div>
+          <Button disabled size="sm" variant="outline">
+            <RefreshCw className="mr-2 size-4" />
+            {t('refresh', { defaultValue: 'Refresh' })}
+          </Button>
+        </div>
+        <ScrollArea className="h-[calc(100vh-280px)]">
+          <div className="grid gap-4 md:grid-cols-2 pr-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="size-8 rounded bg-muted" />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="h-5 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 mb-4">
+                    <div className="h-4 bg-muted rounded w-full" />
+                    <div className="h-4 bg-muted rounded w-5/6" />
+                  </div>
+                  <div className="h-8 bg-muted rounded w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
     );
   }
@@ -156,71 +193,75 @@ export function CommunityPromptsSection({
         </Button>
       </div>
 
-      {filteredPrompts.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-muted/10">
-          <p className="text-muted-foreground">
-            {t('noPromptsFound', { defaultValue: 'No prompts found.' })}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {filteredPrompts.map((prompt) => {
-            const isInstalled = installedPromptIds.includes(prompt.id);
-            return (
-              <Card
-                key={prompt.id}
-                className="hover:bg-accent/50 transition-colors"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="size-8 rounded">
-                      <AvatarImage
-                        src={prompt.icon}
-                        alt={prompt.name}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="rounded bg-muted">
-                        <FileText className="size-4 text-muted-foreground" />
-                      </AvatarFallback>
-                    </Avatar>
+      <ScrollArea className="h-[calc(100vh-280px)]">
+        {filteredPrompts.length === 0 ? (
+          <div className="text-center py-12 border rounded-lg bg-muted/10">
+            <p className="text-muted-foreground">
+              {t('noPromptsFound', { defaultValue: 'No prompts found.' })}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 pr-4">
+            {filteredPrompts.map((prompt) => {
+              const isInstalled = installedPromptIds.includes(prompt.id);
+              return (
+                <Card
+                  key={prompt.id}
+                  className="hover:bg-accent/50 transition-colors"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="size-8 rounded">
+                        <AvatarImage
+                          src={prompt.icon}
+                          alt={prompt.name}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="rounded bg-muted">
+                          <FileText className="size-4 text-muted-foreground" />
+                        </AvatarFallback>
+                      </Avatar>
 
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base">{prompt.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        {prompt.id}
-                      </CardDescription>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base">
+                          {prompt.name}
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          {prompt.id}
+                        </CardDescription>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
-                    {prompt.description}
-                  </p>
-                  <Button
-                    onClick={() => handleInstall(prompt)}
-                    disabled={isInstalled}
-                    className="w-full"
-                    size="sm"
-                    variant={isInstalled ? 'outline' : 'default'}
-                  >
-                    {isInstalled ? (
-                      <>
-                        <FileText className="mr-2 size-4" />
-                        {t('installed', { defaultValue: 'Installed' })}
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 size-4" />
-                        {t('install', { defaultValue: 'Install' })}
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
+                      {prompt.description}
+                    </p>
+                    <Button
+                      onClick={() => handleInstall(prompt)}
+                      disabled={isInstalled}
+                      className="w-full"
+                      size="sm"
+                      variant={isInstalled ? 'outline' : 'default'}
+                    >
+                      {isInstalled ? (
+                        <>
+                          <FileText className="mr-2 size-4" />
+                          {t('installed', { defaultValue: 'Installed' })}
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 size-4" />
+                          {t('install', { defaultValue: 'Install' })}
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 }

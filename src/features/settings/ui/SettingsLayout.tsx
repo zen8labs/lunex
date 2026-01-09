@@ -38,7 +38,9 @@ export function SettingsLayout({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1">{children}</ScrollArea>
+        <ScrollArea className="flex-1 [&_[data-slot='scroll-area-scrollbar']]:hidden">
+          {children}
+        </ScrollArea>
       </div>
     </div>
   );
