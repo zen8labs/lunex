@@ -16,6 +16,7 @@ import {
   setWelcomeOpen,
 } from '@/features/ui/state/uiSlice';
 import { WelcomeScreen } from '@/features/onboarding/ui/WelcomeScreen';
+import OnboardingGuide from '@/features/onboarding/ui/OnboardingGuide';
 import i18n from '@/i18n/config';
 
 function AppContent() {
@@ -123,6 +124,7 @@ function AppContent() {
         open={welcomeOpen}
         onOpenChange={(open) => dispatch(setWelcomeOpen(open))}
       />
+      <OnboardingGuide />
     </>
   );
 }

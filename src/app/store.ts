@@ -14,6 +14,7 @@ import {
 import uiReducer from '@/features/ui/state/uiSlice';
 import notificationReducer from '@/features/notifications/state/notificationSlice';
 import toolPermissionReducer from '@/features/tools/state/toolPermissionSlice';
+import onboardingReducer from '@/features/onboarding/onboardingSlice';
 import { sentryMiddleware } from './sentryMiddleware';
 
 import { baseApi } from './api/baseApi';
@@ -32,6 +33,7 @@ export const store = configureStore({
     notifications: notificationReducer,
     chatSearch: chatSearchReducer,
     toolPermission: toolPermissionReducer,
+    onboarding: onboardingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(sentryMiddleware, baseApi.middleware),
