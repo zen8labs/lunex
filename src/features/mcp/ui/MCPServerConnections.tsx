@@ -140,22 +140,30 @@ export function MCPServerConnections() {
 
   const handleReload = async (connection: MCPServerConnection) => {
     try {
-      await connectConnection({
+      // Update status to "connecting" immediately before starting connection
+      await invokeCommand(TauriCommands.UPDATE_MCP_SERVER_STATUS, {
+        id: connection.id,
+        status: 'connecting',
+        toolsJson: null,
+        errorMessage: null,
+      });
+
+      // Invalidate cache to update UI immediately
+      refetchConnections();
+
+      // Start connection in background (don't await to avoid blocking UI)
+      connectConnection({
         id: connection.id,
         url: connection.url,
         type: connection.type,
         headers: connection.headers,
         runtime_path: connection.runtime_path,
-      }).unwrap();
-
-      dispatch(
-        showSuccess(
-          t('connectionReloaded', { name: connection.name }),
-          t('connectionReloadedDescription')
-        )
-      );
+      }).catch((error) => {
+        console.error('Error reloading MCP connection:', error);
+        dispatch(showError(t('cannotReloadConnection')));
+      });
     } catch (error) {
-      console.error('Error reloading MCP connection:', error);
+      console.error('Error updating MCP status:', error);
       dispatch(showError(t('cannotReloadConnection')));
     }
   };
