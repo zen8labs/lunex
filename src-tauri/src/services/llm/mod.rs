@@ -2,7 +2,9 @@ pub mod providers;
 
 use crate::error::AppError;
 use crate::models::llm_types::*;
-use providers::{AnthropicProvider, GoogleProvider, LLMProvider, OpenAICompatProvider};
+use providers::{
+    AnthropicProvider, GoogleProvider, LLMProvider, OpenAICompatProvider, OpenAIProvider,
+};
 use reqwest::Client;
 use std::sync::Arc;
 use tauri::AppHandle;
@@ -25,6 +27,7 @@ impl LLMService {
 
     fn get_provider(&self, provider: &str) -> Box<dyn LLMProvider> {
         match provider.to_lowercase().as_str() {
+            "openai" => Box::new(OpenAIProvider::new(self.client.clone())),
             "google" | "gemini" => Box::new(GoogleProvider::new(self.client.clone())),
             "anthropic" | "claude" => Box::new(AnthropicProvider::new(self.client.clone())),
             _ => Box::new(OpenAICompatProvider::new(self.client.clone())),
