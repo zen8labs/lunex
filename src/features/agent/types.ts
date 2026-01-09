@@ -30,3 +30,27 @@ export interface InstalledAgent {
   path: string;
   install_info?: InstallInfo;
 }
+
+export interface HubAgent {
+  id: string;
+  name: string;
+  version: string;
+  author: string;
+  description: string;
+  icon: string;
+  category: string;
+  entry_point: string;
+  git_install: HubGitInstall;
+}
+
+export interface HubGitInstall {
+  repository_url: string;
+  revision: string;
+  subpath: string;
+}
+
+export interface InstallAgentFromHubPayload {
+  agentId: string;
+  name: string;
+  git_install: HubGitInstall;
+}

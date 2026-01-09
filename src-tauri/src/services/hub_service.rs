@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use crate::models::{HubIndex, HubMCPServer, HubPrompt};
+use crate::models::{HubAgent, HubIndex, HubMCPServer, HubPrompt};
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime};
 
@@ -53,6 +53,12 @@ impl HubService {
         Ok(index.resources.mcp_servers)
     }
 
+    /// Get only agents from hub index
+    pub async fn get_agents(&self) -> Result<Vec<HubAgent>, AppError> {
+        let index = self.get_index().await?;
+        Ok(index.resources.agents)
+    }
+
     fn get_from_cache(&self) -> Option<HubIndex> {
         let cache = self.cached_index.read().ok()?;
         let cached = cache.as_ref()?;
@@ -88,16 +94,16 @@ impl HubService {
             .await
             .map_err(|e| format!("Failed to read response: {}", e))?;
 
-        serde_json::from_str(&json_text)
-            .map_err(|e| format!("Failed to parse JSON: {}", e))
+        serde_json::from_str(&json_text).map_err(|e| format!("Failed to parse JSON: {}", e))
     }
 
     /// Force refresh index from remote
     #[allow(dead_code)]
     pub async fn refresh_index(&self) -> Result<HubIndex, AppError> {
-        let index = self.fetch_remote_index().await.map_err(|e| {
-            AppError::Hub(format!("Failed to refresh hub index: {}", e))
-        })?;
+        let index = self
+            .fetch_remote_index()
+            .await
+            .map_err(|e| AppError::Hub(format!("Failed to refresh hub index: {}", e)))?;
         self.update_cache(index.clone());
         Ok(index)
     }

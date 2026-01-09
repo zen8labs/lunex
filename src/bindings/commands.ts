@@ -68,6 +68,8 @@ export const TauriCommands = {
   FETCH_HUB_MCP_SERVERS: 'fetch_hub_mcp_servers',
   INSTALL_MCP_SERVER_FROM_HUB: 'install_mcp_server_from_hub',
   REFRESH_HUB_INDEX: 'refresh_hub_index',
+  FETCH_HUB_AGENTS: 'fetch_hub_agents',
+  INSTALL_AGENT_FROM_HUB: 'install_agent_from_hub',
 
   // MCP Tools commands
   TEST_MCP_CONNECTION_AND_FETCH_TOOLS: 'test_mcp_connection_and_fetch_tools',

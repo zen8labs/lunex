@@ -187,6 +187,8 @@ pub fn run() {
             commands::hub::fetch_hub_mcp_servers,
             commands::hub::install_mcp_server_from_hub,
             commands::hub::refresh_hub_index,
+            commands::hub::fetch_hub_agents,
+            commands::hub::install_agent_from_hub,
             // MCP Tools commands
             commands::mcp_tool::test_mcp_connection_and_fetch_tools,
             commands::mcp_tool::connect_mcp_server_and_fetch_tools,

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Download, Loader2, FileText, RefreshCw } from 'lucide-react';
+import { Download, Loader2, FileText, RefreshCw, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
+import { Input } from '@/ui/atoms/input';
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ export function CommunityPromptsSection({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadPrompts();
@@ -86,6 +88,12 @@ export function CommunityPromptsSection({
     }
   };
 
+  const filteredPrompts = prompts.filter(
+    (prompt) =>
+      prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prompt.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -122,7 +130,18 @@ export function CommunityPromptsSection({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t('searchPrompts', {
+              defaultValue: 'Search prompts...',
+            })}
+            className="pl-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         <Button
           onClick={handleRefresh}
           disabled={refreshing || loading}
@@ -132,66 +151,75 @@ export function CommunityPromptsSection({
           <RefreshCw
             className={`mr-2 size-4 ${refreshing ? 'animate-spin' : ''}`}
           />
-          {t('refreshHubIndex', { defaultValue: 'Refresh Hub Index' })}
+          {t('refresh', { defaultValue: 'Refresh' })}
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {prompts.map((prompt) => {
-          const isInstalled = installedPromptIds.includes(prompt.id);
-          return (
-            <Card
-              key={prompt.id}
-              className="hover:bg-accent/50 transition-colors"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-3">
-                  {prompt.icon && (
-                    <img
-                      src={prompt.icon}
-                      alt={prompt.name}
-                      className="size-8 rounded object-cover"
-                      onError={(e) => {
-                        // Hide image on error
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base">{prompt.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1">
-                      {prompt.id}
-                    </CardDescription>
+
+      {filteredPrompts.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg bg-muted/10">
+          <p className="text-muted-foreground">
+            {t('noPromptsFound', { defaultValue: 'No prompts found.' })}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {filteredPrompts.map((prompt) => {
+            const isInstalled = installedPromptIds.includes(prompt.id);
+            return (
+              <Card
+                key={prompt.id}
+                className="hover:bg-accent/50 transition-colors"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start gap-3">
+                    {prompt.icon && (
+                      <img
+                        src={prompt.icon}
+                        alt={prompt.name}
+                        className="size-8 rounded object-cover"
+                        onError={(e) => {
+                          // Hide image on error
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base">{prompt.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">
+                        {prompt.id}
+                      </CardDescription>
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
-                  {prompt.description}
-                </p>
-                <Button
-                  onClick={() => handleInstall(prompt)}
-                  disabled={isInstalled}
-                  className="w-full"
-                  size="sm"
-                  variant={isInstalled ? 'outline' : 'default'}
-                >
-                  {isInstalled ? (
-                    <>
-                      <FileText className="mr-2 size-4" />
-                      {t('installed', { defaultValue: 'Installed' })}
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 size-4" />
-                      {t('install', { defaultValue: 'Install' })}
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
+                    {prompt.description}
+                  </p>
+                  <Button
+                    onClick={() => handleInstall(prompt)}
+                    disabled={isInstalled}
+                    className="w-full"
+                    size="sm"
+                    variant={isInstalled ? 'outline' : 'default'}
+                  >
+                    {isInstalled ? (
+                      <>
+                        <FileText className="mr-2 size-4" />
+                        {t('installed', { defaultValue: 'Installed' })}
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 size-4" />
+                        {t('install', { defaultValue: 'Install' })}
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Download, Loader2, Server, RefreshCw } from 'lucide-react';
+import { Download, Loader2, Server, RefreshCw, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
+import { Input } from '@/ui/atoms/input';
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ export function CommunityMCPServersSection({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadServers();
@@ -88,6 +90,12 @@ export function CommunityMCPServersSection({
     }
   };
 
+  const filteredServers = servers.filter(
+    (server) =>
+      server.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      server.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -128,7 +136,18 @@ export function CommunityMCPServersSection({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t('searchMCPServers', {
+              defaultValue: 'Search MCP servers...',
+            })}
+            className="pl-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
         <Button
           onClick={handleRefresh}
           disabled={refreshing || loading}
@@ -138,68 +157,77 @@ export function CommunityMCPServersSection({
           <RefreshCw
             className={`mr-2 size-4 ${refreshing ? 'animate-spin' : ''}`}
           />
-          {t('refreshHubIndex', { defaultValue: 'Refresh Hub Index' })}
+          {t('refresh', { defaultValue: 'Refresh' })}
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {servers.map((server) => {
-          const isInstalled = installedServerIds.includes(server.id);
-          return (
-            <Card
-              key={server.id}
-              className="hover:bg-accent/50 transition-colors"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-3">
-                  {server.icon && (
-                    <img
-                      src={server.icon}
-                      alt={server.name}
-                      className="size-8 rounded object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base">{server.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1">
-                      {server.id}
-                    </CardDescription>
+
+      {filteredServers.length === 0 ? (
+        <div className="text-center py-12 border rounded-lg bg-muted/10">
+          <p className="text-muted-foreground">
+            {t('noMCPServersFound', { defaultValue: 'No MCP servers found.' })}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {filteredServers.map((server) => {
+            const isInstalled = installedServerIds.includes(server.id);
+            return (
+              <Card
+                key={server.id}
+                className="hover:bg-accent/50 transition-colors"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start gap-3">
+                    {server.icon && (
+                      <img
+                        src={server.icon}
+                        alt={server.name}
+                        className="size-8 rounded object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base">{server.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">
+                        {server.id}
+                      </CardDescription>
+                    </div>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                      {server.type.toUpperCase()}
+                    </span>
                   </div>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                    {server.type.toUpperCase()}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
-                  {server.description}
-                </p>
-                <Button
-                  onClick={() => handleInstall(server)}
-                  disabled={isInstalled}
-                  className="w-full"
-                  size="sm"
-                  variant={isInstalled ? 'outline' : 'default'}
-                >
-                  {isInstalled ? (
-                    <>
-                      <Server className="mr-2 size-4" />
-                      {t('installed', { defaultValue: 'Installed' })}
-                    </>
-                  ) : (
-                    <>
-                      <Download className="mr-2 size-4" />
-                      {t('install', { defaultValue: 'Install' })}
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
+                    {server.description}
+                  </p>
+                  <Button
+                    onClick={() => handleInstall(server)}
+                    disabled={isInstalled}
+                    className="w-full"
+                    size="sm"
+                    variant={isInstalled ? 'outline' : 'default'}
+                  >
+                    {isInstalled ? (
+                      <>
+                        <Server className="mr-2 size-4" />
+                        {t('installed', { defaultValue: 'Installed' })}
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 size-4" />
+                        {t('install', { defaultValue: 'Install' })}
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

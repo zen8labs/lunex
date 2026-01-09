@@ -1,7 +1,5 @@
 use crate::error::AppError;
-use crate::models::{
-    HubMCPServer, HubPrompt, MCPServerConnection, ParsedPromptTemplate, Prompt,
-};
+use crate::models::{HubMCPServer, HubPrompt, MCPServerConnection, ParsedPromptTemplate, Prompt};
 use crate::services::{HubService, MCPConfigService, PromptTemplateService};
 use crate::state::AppState;
 use serde::Deserialize;
@@ -34,14 +32,12 @@ pub async fn fetch_hub_prompts() -> Result<Vec<HubPrompt>, AppError> {
 }
 
 #[tauri::command]
-pub async fn fetch_prompt_template(
-    path: String,
-) -> Result<ParsedPromptTemplate, AppError> {
+pub async fn fetch_prompt_template(path: String) -> Result<ParsedPromptTemplate, AppError> {
     let template_service = Arc::new(PromptTemplateService::new());
-    
+
     // Fetch markdown from GitHub
     let markdown = template_service.fetch_prompt_template(&path).await?;
-    
+
     // Parse markdown to extract title, description, content, and variables
     template_service.parse_markdown_template(&markdown)
 }
@@ -52,20 +48,22 @@ pub async fn install_prompt_from_hub(
     state: State<'_, AppState>,
 ) -> Result<Prompt, AppError> {
     let template_service = Arc::new(PromptTemplateService::new());
-    
+
     // Fetch and parse template
-    let markdown = template_service.fetch_prompt_template(&payload.path).await?;
+    let markdown = template_service
+        .fetch_prompt_template(&payload.path)
+        .await?;
     let parsed = template_service.parse_markdown_template(&markdown)?;
-    
+
     // Keep content with variables intact (variables will be filled when used in chat)
     let content = parsed.content;
-    
+
     // Create prompt with hub id
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs() as i64;
-    
+
     let prompt = Prompt {
         id: payload.prompt_id,
         name: payload.name,
@@ -73,13 +71,17 @@ pub async fn install_prompt_from_hub(
         created_at: now,
         updated_at: now,
     };
-    
+
     // Save to database
     state
         .prompt_service
-        .create(prompt.id.clone(), prompt.name.clone(), prompt.content.clone())
+        .create(
+            prompt.id.clone(),
+            prompt.name.clone(),
+            prompt.content.clone(),
+        )
         .map_err(|e| AppError::Prompt(e.to_string()))?;
-    
+
     Ok(prompt)
 }
 
@@ -104,12 +106,12 @@ pub async fn install_mcp_server_from_hub(
     let config_service = Arc::new(MCPConfigService::new());
 
     // Replace variables in config
-    let config_with_vars = config_service
-        .replace_variables_in_config(&payload.config, &payload.variables)?;
+    let config_with_vars =
+        config_service.replace_variables_in_config(&payload.config, &payload.variables)?;
 
     // Build MCP connection config
-    let (url, headers, runtime_path) = config_service
-        .build_mcp_connection_config(&config_with_vars, &payload.server_type)?;
+    let (url, headers, runtime_path) =
+        config_service.build_mcp_connection_config(&config_with_vars, &payload.server_type)?;
 
     // Create MCP connection
     let now = std::time::SystemTime::now()
@@ -145,4 +147,34 @@ pub async fn install_mcp_server_from_hub(
         .map_err(|e| AppError::Mcp(e.to_string()))?;
 
     Ok(connection)
+}
+
+#[derive(Deserialize)]
+pub struct InstallAgentFromHubPayload {
+    #[serde(rename = "agentId")]
+    pub agent_id: String,
+    pub name: String,
+    pub git_install: crate::models::HubGitInstall,
+}
+
+#[tauri::command]
+pub async fn fetch_hub_agents() -> Result<Vec<crate::models::HubAgent>, AppError> {
+    let hub_service = Arc::new(HubService::new());
+    hub_service.get_agents().await
+}
+
+#[tauri::command]
+pub async fn install_agent_from_hub(
+    payload: InstallAgentFromHubPayload,
+    state: State<'_, AppState>,
+) -> Result<String, AppError> {
+    state
+        .agent_manager
+        .install_from_git(
+            &payload.git_install.repository_url,
+            Some(&payload.git_install.revision),
+            Some(&payload.git_install.subpath),
+        )
+        .await
+        .map_err(|e| AppError::Agent(e.to_string()))
 }

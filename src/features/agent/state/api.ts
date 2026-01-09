@@ -1,6 +1,6 @@
 import { baseApi } from '@/app/api/baseApi';
 import { TauriCommands } from '@/bindings/commands';
-import type { InstalledAgent } from '../types';
+import type { InstalledAgent, InstallAgentFromHubPayload } from '../types';
 
 export const agentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -20,7 +20,15 @@ export const agentsApi = baseApi.injectEndpoints({
             ]
           : [{ type: 'Agent', id: 'LIST' }],
     }),
+    installAgentFromHub: builder.mutation<string, InstallAgentFromHubPayload>({
+      query: (payload) => ({
+        command: TauriCommands.INSTALL_AGENT_FROM_HUB,
+        args: { payload },
+      }),
+      invalidatesTags: [{ type: 'Agent', id: 'LIST' }],
+    }),
   }),
 });
 
-export const { useGetInstalledAgentsQuery } = agentsApi;
+export const { useGetInstalledAgentsQuery, useInstallAgentFromHubMutation } =
+  agentsApi;

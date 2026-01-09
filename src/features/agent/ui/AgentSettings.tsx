@@ -40,6 +40,7 @@ import { TauriCommands } from '@/bindings/commands';
 import { invokeCommand } from '@/lib/tauri';
 import { useGetInstalledAgentsQuery } from '../state/api';
 import type { InstalledAgent } from '../types';
+import { CommunityAgentsSection } from './CommunityAgentsSection';
 
 export function AgentSettings() {
   const {
@@ -393,6 +394,10 @@ export function AgentSettings() {
               </CardContent>
             </Card>
           </div>
+
+          <Separator />
+
+          <CommunityAgentsSection />
         </TabsContent>
       </Tabs>
 

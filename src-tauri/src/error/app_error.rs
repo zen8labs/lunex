@@ -57,6 +57,9 @@ pub enum AppError {
 
     #[error("[Error] {0}")]
     Generic(String),
+
+    #[error("[Agent] {0}")]
+    Agent(String),
 }
 
 impl AppError {

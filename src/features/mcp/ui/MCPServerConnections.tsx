@@ -39,7 +39,6 @@ import {
   useUpdateMCPConnectionMutation,
   useRemoveMCPConnectionMutation,
 } from '../hooks/useMCPConnections';
-import { navigateToChat } from '@/features/ui/state/uiSlice';
 import {
   showError,
   showSuccess,
@@ -199,7 +198,6 @@ export function MCPServerConnections() {
 
         // Show success notification
         dispatch(showSuccess(t('connectionSaved'), t('mcpConnectionUpdated')));
-        dispatch(navigateToChat());
 
         // If connection needs reconnect
         if (result.needsReconnect) {
@@ -227,7 +225,6 @@ export function MCPServerConnections() {
         dispatch(
           showSuccess(t('connectionSaved'), t('newMCPConnectionCreated'))
         );
-        dispatch(navigateToChat());
 
         // Start async connection immediately in background
         connectConnection({
