@@ -446,9 +446,17 @@ impl ChatService {
             (Some(agent_tools), Some(instructions))
         } else {
             // Standard Workspace Tools
-            let tools = self.tool_service.get_tools_for_workspace(&workspace_id)?;
-            let tools = if tools.is_empty() { None } else { Some(tools) };
-            (tools, None)
+            let supports_tools = model.to_lowercase().contains("qwen")
+                || model.to_lowercase().contains("gemini")
+                || model.to_lowercase().contains("gpt-oss");
+
+            if supports_tools {
+                let tools = self.tool_service.get_tools_for_workspace(&workspace_id)?;
+                let tools = if tools.is_empty() { None } else { Some(tools) };
+                (tools, None)
+            } else {
+                (None, None)
+            }
         };
 
         // 9. Prepare messages for API

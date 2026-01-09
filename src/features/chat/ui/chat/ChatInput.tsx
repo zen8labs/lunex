@@ -269,6 +269,12 @@ export function ChatInput({
       currentModelName.toLowerCase().includes('gemini')
     : false;
 
+  const supportsToolCalling = currentModelName
+    ? currentModelName.toLowerCase().includes('qwen') ||
+      currentModelName.toLowerCase().includes('gemini') ||
+      currentModelName.toLowerCase().includes('gpt-oss')
+    : false;
+
   useEffect(() => {
     // Note: We use JS resize + debounce instead of CSS `field-sizing: content`
     // because `field-sizing` is not yet supported in WebKit (Safari/Tauri macOS).
@@ -655,11 +661,12 @@ export function ChatInput({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    disabled={disabled}
+                    disabled={disabled || !supportsToolCalling}
                     className={cn(
                       'h-7 w-7 text-muted-foreground hover:text-foreground border-0 shadow-none relative',
                       activeTools.length > 0 &&
-                        'text-primary hover:text-primary'
+                        'text-primary hover:text-primary',
+                      !supportsToolCalling && 'opacity-50 cursor-not-allowed'
                     )}
                     aria-label={t('activeTools', { ns: 'chat' })}
                   >
@@ -672,6 +679,11 @@ export function ChatInput({
                     <div className="absolute top-0 left-0 right-0 h-3 translate-y-full"></div>
                     <div className="bg-popover text-popover-foreground rounded-md border shadow-lg w-80">
                       <div className="space-y-2 p-3">
+                        {!supportsToolCalling && (
+                          <div className="mb-2 rounded bg-yellow-500/10 p-2 text-xs text-yellow-600 dark:text-yellow-400">
+                            Model does not support tool calling
+                          </div>
+                        )}
                         <div className="font-semibold text-sm">
                           {t('activeTools', { ns: 'chat' }) || 'Active Tools'}
                           <span className="ml-1.5 text-muted-foreground font-normal">
