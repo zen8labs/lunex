@@ -70,6 +70,14 @@ export function useChats(selectedWorkspaceId: string | null) {
   const handleNewChat = async () => {
     if (!selectedWorkspaceId) return;
 
+    // Cleanup current chat if it's empty before creating a new one
+    if (selectedChatId) {
+      const currentChat = chats.find((c) => c.id === selectedChatId);
+      if (currentChat && !currentChat.lastMessage && !currentChat.parentId) {
+        dispatch(removeChat(selectedChatId));
+      }
+    }
+
     try {
       await dispatch(
         createChat({
@@ -86,6 +94,12 @@ export function useChats(selectedWorkspaceId: string | null) {
   const handleChatSelect = (chatId: string) => {
     // If switching from a thread that's currently streaming, pause it
     if (selectedChatId && selectedChatId !== chatId) {
+      // Cleanup previous chat if it's empty
+      const prevChat = chats.find((c) => c.id === selectedChatId);
+      if (prevChat && !prevChat.lastMessage && !prevChat.parentId) {
+        dispatch(removeChat(selectedChatId));
+      }
+
       const currentStreamingMessageId = streamingByChatId[selectedChatId];
       if (currentStreamingMessageId) {
         dispatch(pauseStreaming(selectedChatId));
