@@ -264,6 +264,10 @@ export function ChatInput({
   })();
 
   const supportsVision = isVisionModel(currentModelName);
+  const supportsThinking = currentModelName
+    ? currentModelName.toLowerCase().includes('gpt-oss') ||
+      currentModelName.toLowerCase().includes('gemini')
+    : false;
 
   useEffect(() => {
     // Note: We use JS resize + debounce instead of CSS `field-sizing: content`
@@ -709,52 +713,54 @@ export function ChatInput({
                 </div>
 
                 {/* Thinking Mode Toggle */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      disabled={disabled}
-                      className={cn(
-                        'h-7 w-7 text-muted-foreground hover:text-foreground border-0 shadow-none',
-                        isThinkingEnabled && 'text-primary hover:text-primary'
-                      )}
-                      aria-label="Thinking Mode"
-                    >
-                      <Brain className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuLabel>Thinking Mode</DropdownMenuLabel>
-                    <DropdownMenuRadioGroup
-                      value={isThinkingEnabled ? reasoningEffort : 'none'}
-                      onValueChange={(val) => {
-                        if (val === 'none') {
-                          if (isThinkingEnabled) handleThinkingToggle();
-                        } else {
-                          if (!isThinkingEnabled) handleThinkingToggle();
-                          handleReasoningEffortChange(
-                            val as 'low' | 'medium' | 'high'
-                          );
-                        }
-                      }}
-                    >
-                      <DropdownMenuRadioItem value="none">
-                        None
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="low">
-                        Low
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="medium">
-                        Medium
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="high">
-                        High
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {supportsThinking && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={disabled}
+                        className={cn(
+                          'h-7 w-7 text-muted-foreground hover:text-foreground border-0 shadow-none',
+                          isThinkingEnabled && 'text-primary hover:text-primary'
+                        )}
+                        aria-label="Thinking Mode"
+                      >
+                        <Brain className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuLabel>Thinking Mode</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        value={isThinkingEnabled ? reasoningEffort : 'none'}
+                        onValueChange={(val) => {
+                          if (val === 'none') {
+                            if (isThinkingEnabled) handleThinkingToggle();
+                          } else {
+                            if (!isThinkingEnabled) handleThinkingToggle();
+                            handleReasoningEffortChange(
+                              val as 'low' | 'medium' | 'high'
+                            );
+                          }
+                        }}
+                      >
+                        <DropdownMenuRadioItem value="none">
+                          None
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="low">
+                          Low
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="medium">
+                          Medium
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="high">
+                          High
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {/* Right side: Model Selector and Send Button */}
