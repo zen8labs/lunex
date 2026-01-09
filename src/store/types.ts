@@ -1,29 +1,6 @@
 // Shared types for Redux store
 
-export interface LLMModel {
-  id: string;
-  name: string;
-  created?: number;
-  owned_by?: string;
-}
-
-export interface LLMConnection {
-  id: string;
-  name: string;
-  baseUrl: string;
-  provider:
-    | 'openai'
-    | 'ollama'
-    | 'vllm'
-    | 'litellm'
-    | 'fireworks'
-    | 'openrouter'
-    | 'groq'
-    | 'together'
-    | 'deepinfra';
-  apiKey: string;
-  models?: LLMModel[];
-}
+export type { LLMModel, LLMConnection } from '@/features/llm/types';
 
 // Re-export MCP types from mcp module for backward compatibility
 export type {

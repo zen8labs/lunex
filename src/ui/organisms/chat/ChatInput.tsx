@@ -23,7 +23,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/ui/atoms/dropdown-menu';
-import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
+import { useGetLLMConnectionsQuery } from '@/features/llm';
 import { useGetMCPConnectionsQuery } from '@/store/api/mcpConnectionsApi';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { cn, formatFileSize } from '@/lib/utils';

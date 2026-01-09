@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import type { LLMConnection, LLMModel } from '../types';
 
-// Types matching Rust structs
+// Types matching Rust structs - duplicating local interface to keep slice independent or could share
 interface DbLLMConnection {
   id: string;
   name: string;
@@ -49,7 +49,7 @@ function dbToFrontendLLMConnection(dbConn: DbLLMConnection): LLMConnection {
     id: dbConn.id,
     name: dbConn.name,
     baseUrl: dbConn.base_url,
-    provider,
+    provider: provider as LLMConnection['provider'],
     apiKey: dbConn.api_key,
     models,
   };

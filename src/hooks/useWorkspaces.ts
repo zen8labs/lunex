@@ -28,7 +28,7 @@ import {
   useGetAppSettingQuery,
   useSaveAppSettingMutation,
 } from '@/store/api/appSettingsApi';
-import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
+import { useGetLLMConnectionsQuery } from '@/features/llm';
 import { useGetMCPConnectionsQuery } from '@/store/api/mcpConnectionsApi';
 
 /**

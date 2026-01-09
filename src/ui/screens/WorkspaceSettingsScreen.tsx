@@ -21,7 +21,7 @@ import {
   stopStreaming,
 } from '@/store/slices/messages';
 import { showError, showSuccess } from '@/store/slices/notificationSlice';
-import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
+import { useGetLLMConnectionsQuery } from '@/features/llm';
 import { useGetMCPConnectionsQuery } from '@/store/api/mcpConnectionsApi';
 import type { WorkspaceSettings } from '@/store/types';
 

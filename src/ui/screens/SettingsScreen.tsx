@@ -15,7 +15,7 @@ import { setSettingsSection } from '@/store/slices/uiSlice';
 import { SettingsLayout } from '@/ui/layouts/SettingsLayout';
 
 // Section Components
-import { LLMConnections } from '@/ui/organisms/settings/LLMConnections';
+import { LLMConnections } from '@/features/llm';
 import { MCPServerConnections } from '@/ui/organisms/settings/MCPServerConnections';
 import { AppSettings } from '@/ui/organisms/settings/AppSettings';
 import { PromptManagement } from '@/ui/organisms/settings/PromptManagement';

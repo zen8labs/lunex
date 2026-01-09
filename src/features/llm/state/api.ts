@@ -1,6 +1,6 @@
-import { baseApi } from './baseApi';
+import { baseApi } from '@/store/api/baseApi';
 import { TauriCommands } from '@/bindings/commands';
-import type { LLMConnection, LLMModel } from '@/store/types';
+import type { LLMConnection, LLMModel } from '../types';
 
 // Types matching Rust structs
 interface DbLLMConnection {
@@ -112,6 +112,7 @@ export const llmConnectionsApi = baseApi.injectEndpoints({
             apiKey: connection.apiKey ?? null,
             modelsJson: modelsJson ?? null,
             defaultModel: null,
+            // defaultModel is no longer used in LLM connection
           },
         };
       },

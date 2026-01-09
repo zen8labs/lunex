@@ -1,6 +1,6 @@
 import type { RootState } from '@/store/index';
 import type { SendMessageContext } from '../types';
-import { llmConnectionsApi } from '@/store/api/llmConnectionsApi';
+import { llmConnectionsApi } from '@/features/llm';
 import { mcpConnectionsApi } from '@/store/api/mcpConnectionsApi';
 
 /**

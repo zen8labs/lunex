@@ -1,0 +1,24 @@
+export interface LLMModel {
+  id: string;
+  name: string;
+  created?: number;
+  owned_by?: string;
+}
+
+export interface LLMConnection {
+  id: string;
+  name: string;
+  baseUrl: string;
+  provider:
+    | 'openai'
+    | 'ollama'
+    | 'vllm'
+    | 'litellm'
+    | 'fireworks'
+    | 'openrouter'
+    | 'groq'
+    | 'together'
+    | 'deepinfra';
+  apiKey: string;
+  models?: LLMModel[];
+}

@@ -36,35 +36,10 @@ import {
   useCreateLLMConnectionMutation,
   useUpdateLLMConnectionMutation,
   useDeleteLLMConnectionMutation,
-} from '@/store/api/llmConnectionsApi';
+} from '../hooks/useLLMConnections';
+import type { LLMConnection, LLMModel } from '../types';
 import { navigateToChat } from '@/store/slices/uiSlice';
 import { showError, showSuccess } from '@/store/slices/notificationSlice';
-
-export interface LLMModel {
-  id: string;
-  name: string;
-  created?: number;
-  owned_by?: string;
-}
-
-export interface LLMConnection {
-  id: string;
-  name: string;
-  baseUrl: string;
-
-  provider:
-    | 'openai'
-    | 'ollama'
-    | 'vllm'
-    | 'litellm'
-    | 'fireworks'
-    | 'openrouter'
-    | 'groq'
-    | 'together'
-    | 'deepinfra';
-  apiKey: string;
-  models?: LLMModel[];
-}
 
 export function LLMConnections() {
   const { t } = useTranslation('settings');

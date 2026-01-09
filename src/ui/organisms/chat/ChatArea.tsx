@@ -11,7 +11,7 @@ import { sendMessage } from '@/store/slices/messages';
 import { setLoading, clearInput } from '@/store/slices/chatInputSlice';
 import { showError } from '@/store/slices/notificationSlice';
 import { setAgentChatHistoryDrawerOpen } from '@/store/slices/uiSlice';
-import { useGetLLMConnectionsQuery } from '@/store/api/llmConnectionsApi';
+import { useGetLLMConnectionsQuery } from '@/features/llm';
 
 export function ChatArea() {
   const { t } = useTranslation(['common', 'settings']);
