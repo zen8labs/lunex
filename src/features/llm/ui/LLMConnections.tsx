@@ -142,52 +142,59 @@ export function LLMConnections() {
         />
       ) : (
         <ScrollArea className="h-full">
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {llmConnections.map((connection) => (
               <div
                 key={connection.id}
                 onClick={() => handleEdit(connection)}
-                className="flex items-center justify-between rounded-lg border p-4 hover:bg-accent/50 transition-colors cursor-pointer"
+                className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
               >
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium">{connection.name}</h4>
-                    <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                {/* Subtle gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+                <div className="relative space-y-3">
+                  {/* Header with icon and name */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
                       <ProviderIcon
                         provider={connection.provider}
-                        className="size-3.5"
+                        className="size-5"
                       />
-                      <span>{connection.provider}</span>
                     </div>
-                    {connection.models && connection.models.length > 0 && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        {connection.models.length}{' '}
-                        {t('modelsList', { count: connection.models.length })
-                          .split('(')[0]
-                          .trim()}
-                      </span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-normal truncate">
+                        {connection.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {connection.provider}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {connection.baseUrl}
-                  </p>
+
+                  {/* Models list */}
                   {connection.models && connection.models.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {connection.models.slice(0, 5).map((model) => (
-                        <span
-                          key={model.id}
-                          className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                        >
-                          {model.name}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="font-medium">
+                          {connection.models.length}{' '}
+                          {connection.models.length === 1 ? 'model' : 'models'}
                         </span>
-                      ))}
-                      {connection.models.length > 5 && (
-                        <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                          {t('moreTools', {
-                            count: connection.models.length - 5,
-                          })}
-                        </span>
-                      )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {connection.models.slice(0, 3).map((model) => (
+                          <span
+                            key={model.id}
+                            className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors"
+                          >
+                            {model.name}
+                          </span>
+                        ))}
+                        {connection.models.length > 3 && (
+                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium">
+                            +{connection.models.length - 3}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

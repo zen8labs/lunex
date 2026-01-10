@@ -29,6 +29,12 @@ import {
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/ui/atoms/tooltip';
 import { HeadersEditor } from '@/features/settings';
 import { useAppDispatch } from '@/app/hooks';
 import {
@@ -309,100 +315,127 @@ export function MCPServerConnections() {
             />
           ) : (
             <ScrollArea className="flex-1 min-h-0">
-              <div className="space-y-2 pr-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {mcpConnections.map((connection) => (
                   <div
                     key={connection.id}
                     onClick={() => handleEdit(connection)}
-                    className="flex items-center justify-between rounded-lg border p-4 hover:bg-accent/50 transition-colors cursor-pointer"
+                    className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
                   >
-                    <div className="space-y-1 w-[80%]">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{connection.name}</h4>
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                          {connection.type}
-                        </span>
-                        {connection.status && (
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs ${
-                              connection.status === 'connected'
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                : connection.status === 'connecting'
-                                  ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                  : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                            }`}
-                          >
-                            {connection.status === 'connected'
-                              ? t('connected')
-                              : connection.status === 'connecting'
-                                ? t('connecting')
-                                : t('disconnected')}
-                          </span>
-                        )}
-                        {connection.tools && connection.tools.length > 0 && (
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                            {connection.tools.length} {t('tools')}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {connection.url}
-                      </p>
-                      {connection.errorMessage && (
-                        <div className="flex items-start gap-2 mt-2 p-2 rounded-md bg-destructive/10 border border-destructive/20">
-                          <AlertCircle className="size-4 text-destructive mt-0.5 shrink-0" />
-                          <p className="text-sm text-destructive">
-                            {connection.errorMessage}
+                    {/* Subtle gradient overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+                    <div className="relative space-y-3">
+                      {/* Header with icon and name */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                          <Server className="size-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="font-normal truncate">
+                              {connection.name}
+                            </h4>
+                            {connection.errorMessage && (
+                              <TooltipProvider>
+                                <Tooltip delayDuration={0}>
+                                  <TooltipTrigger asChild>
+                                    <AlertCircle className="size-4 text-destructive shrink-0 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    side="top"
+                                    className="max-w-xs"
+                                  >
+                                    <p className="text-sm">
+                                      {connection.errorMessage}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {connection.type}
                           </p>
                         </div>
-                      )}
+                        <div
+                          className="flex gap-1 shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {connection.status === 'connected' && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8"
+                              onClick={() => handleDisconnect(connection)}
+                              title={t('disconnectConnection')}
+                            >
+                              <PowerOff className="size-3.5" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            onClick={() => handleReload(connection)}
+                            title={t('reloadConnection')}
+                            disabled={connection.status === 'connecting'}
+                          >
+                            <RefreshCw
+                              className={`size-3.5 ${connection.status === 'connecting' ? 'animate-spin' : ''}`}
+                            />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Status and URL */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {connection.status && (
+                            <span
+                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                                connection.status === 'connected'
+                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                  : connection.status === 'connecting'
+                                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                              }`}
+                            >
+                              {connection.status === 'connected'
+                                ? t('connected')
+                                : connection.status === 'connecting'
+                                  ? t('connecting')
+                                  : t('disconnected')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {connection.url}
+                        </p>
+                      </div>
+
+                      {/* Tools list */}
                       {connection.tools && connection.tools.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {connection.tools
-                            .slice(0, 5)
-                            .map((tool: MCPToolType, index: number) => (
-                              <span
-                                key={index}
-                                className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                              >
-                                {tool.name}
-                              </span>
-                            ))}
-                          {connection.tools.length > 5 && (
-                            <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                              {t('moreTools', {
-                                count: connection.tools.length - 5,
-                              })}
+                        <div className="flex items-center gap-1.5 overflow-hidden">
+                          <div className="flex gap-1.5 overflow-hidden">
+                            {connection.tools
+                              .slice(0, 3)
+                              .map((tool: MCPToolType, index: number) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors whitespace-nowrap"
+                                >
+                                  {tool.name}
+                                </span>
+                              ))}
+                          </div>
+                          {connection.tools.length > 3 && (
+                            <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium whitespace-nowrap shrink-0">
+                              +{connection.tools.length - 3}
                             </span>
                           )}
                         </div>
                       )}
-                    </div>
-                    <div
-                      className="flex gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {connection.status === 'connected' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDisconnect(connection)}
-                          title={t('disconnectConnection')}
-                        >
-                          <PowerOff className="size-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleReload(connection)}
-                        title={t('reloadConnection')}
-                        disabled={connection.status === 'connecting'}
-                      >
-                        <RefreshCw
-                          className={`size-4 ${connection.status === 'connecting' ? 'animate-spin' : ''}`}
-                        />
-                      </Button>
                     </div>
                   </div>
                 ))}
