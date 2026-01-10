@@ -162,86 +162,93 @@ export function LLMConnections() {
       ) : (
         <ScrollArea className="h-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {llmConnections.map((connection) => (
-              <div
-                key={connection.id}
-                className={`group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 overflow-hidden ${
-                  !connection.enabled ? 'opacity-60' : ''
-                }`}
-              >
-                {/* Subtle gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            {llmConnections.map((connection) => {
+              // Filter models for display
+              const displayModels = connection.models
+                ? filterPopularModels(connection.models, connection.provider)
+                : [];
 
-                <div className="relative space-y-3">
-                  {/* Header with icon, name, and toggle */}
-                  <div className="flex items-center gap-3">
-                    <div
-                      onClick={() => handleEdit(connection)}
-                      className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
-                    >
-                      <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                        <ProviderIcon
-                          provider={connection.provider}
-                          className="size-5"
-                        />
+              return (
+                <div
+                  key={connection.id}
+                  className={`group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 overflow-hidden ${
+                    !connection.enabled ? 'opacity-60' : ''
+                  }`}
+                >
+                  {/* Subtle gradient overlay on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+                  <div className="relative space-y-3">
+                    {/* Header with icon, name, and toggle */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => handleEdit(connection)}
+                        className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                      >
+                        <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                          <ProviderIcon
+                            provider={connection.provider}
+                            className="size-5"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-normal truncate">
+                              {connection.name}
+                            </h4>
+                            {!connection.enabled && (
+                              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                                Disabled
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {connection.provider}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-normal truncate">
-                            {connection.name}
-                          </h4>
-                          {!connection.enabled && (
-                            <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                              Disabled
+                      <Switch
+                        checked={connection.enabled}
+                        onCheckedChange={() =>
+                          handleToggleEnabled(connection.id, connection.enabled)
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+
+                    {/* Models list */}
+                    {displayModels.length > 0 && (
+                      <div
+                        onClick={() => handleEdit(connection)}
+                        className="space-y-1.5 cursor-pointer"
+                      >
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span className="font-medium">
+                            {displayModels.length}{' '}
+                            {displayModels.length === 1 ? 'model' : 'models'}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {displayModels.slice(0, 3).map((model) => (
+                            <span
+                              key={model.id}
+                              className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors"
+                            >
+                              {model.name}
+                            </span>
+                          ))}
+                          {displayModels.length > 3 && (
+                            <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium">
+                              +{displayModels.length - 3}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {connection.provider}
-                        </p>
                       </div>
-                    </div>
-                    <Switch
-                      checked={connection.enabled}
-                      onCheckedChange={() =>
-                        handleToggleEnabled(connection.id, connection.enabled)
-                      }
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    )}
                   </div>
-
-                  {/* Models list */}
-                  {connection.models && connection.models.length > 0 && (
-                    <div
-                      onClick={() => handleEdit(connection)}
-                      className="space-y-1.5 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="font-medium">
-                          {connection.models.length}{' '}
-                          {connection.models.length === 1 ? 'model' : 'models'}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {connection.models.slice(0, 3).map((model) => (
-                          <span
-                            key={model.id}
-                            className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors"
-                          >
-                            {model.name}
-                          </span>
-                        ))}
-                        {connection.models.length > 3 && (
-                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium">
-                            +{connection.models.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </ScrollArea>
       )}
@@ -329,6 +336,59 @@ interface LLMConnectionFormProps {
   onClose: () => void;
 }
 
+// Helper function to filter popular OpenAI models
+const filterPopularModels = (
+  models: LLMModel[],
+  provider: string
+): LLMModel[] => {
+  if (provider === 'openai') {
+    // List of popular OpenAI models to display
+    const popularModelPatterns = [
+      'gpt-3.5-turbo',
+      'gpt-4',
+      'gpt-4o',
+      'gpt-4-turbo',
+      'gpt-5',
+      'o1',
+      'gpt-5.1',
+    ];
+
+    return models.filter((model) => {
+      const modelId = model.id.toLowerCase();
+      const modelName = model.name.toLowerCase();
+
+      return popularModelPatterns.some(
+        (pattern) => modelId === pattern || modelName === pattern
+      );
+    });
+  }
+
+  if (provider === 'google') {
+    // List of popular Google Gemini models to display
+    const popularModelPatterns = [
+      'gemini-2.0-flash',
+      'gemini-2.5-flash',
+      'gemini-2.5-pro',
+      'gemini-3-flash-preview',
+      'gemini-3-pro-preview',
+      'gemini-2.5-flash-image',
+      'gemini-3-pro-image-preview',
+    ];
+
+    return models.filter((model) => {
+      const modelId = model.id.toLowerCase();
+      const modelName = model.name.toLowerCase();
+
+      return popularModelPatterns.some(
+        (pattern) => modelId === pattern || modelName === pattern
+      );
+    });
+  }
+
+  // For other providers, return all models
+  return models;
+};
+
 function LLMConnectionForm({
   connection,
   onSave,
@@ -345,7 +405,12 @@ function LLMConnectionForm({
     connection?.provider || 'openai'
   );
   const [apiKey, setApiKey] = useState(connection?.apiKey || '');
-  const [models, setModels] = useState<LLMModel[]>(connection?.models || []);
+  // Filter models even when loading from existing connection
+  const [models, setModels] = useState<LLMModel[]>(
+    connection?.models
+      ? filterPopularModels(connection.models, connection.provider)
+      : []
+  );
   const [isTesting, setIsTesting] = useState(false);
   const [testStatus, setTestStatus] = useState<'success' | 'error' | null>(
     null
@@ -375,7 +440,10 @@ function LLMConnectionForm({
           apiKey: apiKey.trim() || null,
         }
       );
-      setModels(fetchedModels);
+
+      // Filter popular models for OpenAI provider
+      const filteredModels = filterPopularModels(fetchedModels, provider);
+      setModels(filteredModels);
       setTestStatus('success');
       setHasTested(true);
 

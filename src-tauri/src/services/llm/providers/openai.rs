@@ -22,16 +22,21 @@ impl OpenAIProvider {
         let clean_id = model_id.split('/').last().unwrap_or(model_id);
         let model_lower = clean_id.to_lowercase();
 
-        // OpenAI models that support tools
-        // Virtually all modern OpenAI models (gpt-3.5-turbo, gpt-4, gpt-4o) support tools
-        let supports_tools = model_lower.contains("gpt");
+        // Tool Calling Support:
+        // - GPT-3.5-turbo and all variants (from June 2023)
+        // - All GPT-4 variants (from June 2023)
+        // - GPT-4o and variants (from May 2024)
+        // - O1 series (from Dec 2024)
+        // - GPT-5 series (future)
+        let supports_tools = model_lower.starts_with("gpt-3.5-turbo")
+            || model_lower.starts_with("gpt-4")
+            || model_lower.starts_with("gpt-5")
+            || model_lower.starts_with("o1");
 
-        // Models that support thinking/reasoning:
-        // - GPT-o1 series (gpt-o1, gpt-o1-mini, etc.)
-        let supports_thinking = model_lower.contains("gpt-o1")
-            || model_lower.contains("gpt_o1")
-            || model_lower.contains("o1-") // Catch other o1 variants if naming changes
-            || model_lower.contains("o3-"); // Future proofing
+        // Thinking/Reasoning Support:
+        // - O1 series: specialized reasoning models with chain-of-thought
+        // - GPT-5 series: improved reasoning capabilities
+        let supports_thinking = model_lower.starts_with("o1") || model_lower.starts_with("gpt-5");
 
         (supports_tools, supports_thinking)
     }
@@ -608,7 +613,7 @@ impl LLMProvider for OpenAIProvider {
 
         // Transform messages to OpenAI-compatible format (filter out unsupported content types)
         let transformed_messages = Self::transform_messages_for_openai(request.messages)?;
-        
+
         // Create a new request with transformed messages
         let transformed_request = LLMChatRequest {
             messages: transformed_messages,

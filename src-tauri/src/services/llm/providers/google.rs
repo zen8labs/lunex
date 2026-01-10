@@ -47,7 +47,7 @@ impl GoogleProvider {
             .map_err(|e| AppError::Generic(format!("Failed to decode base64: {e}")))?;
 
         let num_bytes = file_data.len();
-        
+
         // Construct proper upload URL
         // If base_url contains /v1beta, replace it with /upload/v1beta
         // Otherwise just use the host and append /upload/v1beta/files
@@ -58,7 +58,10 @@ impl GoogleProvider {
         };
         let upload_url = format!("{}/files", upload_url.trim_end_matches('/'));
 
-        eprintln!("Uploading file to Google File API: {} (size: {} bytes, mime: {})", upload_url, num_bytes, mime_type);
+        eprintln!(
+            "Uploading file to Google File API: {} (size: {} bytes, mime: {})",
+            upload_url, num_bytes, mime_type
+        );
 
         // Step 2: Initial resumable request
         let initial_response = client
@@ -140,16 +143,16 @@ impl GoogleProvider {
         }
 
         // Parse response to get file URI and name
-        let response_json: serde_json::Value = upload_response
-            .json()
-            .await
-            .map_err(|e| {
-                let err_msg = format!("Failed to parse upload response: {e}");
-                eprintln!("{}", err_msg);
-                AppError::Generic(err_msg)
-            })?;
+        let response_json: serde_json::Value = upload_response.json().await.map_err(|e| {
+            let err_msg = format!("Failed to parse upload response: {e}");
+            eprintln!("{}", err_msg);
+            AppError::Generic(err_msg)
+        })?;
 
-        eprintln!("Upload response: {}", serde_json::to_string_pretty(&response_json).unwrap_or_else(|_| "{}".to_string()));
+        eprintln!(
+            "Upload response: {}",
+            serde_json::to_string_pretty(&response_json).unwrap_or_else(|_| "{}".to_string())
+        );
 
         let file_uri = response_json
             .get("file")
@@ -173,7 +176,10 @@ impl GoogleProvider {
             })?
             .to_string();
 
-        eprintln!("Successfully uploaded file: {} (URI: {})", file_name, file_uri);
+        eprintln!(
+            "Successfully uploaded file: {} (URI: {})",
+            file_name, file_uri
+        );
         Ok((file_uri, file_name))
     }
 
@@ -184,11 +190,7 @@ impl GoogleProvider {
         base_url: &str,
         file_name: &str,
     ) -> Result<(), AppError> {
-        let get_url = format!(
-            "{}/v1beta/{}",
-            base_url.trim_end_matches('/'),
-            file_name
-        );
+        let get_url = format!("{}/v1beta/{}", base_url.trim_end_matches('/'), file_name);
 
         // Poll up to 60 times with 5 second intervals (5 minutes total)
         for _ in 0..60 {
@@ -229,28 +231,34 @@ impl GoogleProvider {
         let model_lower = model_id.to_lowercase();
 
         // Check if model supports image generation
-        let supports_image_generation = model_lower.contains("image")
-            || model_lower.contains("gemini-2.5-flash-image")
-            || model_lower.contains("gemini-3-pro-image")
-            || model_lower.contains("nano-banana")
-            || model_lower.contains("imagen");
+        // Image generation models: gemini-2.5-flash-image, gemini-3-pro-image, imagen-2, imagen-3, mono-banana
+        let supports_image_generation = model_lower.contains("flash-image")
+            || model_lower.contains("pro-image")
+            || model_lower.contains("imagen")
+            || model_lower.contains("mono-banana")
+            || model_lower.contains("nano-banana");
 
         // Image generation models don't support tools or thinking
         if supports_image_generation {
             return (false, false, true);
         }
 
-        // Regular Gemini models support tools
-        let supports_tools = model_lower.contains("gemini");
+        // Tool Calling Support:
+        // All Gemini models (1.0, 1.5, 2.0, 2.5, 3.0) support tool calling
+        let supports_tools = model_lower.starts_with("gemini");
 
-        // Only Gemini 2.5+ and Gemini 3+ support thinking
-        // Gemini 2.0 does NOT support thinking
-        let supports_thinking = if model_lower.contains("gemini") {
-            // Check for Gemini 2.5 or higher
-            model_lower.contains("gemini-2.5")
-                || model_lower.contains("gemini-3")
-                || model_lower.contains("gemini_2.5")
-                || model_lower.contains("gemini_3")
+        // Thinking/Reasoning Support:
+        // - Gemini 2.5 Pro: advanced reasoning
+        // - Gemini 2.5 Flash: thinking capabilities
+        // - Gemini 3 Pro: Deep Think mode
+        // - Gemini 3 Flash: improved reasoning
+        // Note: Gemini 2.0 and earlier do NOT have advanced thinking
+        let supports_thinking = if model_lower.starts_with("gemini") {
+            // Gemini 2.5 or 3.x series
+            model_lower.starts_with("gemini-2.5")
+                || model_lower.starts_with("gemini-3")
+                || model_lower.starts_with("gemini_2.5")
+                || model_lower.starts_with("gemini_3")
         } else {
             false
         };
@@ -444,8 +452,12 @@ impl GoogleProvider {
                                             // Check for inline image data
                                             if let Some(inline_data) = part.get("inlineData") {
                                                 if let (Some(mime_type), Some(data)) = (
-                                                    inline_data.get("mimeType").and_then(|m| m.as_str()),
-                                                    inline_data.get("data").and_then(|d| d.as_str()),
+                                                    inline_data
+                                                        .get("mimeType")
+                                                        .and_then(|m| m.as_str()),
+                                                    inline_data
+                                                        .get("data")
+                                                        .and_then(|d| d.as_str()),
                                                 ) {
                                                     final_images.push(InlineData {
                                                         mime_type: mime_type.to_string(),
@@ -762,8 +774,11 @@ impl LLMProvider for GoogleProvider {
                                         id.strip_prefix("models/").unwrap_or(&id).to_string();
 
                                     // Check model capabilities
-                                    let (supports_tools, supports_thinking, supports_image_generation) =
-                                        Self::check_model_capabilities(&clean_id);
+                                    let (
+                                        supports_tools,
+                                        supports_thinking,
+                                        supports_image_generation,
+                                    ) = Self::check_model_capabilities(&clean_id);
 
                                     Some(LLMModel {
                                         id: clean_id,
@@ -805,24 +820,24 @@ impl LLMProvider for GoogleProvider {
     ) -> Result<LLMChatResponse, AppError> {
         // Auto-detect and configure for image generation models
         let model_lower = request.model.to_lowercase();
-        let is_image_generation_model = model_lower.contains("image") 
+        let is_image_generation_model = model_lower.contains("image")
             || model_lower.contains("nano-banana")
             || model_lower.contains("imagen");
-        
+
         if is_image_generation_model {
             // Image generation models require specific configuration
             // 1. Enable both TEXT and IMAGE response modalities
             if request.response_modalities.is_none() {
                 request.response_modalities = Some(vec!["TEXT".to_string(), "IMAGE".to_string()]);
             }
-            
+
             // 2. Force non-streaming (image generation doesn't support streaming)
             request.stream = false;
-            
+
             // 3. Don't set imageConfig for experimental models - they use defaults
             // request.image_config can be None or provided by caller
         }
-        
+
         // Map request to Google format
         let mut contents = Vec::new();
         let mut system_instruction = None;
@@ -1132,10 +1147,10 @@ impl LLMProvider for GoogleProvider {
         // - Gemini 2.5: thinkingBudget (number of tokens)
         // Image generation models don't support thinking
         let model_lower = model.to_lowercase();
-        let is_image_generation_model = model_lower.contains("image") 
+        let is_image_generation_model = model_lower.contains("image")
             || model_lower.contains("nano-banana")
             || model_lower.contains("imagen");
-        
+
         if let Some(effort) = request.reasoning_effort.as_ref() {
             if !effort.is_empty() && !is_image_generation_model {
                 if let Some(gen_config) = body
@@ -1180,10 +1195,10 @@ impl LLMProvider for GoogleProvider {
         if let Some(sys) = system_instruction {
             // Image generation models don't support systemInstruction
             let model_lower = model.to_lowercase();
-            let is_image_generation_model = model_lower.contains("image") 
+            let is_image_generation_model = model_lower.contains("image")
                 || model_lower.contains("nano-banana")
                 || model_lower.contains("imagen");
-            
+
             if !is_image_generation_model {
                 // Only add systemInstruction for non-image generation models
                 if let Some(obj) = body.as_object_mut() {
@@ -1196,10 +1211,10 @@ impl LLMProvider for GoogleProvider {
         if let Some(tools) = request.tools {
             // Image generation models don't support tools
             let model_lower = model.to_lowercase();
-            let is_image_generation_model = model_lower.contains("image") 
+            let is_image_generation_model = model_lower.contains("image")
                 || model_lower.contains("nano-banana")
                 || model_lower.contains("imagen");
-            
+
             if !is_image_generation_model {
                 // Map tools to Google format if needed.
                 // Start simple without tools or implement mapping.

@@ -23,11 +23,20 @@ export function isVisionModel(modelName: string | undefined | null): boolean {
   const name = modelName.toLowerCase();
 
   // OpenAI Vision models
+  // GPT-4o and variants (all support vision)
+  if (name.startsWith('gpt-4o')) {
+    return true;
+  }
+
+  // GPT-4 Turbo (supports vision)
+  if (name.startsWith('gpt-4-turbo')) {
+    return true;
+  }
+
+  // GPT-4 with vision (specific versions)
   if (
-    name.includes('gpt-4') &&
+    name.startsWith('gpt-4') &&
     (name.includes('vision') ||
-      name.includes('turbo') ||
-      name.includes('o') ||
       name.includes('0125-preview') ||
       name.includes('1106-preview') ||
       name.includes('2024-04-09') ||
@@ -37,8 +46,13 @@ export function isVisionModel(modelName: string | undefined | null): boolean {
     return true;
   }
 
-  // GPT-4o and GPT-4o-mini (OpenAI's latest vision models)
-  if (name.includes('gpt-4o') || name === 'gpt-4o-mini') {
+  // O1 models (support multimodal from Jan 2025)
+  if (name.startsWith('o1')) {
+    return true;
+  }
+
+  // GPT-5 models (support multimodal)
+  if (name.startsWith('gpt-5')) {
     return true;
   }
 
@@ -55,18 +69,8 @@ export function isVisionModel(modelName: string | undefined | null): boolean {
     return true;
   }
 
-  // Gemini Vision models (Google)
-  if (
-    name.includes('gemini') &&
-    (name.includes('vision') ||
-      name.includes('pro-vision') ||
-      name.includes('1.5') ||
-      name.includes('1.0') ||
-      name.includes('2.0') ||
-      name.includes('2.5') ||
-      name.includes('3') ||
-      name.includes('flash'))
-  ) {
+  // Gemini Vision models (Google) - All Gemini 1.0+ support vision
+  if (name.startsWith('gemini')) {
     return true;
   }
 
