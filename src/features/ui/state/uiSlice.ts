@@ -40,6 +40,8 @@ interface UIState {
   agentChatHistoryDrawerOpen: boolean;
   agentChatHistorySessionId: string | null;
   agentChatHistoryAgentId: string | null;
+  imagePreviewOpen: boolean;
+  imagePreviewUrl: string | null;
 }
 
 // Load all app settings from database
@@ -207,6 +209,8 @@ const initialState: UIState = {
   agentChatHistoryDrawerOpen: false,
   agentChatHistorySessionId: null,
   agentChatHistoryAgentId: null,
+  imagePreviewOpen: false,
+  imagePreviewUrl: null,
 };
 
 const uiSlice = createSlice({
@@ -296,6 +300,17 @@ const uiSlice = createSlice({
         state.agentChatHistoryAgentId = null;
       }
     },
+    setImagePreviewOpen: (
+      state,
+      action: PayloadAction<{ open: boolean; url?: string | null }>
+    ) => {
+      state.imagePreviewOpen = action.payload.open;
+      if (action.payload.open && action.payload.url) {
+        state.imagePreviewUrl = action.payload.url;
+      } else if (!action.payload.open) {
+        state.imagePreviewUrl = null;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -351,5 +366,6 @@ export const {
   setUserMode,
   setTheme,
   setAgentChatHistoryDrawerOpen,
+  setImagePreviewOpen,
 } = uiSlice.actions;
 export default uiSlice.reducer;

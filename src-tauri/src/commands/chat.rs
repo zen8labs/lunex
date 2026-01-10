@@ -78,6 +78,7 @@ pub struct SendMessageResult {
 pub async fn send_message(
     chat_id: String,
     content: String,
+    images: Option<Vec<String>>,
     selected_model: Option<String>,
     reasoning_effort: Option<String>,
     llm_connection_id: Option<String>,
@@ -89,6 +90,7 @@ pub async fn send_message(
         .send_message(
             chat_id.clone(),
             content.clone(),
+            images,
             selected_model,
             reasoning_effort,
             llm_connection_id,

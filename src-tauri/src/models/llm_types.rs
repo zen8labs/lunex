@@ -34,7 +34,7 @@ pub enum ChatMessage {
     #[serde(rename = "system")]
     System { content: String },
     #[serde(rename = "user")]
-    User { content: String },
+    User { content: UserContent },
     #[serde(rename = "assistant")]
     Assistant {
         content: String,
@@ -46,6 +46,27 @@ pub enum ChatMessage {
         content: String,
         tool_call_id: String,
     },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum UserContent {
+    Text(String),
+    Parts(Vec<ContentPart>),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "type")]
+pub enum ContentPart {
+    #[serde(rename = "text")]
+    Text { text: String },
+    #[serde(rename = "image_url")]
+    ImageUrl { image_url: ImageUrl },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImageUrl {
+    pub url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

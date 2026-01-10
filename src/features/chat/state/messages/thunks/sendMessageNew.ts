@@ -25,9 +25,11 @@ export function createSendMessageThunkNew(_actions: {
       {
         chatId,
         content,
+        images,
       }: {
         chatId: string;
         content: string;
+        images?: string[];
       },
       { getState }
     ) => {
@@ -50,6 +52,7 @@ export function createSendMessageThunkNew(_actions: {
         {
           chatId,
           content,
+          images,
           selectedModel: context.selectedModel,
           reasoningEffort: isThinkingEnabled ? reasoningEffort : undefined,
           llmConnectionId: context.llmConnection.id,

@@ -25,12 +25,13 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
 
   environment: import.meta.env.MODE || 'development',
-  enabled: import.meta.env.PROD, // Only enable in production
+  enabled:
+    import.meta.env.PROD || import.meta.env.VITE_SENTRY_ENABLED === 'true',
 
   // Privacy: scrub sensitive data
   beforeSend(event) {
-    // Don't send events in development
-    if (import.meta.env.DEV) {
+    // Don't send events in development unless explicitly enabled
+    if (import.meta.env.DEV && import.meta.env.VITE_SENTRY_ENABLED !== 'true') {
       return null;
     }
 

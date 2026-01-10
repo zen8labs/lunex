@@ -33,6 +33,7 @@ import { useAppSelector, useAppDispatch } from '@/app/hooks';
 import type { LLMConnection } from '@/features/llm/types';
 import { cn, formatFileSize } from '@/lib/utils';
 import { showError } from '@/features/notifications/state/notificationSlice';
+import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
 import { isVisionModel } from '@/features/llm/lib/model-utils';
 import { useChatInput } from '../../hooks/useChatInput';
 import { useMessages } from '../../hooks/useMessages';
@@ -55,7 +56,7 @@ interface ChatInputProps {
   selectedWorkspaceId: string | null;
   selectedChatId: string | null;
   selectedLLMConnectionId?: string;
-  onSend: (content?: string) => void;
+  onSend: (content?: string, images?: string[]) => void;
   disabled?: boolean;
   dropdownDirection?: 'up' | 'down';
   timeLeft?: number | null;
@@ -252,7 +253,7 @@ export function ChatInput({
   };
 
   // Wrap onSend to combine prompt content with input
-  const handleSendWithPrompt = () => {
+  const handleSendWithPrompt = async () => {
     // Construct the prefix for agents
     const agentPrefix =
       selectedAgentIds.length > 0
@@ -282,15 +283,37 @@ export function ChatInput({
       combinedInput += input;
     }
 
-    // Only proceed if we have something to send
-    if (combinedInput.trim()) {
+    // Only proceed if we have something to send or attached files
+    if (combinedInput.trim() || attachedFiles.length > 0) {
+      // Process attached files
+      let images: string[] = [];
+      if (attachedFiles.length > 0) {
+        try {
+          images = await Promise.all(
+            attachedFiles.map((file) => {
+              return new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              });
+            })
+          );
+        } catch (error) {
+          console.error('Failed to process images', error);
+          dispatch(showError(t('failedToProcessImages', { ns: 'chat' })));
+          return;
+        }
+      }
+
       // Clear states
       setInsertedPrompt(null);
       setSelectedAgentIds([]);
+      handleFileUpload([]); // Clear attached files
 
       // Send the combined content directly
       // This avoids the race condition of updating state -> re-rendering -> reading state in child
-      onSend(combinedInput);
+      onSend(combinedInput, images);
     }
   };
 
@@ -652,17 +675,41 @@ export function ChatInput({
 
             {/* Attached Files */}
             {attachedFiles.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-1.5">
+              <div className="mb-2 flex flex-wrap gap-2">
                 {attachedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
-                  >
-                    <span className="truncate max-w-[150px]">{file.name}</span>
+                  <div key={index} className="relative group">
+                    {file.type.startsWith('image/') ? (
+                      <div
+                        className="relative h-16 w-16 overflow-hidden rounded-md border border-border cursor-pointer hover:opacity-80 transition-opacity bg-black/5 dark:bg-white/5 flex items-center justify-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = URL.createObjectURL(file);
+                          dispatch(setImagePreviewOpen({ open: true, url }));
+                        }}
+                      >
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="max-h-full max-w-full object-contain"
+                          onLoad={(e) =>
+                            URL.revokeObjectURL(e.currentTarget.src)
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs h-8">
+                        <span className="truncate max-w-[150px]">
+                          {file.name}
+                        </span>
+                      </div>
+                    )}
                     <button
                       type="button"
-                      onClick={() => handleRemoveFile(index)}
-                      className="ml-0.5 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFile(index);
+                      }}
+                      className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                       disabled={disabled}
                     >
                       ×

@@ -42,6 +42,16 @@ enum AnthropicContentBlock {
     // Thinking block (beta/extended thinking)
     #[serde(rename = "thinking")]
     Thinking { thinking: String, signature: String },
+    #[serde(rename = "image")]
+    Image { source: AnthropicImageSource },
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct AnthropicImageSource {
+    #[serde(rename = "type")]
+    r#type: String, // "base64"
+    media_type: String,
+    data: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -555,10 +565,56 @@ impl LLMProvider for AnthropicProvider {
                     }
                 }
                 ChatMessage::User { content } => {
-                    messages.push(AnthropicMessage {
-                        role: "user".to_string(),
-                        content: AnthropicMessageContent::Text(content),
-                    });
+                    match content {
+                        UserContent::Text(text) => {
+                            messages.push(AnthropicMessage {
+                                role: "user".to_string(),
+                                content: AnthropicMessageContent::Text(text),
+                            });
+                        }
+                        UserContent::Parts(parts) => {
+                            let mut blocks = Vec::new();
+                            for part in parts {
+                                match part {
+                                    ContentPart::Text { text } => {
+                                        blocks.push(AnthropicContentBlock::Text { text });
+                                    }
+                                    ContentPart::ImageUrl { image_url } => {
+                                        // Parse data URL: data:image/jpeg;base64,...
+                                        if let Some(comma_pos) = image_url.url.find(',') {
+                                            let meta = &image_url.url[..comma_pos];
+                                            let data = &image_url.url[comma_pos + 1..];
+
+                                            // Extract mime type
+                                            let media_type = if meta.contains("image/png") {
+                                                "image/png"
+                                            } else if meta.contains("image/jpeg") {
+                                                "image/jpeg"
+                                            } else if meta.contains("image/webp") {
+                                                "image/webp"
+                                            } else if meta.contains("image/gif") {
+                                                "image/gif"
+                                            } else {
+                                                "image/jpeg" // Fallback
+                                            };
+
+                                            blocks.push(AnthropicContentBlock::Image {
+                                                source: AnthropicImageSource {
+                                                    r#type: "base64".to_string(),
+                                                    media_type: media_type.to_string(),
+                                                    data: data.to_string(),
+                                                },
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            messages.push(AnthropicMessage {
+                                role: "user".to_string(),
+                                content: AnthropicMessageContent::Blocks(blocks),
+                            });
+                        }
+                    }
                 }
                 ChatMessage::Assistant {
                     content,

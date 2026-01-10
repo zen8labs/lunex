@@ -186,6 +186,7 @@ impl ChatService {
                     None,
                     None,
                     None,
+                    None,
                     app.clone(),
                 )
                 .await;
@@ -198,6 +199,7 @@ impl ChatService {
         &self,
         chat_id: String,
         content: String,
+        images: Option<Vec<String>>,
         selected_model: Option<String>,
         reasoning_effort: Option<String>,
         llm_connection_id_override: Option<String>,
@@ -258,6 +260,16 @@ impl ChatService {
             .as_secs() as i64;
         let user_message_id = uuid::Uuid::new_v4().to_string();
 
+        let metadata = if let Some(imgs) = &images {
+            if !imgs.is_empty() {
+                Some(serde_json::json!({ "images": imgs }).to_string())
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
         self.message_service.create(
             user_message_id.clone(),
             chat_id.clone(),
@@ -266,7 +278,7 @@ impl ChatService {
             Some(user_timestamp),
             None,
             None,
-            None,
+            metadata,
         )?;
 
         // 6.5 Check for Agent Mention (Routing)
@@ -464,6 +476,7 @@ impl ChatService {
             &existing_messages,
             &workspace_settings,
             &content,
+            images.as_deref(),
             system_prompt_override.clone(),
         )?;
 
@@ -641,6 +654,7 @@ impl ChatService {
                     .send_message(
                         chat_id,
                         new_content,
+                        None,
                         selected_model,
                         reasoning_effort,
                         llm_connection_id,
@@ -664,6 +678,7 @@ impl ChatService {
         self.send_message(
             chat_id,
             new_content,
+            None,
             selected_model,
             reasoning_effort,
             llm_connection_id,
@@ -942,7 +957,7 @@ impl ChatService {
                     // add a warning for LLM to wrap up.
                     if iteration == max_iterations - 1 {
                         current_messages.push(ChatMessage::User {
-                            content: "Limit reached. You have reached the maximum number of tool calls allowed for this turn. Please provide your final response summarizing what you have found so far without calling any more tools.".to_string(),
+                            content: UserContent::Text("Limit reached. You have reached the maximum number of tool calls allowed for this turn. Please provide your final response summarizing what you have found so far without calling any more tools.".to_string()),
                         });
                     }
 
@@ -1454,6 +1469,7 @@ impl ChatService {
             &existing_messages,
             workspace_settings,
             user_content,
+            None,
             system_prompt_override,
         )
     }
@@ -1463,6 +1479,7 @@ impl ChatService {
         existing_messages: &[Message],
         workspace_settings: &crate::models::WorkspaceSettings,
         user_content: &str,
+        user_images: Option<&[String]>,
         system_prompt_override: Option<String>,
     ) -> Result<Vec<ChatMessage>, AppError> {
         let mut api_messages: Vec<ChatMessage> = Vec::new();
@@ -1487,9 +1504,51 @@ impl ChatService {
             }
 
             let chat_msg = match msg.role.as_str() {
-                "user" => ChatMessage::User {
-                    content: msg.content.clone(),
-                },
+                "user" => {
+                    // Check for images in metadata
+                    let images = if let Some(metadata) = &msg.metadata {
+                        if let Ok(meta_json) = serde_json::from_str::<serde_json::Value>(metadata) {
+                            if let Some(imgs) = meta_json.get("images").and_then(|i| i.as_array()) {
+                                Some(
+                                    imgs.iter()
+                                        .filter_map(|i| i.as_str().map(|s| s.to_string()))
+                                        .collect::<Vec<String>>(),
+                                )
+                            } else {
+                                None
+                            }
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
+
+                    let content = if let Some(images) = images {
+                        if images.is_empty() {
+                            UserContent::Text(msg.content.clone())
+                        } else {
+                            let mut parts = Vec::new();
+                            // Text part
+                            if !msg.content.is_empty() {
+                                parts.push(ContentPart::Text {
+                                    text: msg.content.clone(),
+                                });
+                            }
+                            // Image parts
+                            for img in images {
+                                parts.push(ContentPart::ImageUrl {
+                                    image_url: ImageUrl { url: img },
+                                });
+                            }
+                            UserContent::Parts(parts)
+                        }
+                    } else {
+                        UserContent::Text(msg.content.clone())
+                    };
+
+                    ChatMessage::User { content }
+                }
                 "assistant" => {
                     // For assistant messages, we don't reconstruct tool_calls from history
                     // Tool calls are only included when they're part of the current conversation flow
@@ -1517,9 +1576,32 @@ impl ChatService {
         }
 
         // Add current user message
-        api_messages.push(ChatMessage::User {
-            content: user_content.to_string(),
-        });
+        let content = if let Some(images) = user_images {
+            if images.is_empty() {
+                UserContent::Text(user_content.to_string())
+            } else {
+                let mut parts = Vec::new();
+                // Text part
+                if !user_content.is_empty() {
+                    parts.push(ContentPart::Text {
+                        text: user_content.to_string(),
+                    });
+                }
+                // Image parts
+                for img in images {
+                    parts.push(ContentPart::ImageUrl {
+                        image_url: ImageUrl {
+                            url: img.to_string(),
+                        },
+                    });
+                }
+                UserContent::Parts(parts)
+            }
+        } else {
+            UserContent::Text(user_content.to_string())
+        };
+
+        api_messages.push(ChatMessage::User { content });
 
         Ok(api_messages)
     }

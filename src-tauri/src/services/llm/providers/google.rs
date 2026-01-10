@@ -540,10 +540,55 @@ impl LLMProvider for GoogleProvider {
                     }));
                 }
                 ChatMessage::User { content } => {
-                    contents.push(json!({
-                        "role": "user",
-                        "parts": [{ "text": content }]
-                    }));
+                    match content {
+                        UserContent::Text(text) => {
+                            contents.push(json!({
+                                "role": "user",
+                                "parts": [{ "text": text }]
+                            }));
+                        }
+                        UserContent::Parts(parts) => {
+                            let mut google_parts = Vec::new();
+                            for part in parts {
+                                match part {
+                                    ContentPart::Text { text } => {
+                                        google_parts.push(json!({ "text": text }));
+                                    }
+                                    ContentPart::ImageUrl { image_url } => {
+                                        // Parse data URL: data:image/jpeg;base64,...
+                                        if let Some(comma_pos) = image_url.url.find(',') {
+                                            let meta = &image_url.url[..comma_pos];
+                                            let data = &image_url.url[comma_pos + 1..];
+
+                                            // Extract mime type
+                                            let mime_type = if meta.contains("image/png") {
+                                                "image/png"
+                                            } else if meta.contains("image/jpeg") {
+                                                "image/jpeg"
+                                            } else if meta.contains("image/webp") {
+                                                "image/webp"
+                                            } else if meta.contains("image/gif") {
+                                                "image/gif"
+                                            } else {
+                                                "image/jpeg" // Fallback
+                                            };
+
+                                            google_parts.push(json!({
+                                                "inline_data": {
+                                                    "mime_type": mime_type,
+                                                    "data": data
+                                                }
+                                            }));
+                                        }
+                                    }
+                                }
+                            }
+                            contents.push(json!({
+                                "role": "user",
+                                "parts": google_parts
+                            }));
+                        }
+                    }
                 }
                 ChatMessage::Assistant { content, .. } => {
                     contents.push(json!({

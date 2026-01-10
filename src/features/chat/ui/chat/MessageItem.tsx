@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils';
 import { MarkdownContent } from '@/ui/organisms/markdown/MarkdownContent';
 import { AgentCard } from './AgentCard';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
+import { useAppDispatch } from '@/app/hooks';
+import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
 import type { Message } from '../../types';
 
 export interface MessageItemProps {
@@ -61,6 +63,7 @@ export const MessageItem = memo(
       componentName: 'MessageItem',
       threshold: 30,
     });
+    const dispatch = useAppDispatch();
     // Determine if message is long (more than 500 characters or more than 10 lines)
     const isLongMessage =
       message.content.length > 500 || message.content.split('\n').length > 10;
@@ -228,6 +231,50 @@ export const MessageItem = memo(
                         : 'max-h-[9999px]'
                     )}
                   >
+                    {/* Check for Images in metadata */}
+                    {message.metadata &&
+                      (() => {
+                        try {
+                          const parsed = JSON.parse(message.metadata);
+                          if (
+                            parsed &&
+                            Array.isArray(parsed.images) &&
+                            parsed.images.length > 0
+                          ) {
+                            return (
+                              <div className="mb-3 flex flex-wrap gap-2">
+                                {parsed.images.map(
+                                  (imgSrc: string, index: number) => (
+                                    <div
+                                      key={index}
+                                      className="relative w-fit max-w-[400px] overflow-hidden rounded-lg border border-border/50 bg-background/50 cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() =>
+                                        dispatch(
+                                          setImagePreviewOpen({
+                                            open: true,
+                                            url: imgSrc,
+                                          })
+                                        )
+                                      }
+                                    >
+                                      <img
+                                        src={imgSrc}
+                                        alt={`Attached image ${index + 1}`}
+                                        className="max-h-[300px] w-auto h-auto object-contain"
+                                        loading="lazy"
+                                      />
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            );
+                          }
+                        } catch (_) {
+                          return null;
+                        }
+                        return null;
+                      })()}
+
                     {message.role === 'assistant' ? (
                       <>
                         {markdownEnabled ? (

@@ -1,6 +1,7 @@
 import { ChatMessages } from './ChatMessages';
 import { ChatInput } from './ChatInput';
 import { AgentChatHistoryDialog } from '@/features/agent';
+import { ImagePreviewDialog } from '@/ui/molecules/ImagePreviewDialog';
 import { useMessages } from '../../hooks/useMessages';
 import { useWorkspaces } from '@/features/workspace';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -63,12 +64,18 @@ export function ChatArea() {
     handleRetryStreaming,
   } = useMessages(selectedChatId);
 
-  const handleSend = async (overrideContent?: string) => {
+  const handleSend = async (overrideContent?: string, images?: string[]) => {
     // If overrideContent is provided, use it. Otherwise use state input.
     const contentToSend =
       overrideContent !== undefined ? overrideContent : input;
 
-    if (!contentToSend.trim() || !selectedWorkspace || !selectedChatId) {
+    const hasImages = images && images.length > 0;
+
+    if (
+      (!contentToSend.trim() && !hasImages) ||
+      !selectedWorkspace ||
+      !selectedChatId
+    ) {
       return;
     }
 
@@ -119,14 +126,10 @@ export function ChatArea() {
     trackMessageSend(
       selectedChatId,
       contentToSend.trim().length,
-      attachedFiles.length > 0
+      hasImages || attachedFiles.length > 0
     );
     setLLMContext(llmConnection.provider, modelId);
     setChatContext(selectedChatId);
-
-    // Log attached files for debugging
-    if (attachedFiles.length > 0) {
-    }
 
     const userInput = contentToSend.trim();
 
@@ -140,6 +143,7 @@ export function ChatArea() {
         sendMessage({
           chatId: selectedChatId,
           content: userInput,
+          images,
         })
       ).unwrap();
 
@@ -228,6 +232,7 @@ export function ChatArea() {
         sessionId={agentChatHistorySessionId}
         agentId={agentChatHistoryAgentId}
       />
+      <ImagePreviewDialog />
     </>
   );
 }
