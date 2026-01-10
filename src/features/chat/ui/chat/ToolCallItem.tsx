@@ -246,7 +246,13 @@ export const ToolCallItem = memo(
                       {t('toolCallInput')}
                     </div>
                     <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                      {JSON.stringify(toolCallData.arguments, null, 2)}
+                      {toolCallData.arguments instanceof Object
+                        ? JSON.stringify(toolCallData.arguments, null, 2)
+                        : JSON.stringify(
+                            JSON.parse(toolCallData.arguments),
+                            null,
+                            2
+                          )}
                     </pre>
                   </div>
                   {isExecuting && !isPending ? (
