@@ -49,10 +49,12 @@ export function createEditAndResendMessageThunk(actions: {
         chatId,
         messageId,
         newContent,
+        images,
       }: {
         chatId: string;
         messageId: string;
         newContent: string;
+        images?: string[];
       },
       { getState, dispatch }
     ) => {
@@ -102,6 +104,7 @@ export function createEditAndResendMessageThunk(actions: {
           chatId,
           messageId,
           newContent,
+          newImages: images, // Map images to newImages expected by backend
           selectedModel: context.selectedModel,
           reasoningEffort: isThinkingEnabled ? reasoningEffort : undefined,
           llmConnectionId: context.llmConnection.id,

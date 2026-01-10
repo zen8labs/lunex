@@ -636,6 +636,7 @@ impl ChatService {
         chat_id: String,
         message_id: String,
         new_content: String,
+        new_images: Option<Vec<String>>,
         selected_model: Option<String>,
         reasoning_effort: Option<String>,
         llm_connection_id: Option<String>,
@@ -654,7 +655,7 @@ impl ChatService {
                     .send_message(
                         chat_id,
                         new_content,
-                        None,
+                        new_images,
                         selected_model,
                         reasoning_effort,
                         llm_connection_id,
@@ -678,7 +679,7 @@ impl ChatService {
         self.send_message(
             chat_id,
             new_content,
-            None,
+            new_images,
             selected_model,
             reasoning_effort,
             llm_connection_id,

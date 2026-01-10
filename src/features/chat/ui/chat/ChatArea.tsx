@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ChatMessages } from './ChatMessages';
 import { ChatInput } from './ChatInput';
 import { AgentChatHistoryDialog } from '@/features/agent';
@@ -8,10 +9,17 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
-import { sendMessage } from '../../state/messages';
-import { setLoading, clearInput } from '../../state/chatInputSlice';
+import { sendMessage, editAndResendMessage } from '../../state/messages';
+import {
+  setLoading,
+  clearInput,
+  setInput,
+  setAttachedFiles,
+} from '../../state/chatInputSlice';
 import { showError } from '@/features/notifications/state/notificationSlice';
 import { setAgentChatHistoryDrawerOpen } from '@/features/ui/state/uiSlice';
+import { invokeCommand, TauriCommands } from '@/lib/tauri';
+import { messagesApi } from '../../state/messagesApi';
 import { useGetLLMConnectionsQuery } from '@/features/llm';
 
 export function ChatArea() {
@@ -63,6 +71,61 @@ export function ChatArea() {
     handleStopStreaming,
     handleRetryStreaming,
   } = useMessages(selectedChatId);
+
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+
+  const handleEditMessage = (messageId: string | null) => {
+    if (!messageId) {
+      setEditingMessageId(null);
+      dispatch(clearInput());
+      dispatch(setAttachedFiles([]));
+      return;
+    }
+    const message = messages.find((m) => m.id === messageId);
+    if (message) {
+      setEditingMessageId(messageId);
+      dispatch(setInput(message.content));
+
+      // Restore images if available
+      try {
+        if (message.metadata) {
+          const parsed = JSON.parse(message.metadata);
+          if (Array.isArray(parsed.images) && parsed.images.length > 0) {
+            const files: File[] = parsed.images.map(
+              (dataUrl: string, index: number) => {
+                // Determine mime type
+                const mimeMatch = dataUrl.match(/data:(.*?);/);
+                const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                const extension = mimeType.split('/')[1] || 'png';
+
+                // Convert base64 to blob
+                const byteString = atob(dataUrl.split(',')[1]);
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+                for (let i = 0; i < byteString.length; i++) {
+                  ia[i] = byteString.charCodeAt(i);
+                }
+                const blob = new Blob([ab], { type: mimeType });
+
+                // Create File object
+                return new File([blob], `image-${index}.${extension}`, {
+                  type: mimeType,
+                });
+              }
+            );
+            dispatch(setAttachedFiles(files));
+          } else {
+            dispatch(setAttachedFiles([]));
+          }
+        } else {
+          dispatch(setAttachedFiles([]));
+        }
+      } catch (e) {
+        console.error('Failed to restore images for editing', e);
+        dispatch(setAttachedFiles([]));
+      }
+    }
+  };
 
   const handleSend = async (overrideContent?: string, images?: string[]) => {
     // If overrideContent is provided, use it. Otherwise use state input.
@@ -139,13 +202,42 @@ export function ChatArea() {
 
     try {
       // Send message with streaming support (streaming handled via Tauri events)
-      await dispatch(
-        sendMessage({
-          chatId: selectedChatId,
-          content: userInput,
-          images,
-        })
-      ).unwrap();
+      if (editingMessageId) {
+        const message = messages.find((m) => m.id === editingMessageId);
+        if (message) {
+          if (message.role === 'user') {
+            await dispatch(
+              editAndResendMessage({
+                chatId: selectedChatId,
+                messageId: editingMessageId,
+                newContent: userInput,
+                images, // Pass updated images
+              })
+            ).unwrap();
+          } else if (message.role === 'assistant') {
+            await invokeCommand(TauriCommands.UPDATE_MESSAGE, {
+              id: editingMessageId,
+              content: userInput,
+              reasoning: message.reasoning || null,
+              timestamp: null,
+            });
+            dispatch(
+              messagesApi.util.invalidateTags([
+                { type: 'Message', id: `LIST_${selectedChatId}` },
+              ])
+            );
+          }
+        }
+        setEditingMessageId(null);
+      } else {
+        await dispatch(
+          sendMessage({
+            chatId: selectedChatId,
+            content: userInput,
+            images,
+          })
+        ).unwrap();
+      }
 
       // Note: Chat last message is updated by Rust core after message completion
       // Events will handle content updates, so we don't need to update it here
@@ -202,9 +294,26 @@ export function ChatArea() {
         }
         streamingMessageId={streamingMessageId}
         onCancelToolExecution={handleStopStreaming}
+        onEditMessage={handleEditMessage}
       />
 
       {/* Input Area */}
+      {editingMessageId && (
+        <div className="mx-auto max-w-3xl px-4 pb-2">
+          <div className="flex items-center justify-between rounded-t-lg bg-muted/50 px-4 py-2 border-x border-t border-border">
+            <span className="text-sm font-medium flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              {t('editingMessage') || 'Editing Message'}
+            </span>
+            <button
+              onClick={() => handleEditMessage(null)}
+              className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-background/50 transition-colors"
+            >
+              {t('cancel') || 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
       <ChatInput
         selectedWorkspaceId={selectedWorkspaceId}
         selectedChatId={selectedChatId}

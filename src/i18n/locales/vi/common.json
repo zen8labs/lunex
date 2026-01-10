@@ -222,5 +222,6 @@
   "workspaceSettings": "Cài đặt Workspace",
   "workspaceSettingsMenu": "Cài đặt workspace",
   "zoomIn": "Phóng to (Ctrl/Cmd + Scroll)",
-  "zoomOut": "Thu nhỏ (Ctrl/Cmd + Scroll)"
+  "zoomOut": "Thu nhỏ (Ctrl/Cmd + Scroll)",
+  "editingMessage": "Chỉnh sửa tin nhắn"
 }

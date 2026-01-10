@@ -222,5 +222,6 @@
   "workspaceSettings": "__STRING_NOT_TRANSLATED__",
   "workspaceSettingsMenu": "__STRING_NOT_TRANSLATED__",
   "zoomIn": "Zoom in (Ctrl/Cmd + Scroll)",
-  "zoomOut": "Zoom out (Ctrl/Cmd + Scroll)"
+  "zoomOut": "Zoom out (Ctrl/Cmd + Scroll)",
+  "editingMessage": "Editing message"
 }
