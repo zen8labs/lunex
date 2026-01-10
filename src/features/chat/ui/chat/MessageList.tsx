@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, forwardRef } from 'react';
+import { useMemo, useState, useCallback, forwardRef, Fragment } from 'react';
 import type { Message } from '../../types';
 import type { PermissionRequest } from '@/features/tools/state/toolPermissionSlice';
 import { ToolCallItem } from './ToolCallItem';
@@ -277,14 +277,12 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
               : null;
 
           return (
-            <div
-              key={message.id}
-              className="flex min-w-0 w-full flex-col gap-2"
-            >
+            <Fragment key={message.id}>
               {enableThinkingItem &&
                 message.role === 'assistant' &&
                 message.reasoning && (
                   <ThinkingItem
+                    key={`thinking-${message.id}`}
                     content={message.reasoning}
                     isStreaming={
                       enableStreaming &&
@@ -295,6 +293,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                 )}
               {(message.role !== 'assistant' || message.content) && (
                 <MessageItem
+                  key={`content-${message.id}`}
                   message={message}
                   userMode={userMode}
                   markdownEnabled={isMarkdownEnabled}
@@ -324,7 +323,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
 
                   return (
                     <ToolCallItem
-                      key={tc.id}
+                      key={`permission-${tc.id}`}
                       data={{
                         id: tc.id,
                         name: tc.name,
@@ -351,7 +350,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                     />
                   );
                 })}
-            </div>
+            </Fragment>
           );
         })}
       </div>

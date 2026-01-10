@@ -96,27 +96,25 @@ export const ToolCallItem = memo(
       if (parseError) {
         return (
           <div className="flex min-w-0 w-full justify-start">
-            <div className="flex min-w-0 w-full flex-col gap-2">
-              <div className="rounded-lg border border-destructive bg-destructive/10 p-3">
-                <div className="flex items-center gap-2 text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="font-medium text-sm">Tool Call Error</span>
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground break-all">
-                  Failed to parse tool call data: {parseError}
-                </div>
-                {/* Developer mode: show raw content */}
-                {userMode === 'developer' && message?.content && (
-                  <details className="mt-2">
-                    <summary className="cursor-pointer text-xs font-medium hover:underline">
-                      Raw content
-                    </summary>
-                    <pre className="mt-1 text-xs bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap break-all">
-                      {message.content}
-                    </pre>
-                  </details>
-                )}
+            <div className="rounded-lg border border-destructive bg-destructive/10 p-3 w-full">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-medium text-sm">Tool Call Error</span>
               </div>
+              <div className="mt-2 text-xs text-muted-foreground break-all">
+                Failed to parse tool call data: {parseError}
+              </div>
+              {/* Developer mode: show raw content */}
+              {userMode === 'developer' && message?.content && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-medium hover:underline">
+                    Raw content
+                  </summary>
+                  <pre className="mt-1 text-xs bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap break-all">
+                    {message.content}
+                  </pre>
+                </details>
+              )}
             </div>
           </div>
         );
@@ -132,158 +130,157 @@ export const ToolCallItem = memo(
     const isPending = toolCallData.status === 'pending_permission';
 
     return (
-      <div className="flex min-w-0 w-full justify-start" onClick={handleToggle}>
-        <div className="flex min-w-0 w-full flex-col gap-2">
-          <div className="rounded-lg border bg-background/50 p-3 text-xs">
-            <button
-              className="flex w-full items-center justify-between gap-2 text-left"
-              type="button"
-            >
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                {isExecuting ? (
-                  <Loader2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground animate-spin" />
-                ) : (
-                  <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                )}
-                <span className="font-medium truncate">
-                  {toolCallData.name}
+      <div
+        className="flex min-w-0 w-full justify-start cursor-pointer"
+        onClick={handleToggle}
+      >
+        <div className="rounded-lg border bg-background/50 p-3 text-xs w-full">
+          <button
+            className="flex w-full items-center justify-between gap-2 text-left"
+            type="button"
+          >
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              {isExecuting ? (
+                <Loader2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground animate-spin" />
+              ) : (
+                <Wrench className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              )}
+              <span className="font-medium truncate">{toolCallData.name}</span>
+              {isExecuting && !isPending && (
+                <span className="text-muted-foreground text-xs">
+                  {t('toolCallCalling')}
                 </span>
-                {isExecuting && !isPending && (
-                  <span className="text-muted-foreground text-xs">
-                    {t('toolCallCalling')}
+              )}
+              {isPending && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-yellow-500 text-xs font-semibold">
+                    Permission Required
                   </span>
-                )}
-                {isPending && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-yellow-500 text-xs font-semibold">
-                      Permission Required
+                  {timeLeft !== undefined && timeLeft > 0 && (
+                    <span
+                      className={`text-xs font-mono ${
+                        timeLeft <= 10
+                          ? 'text-destructive font-bold'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      ({timeLeft}s)
                     </span>
-                    {timeLeft !== undefined && timeLeft > 0 && (
-                      <span
-                        className={`text-xs font-mono ${
-                          timeLeft <= 10
-                            ? 'text-destructive font-bold'
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        ({timeLeft}s)
-                      </span>
-                    )}
-                  </div>
-                )}
-                {isError && (
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
-                )}
-                {isCompleted && !isError && (
-                  <span className="text-muted-foreground">✓</span>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
+              {isError && (
+                <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />
+              )}
+              {isCompleted && !isError && (
+                <span className="text-muted-foreground">✓</span>
+              )}
+            </div>
 
-              <div className="flex items-center gap-2">
-                {isPending && onRespond && (
-                  <div className="flex items-center gap-1 mr-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-green-500 hover:text-green-600 hover:bg-green-100"
-                      onClick={(e: MouseEvent<HTMLButtonElement>) =>
-                        handleRespond(e, true)
-                      }
-                      title="Allow"
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={(e: MouseEvent<HTMLButtonElement>) =>
-                        handleRespond(e, false)
-                      }
-                      title="Deny"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-
-                {/* Cancel button when executing */}
-                {isExecuting && !isPending && onCancel && (
+            <div className="flex items-center gap-2">
+              {isPending && onRespond && (
+                <div className="flex items-center gap-1 mr-2">
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-6 w-6 mr-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={handleCancel}
-                    title={t('cancelToolExecution') || 'Cancel'}
+                    className="h-6 w-6 text-green-500 hover:text-green-600 hover:bg-green-100"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) =>
+                      handleRespond(e, true)
+                    }
+                    title="Allow"
                   >
-                    <StopCircle className="h-4 w-4" />
+                    <Check className="h-4 w-4" />
                   </Button>
-                )}
-
-                {(!isExecuting || isPending) &&
-                  (isExpanded ? (
-                    <ChevronUp className="h-3.5 w-3.5 shrink-0" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                  ))}
-              </div>
-            </button>
-            <div
-              className={cn(
-                'grid transition-[grid-template-rows] duration-300 ease-in-out',
-                isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e: MouseEvent<HTMLButtonElement>) =>
+                      handleRespond(e, false)
+                    }
+                    title="Deny"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
-            >
-              <div className="overflow-hidden">
-                <div
-                  className={cn(
-                    'space-y-2 pt-2 transition-opacity duration-300',
-                    isExpanded ? 'opacity-100' : 'opacity-0'
-                  )}
+
+              {/* Cancel button when executing */}
+              {isExecuting && !isPending && onCancel && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 mr-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={handleCancel}
+                  title={t('cancelToolExecution') || 'Cancel'}
                 >
+                  <StopCircle className="h-4 w-4" />
+                </Button>
+              )}
+
+              {(!isExecuting || isPending) &&
+                (isExpanded ? (
+                  <ChevronUp className="h-3.5 w-3.5 shrink-0" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                ))}
+            </div>
+          </button>
+          <div
+            className={cn(
+              'grid transition-[grid-template-rows] duration-300 ease-in-out',
+              isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            )}
+          >
+            <div className="overflow-hidden">
+              <div
+                className={cn(
+                  'space-y-2 pt-2 transition-opacity duration-300',
+                  isExpanded ? 'opacity-100' : 'opacity-0'
+                )}
+              >
+                <div>
+                  <div className="text-muted-foreground mb-1">
+                    {t('toolCallInput')}
+                  </div>
+                  <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
+                    {toolCallData.arguments instanceof Object
+                      ? JSON.stringify(toolCallData.arguments, null, 2)
+                      : JSON.stringify(
+                          JSON.parse(toolCallData.arguments),
+                          null,
+                          2
+                        )}
+                  </pre>
+                </div>
+                {isExecuting && !isPending ? (
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>{t('toolCallExecuting')}</span>
+                  </div>
+                ) : isPending ? (
+                  <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
+                    Wait for approval...
+                  </div>
+                ) : isError ? (
+                  <div>
+                    <div className="text-destructive mb-1">
+                      {t('toolCallError')}
+                    </div>
+                    <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">
+                      {toolCallData.error}
+                    </div>
+                  </div>
+                ) : toolCallData.result !== undefined ? (
                   <div>
                     <div className="text-muted-foreground mb-1">
-                      {t('toolCallInput')}
+                      {t('toolCallOutput')}
                     </div>
                     <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                      {toolCallData.arguments instanceof Object
-                        ? JSON.stringify(toolCallData.arguments, null, 2)
-                        : JSON.stringify(
-                            JSON.parse(toolCallData.arguments),
-                            null,
-                            2
-                          )}
+                      {JSON.stringify(toolCallData.result, null, 2)}
                     </pre>
                   </div>
-                  {isExecuting && !isPending ? (
-                    <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>{t('toolCallExecuting')}</span>
-                    </div>
-                  ) : isPending ? (
-                    <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
-                      Wait for approval...
-                    </div>
-                  ) : isError ? (
-                    <div>
-                      <div className="text-destructive mb-1">
-                        {t('toolCallError')}
-                      </div>
-                      <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">
-                        {toolCallData.error}
-                      </div>
-                    </div>
-                  ) : toolCallData.result !== undefined ? (
-                    <div>
-                      <div className="text-muted-foreground mb-1">
-                        {t('toolCallOutput')}
-                      </div>
-                      <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                        {JSON.stringify(toolCallData.result, null, 2)}
-                      </pre>
-                    </div>
-                  ) : null}
-                </div>
+                ) : null}
               </div>
             </div>
           </div>
