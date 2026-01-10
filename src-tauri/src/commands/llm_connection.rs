@@ -47,6 +47,7 @@ pub fn update_llm_connection(
     api_key: Option<String>,
     models_json: Option<String>,
     default_model: Option<String>,
+    enabled: Option<bool>,
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     state
@@ -59,6 +60,7 @@ pub fn update_llm_connection(
             api_key,
             models_json,
             default_model,
+            enabled,
         )
         .map_err(|e| AppError::Generic(e.to_string()))
 }

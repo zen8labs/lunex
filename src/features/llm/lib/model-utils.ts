@@ -2,6 +2,17 @@
  * Utility functions for model capabilities detection
  */
 
+import type { LLMConnection } from '../types';
+
+/**
+ * Filter LLM connections to only include enabled ones
+ */
+export function getEnabledLLMConnections(
+  connections: LLMConnection[]
+): LLMConnection[] {
+  return connections.filter((conn) => conn.enabled);
+}
+
 /**
  * Check if a model supports vision/image inputs
  * Based on model name patterns for common vision-capable models

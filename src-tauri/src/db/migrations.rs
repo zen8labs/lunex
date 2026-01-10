@@ -163,6 +163,13 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     )
     .ok(); // Ignore error if column already exists
 
+    // Add enabled column if it doesn't exist (migration for existing databases)
+    conn.execute(
+        "ALTER TABLE llm_connections ADD COLUMN enabled INTEGER DEFAULT 1",
+        [],
+    )
+    .ok(); // Ignore error if column already exists
+
     // Create mcp_server_connections table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS mcp_server_connections (

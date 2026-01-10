@@ -3,6 +3,7 @@ import {
   useCreateLLMConnectionMutation,
   useUpdateLLMConnectionMutation,
   useDeleteLLMConnectionMutation,
+  useToggleLLMConnectionEnabledMutation,
 } from '../state/api';
 
 export {
@@ -10,4 +11,5 @@ export {
   useCreateLLMConnectionMutation,
   useUpdateLLMConnectionMutation,
   useDeleteLLMConnectionMutation,
+  useToggleLLMConnectionEnabledMutation,
 };

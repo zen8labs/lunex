@@ -11,6 +11,7 @@ interface DbLLMConnection {
   api_key: string;
   models_json: string | null;
   default_model: string | null;
+  enabled: boolean;
   created_at: number;
   updated_at: number;
 }
@@ -52,6 +53,7 @@ function dbToFrontendLLMConnection(dbConn: DbLLMConnection): LLMConnection {
     provider: provider as LLMConnection['provider'],
     apiKey: dbConn.api_key,
     models,
+    enabled: dbConn.enabled,
   };
 }
 

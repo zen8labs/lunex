@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
+import { Switch } from '@/ui/atoms/switch';
 import { useAppDispatch } from '@/app/hooks';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import {
@@ -36,6 +37,7 @@ import {
   useCreateLLMConnectionMutation,
   useUpdateLLMConnectionMutation,
   useDeleteLLMConnectionMutation,
+  useToggleLLMConnectionEnabledMutation,
 } from '../hooks/useLLMConnections';
 import type { LLMConnection, LLMModel } from '../types';
 import {
@@ -52,6 +54,7 @@ export function LLMConnections() {
   const [createConnection] = useCreateLLMConnectionMutation();
   const [updateConnection] = useUpdateLLMConnectionMutation();
   const [deleteConnection] = useDeleteLLMConnectionMutation();
+  const [toggleEnabled] = useToggleLLMConnectionEnabledMutation();
 
   const [editingConnection, setEditingConnection] =
     useState<LLMConnection | null>(null);
@@ -84,6 +87,22 @@ export function LLMConnections() {
     } catch (error) {
       console.error('Error deleting LLM connection:', error);
       dispatch(showError(t('cannotDeleteConnection')));
+    }
+  };
+
+  const handleToggleEnabled = async (
+    connectionId: string,
+    currentEnabled: boolean
+  ) => {
+    try {
+      await toggleEnabled({
+        id: connectionId,
+        enabled: !currentEnabled,
+      }).unwrap();
+      // No toast notification for toggle action
+    } catch (error) {
+      console.error('Error toggling LLM connection:', error);
+      dispatch(showError(t('cannotToggleConnection')));
     }
   };
 
@@ -146,34 +165,57 @@ export function LLMConnections() {
             {llmConnections.map((connection) => (
               <div
                 key={connection.id}
-                onClick={() => handleEdit(connection)}
-                className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
+                className={`group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 overflow-hidden ${
+                  !connection.enabled ? 'opacity-60' : ''
+                }`}
               >
                 {/* Subtle gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
                 <div className="relative space-y-3">
-                  {/* Header with icon and name */}
+                  {/* Header with icon, name, and toggle */}
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                      <ProviderIcon
-                        provider={connection.provider}
-                        className="size-5"
-                      />
+                    <div
+                      onClick={() => handleEdit(connection)}
+                      className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                    >
+                      <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                        <ProviderIcon
+                          provider={connection.provider}
+                          className="size-5"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-normal truncate">
+                            {connection.name}
+                          </h4>
+                          {!connection.enabled && (
+                            <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                              Disabled
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {connection.provider}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-normal truncate">
-                        {connection.name}
-                      </h4>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {connection.provider}
-                      </p>
-                    </div>
+                    <Switch
+                      checked={connection.enabled}
+                      onCheckedChange={() =>
+                        handleToggleEnabled(connection.id, connection.enabled)
+                      }
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </div>
 
                   {/* Models list */}
                   {connection.models && connection.models.length > 0 && (
-                    <div className="space-y-1.5">
+                    <div
+                      onClick={() => handleEdit(connection)}
+                      className="space-y-1.5 cursor-pointer"
+                    >
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <span className="font-medium">
                           {connection.models.length}{' '}
@@ -389,6 +431,7 @@ function LLMConnectionForm({
         provider,
         apiKey,
         models: modelsToSave,
+        enabled: connection?.enabled ?? true, // Keep existing enabled state or default to true for new connections
       });
       onClose();
     }

@@ -26,4 +26,5 @@ export interface LLMConnection {
     | 'deepseek';
   apiKey: string;
   models?: LLMModel[];
+  enabled: boolean;
 }

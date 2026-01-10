@@ -18,6 +18,7 @@ pub trait LLMConnectionRepository: Send + Sync {
         api_key: Option<&str>,
         models_json: Option<&str>,
         default_model: Option<&str>,
+        enabled: Option<bool>,
     ) -> Result<(), AppError>;
     fn delete(&self, id: &str) -> Result<(), AppError>;
 }
@@ -36,8 +37,8 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
     fn create(&self, connection: &LLMConnection) -> Result<(), AppError> {
         let conn = crate::db::get_connection(&self.app)?;
         conn.execute(
-            "INSERT INTO llm_connections (id, name, base_url, provider, api_key, models_json, default_model, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-            params![connection.id, connection.name, connection.base_url, connection.provider, connection.api_key, connection.models_json, connection.default_model, connection.created_at, connection.updated_at],
+            "INSERT INTO llm_connections (id, name, base_url, provider, api_key, models_json, default_model, enabled, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![connection.id, connection.name, connection.base_url, connection.provider, connection.api_key, connection.models_json, connection.default_model, connection.enabled, connection.created_at, connection.updated_at],
         )?;
         Ok(())
     }
@@ -45,7 +46,7 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
     fn get_all(&self) -> Result<Vec<LLMConnection>, AppError> {
         let conn = crate::db::get_connection(&self.app)?;
         let mut stmt = conn.prepare(
-            "SELECT id, name, base_url, provider, api_key, models_json, default_model, created_at, updated_at FROM llm_connections ORDER BY created_at DESC"
+            "SELECT id, name, base_url, provider, api_key, models_json, default_model, enabled, created_at, updated_at FROM llm_connections ORDER BY created_at DESC"
         )?;
 
         let connections = stmt
@@ -58,8 +59,9 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
                     api_key: row.get(4)?,
                     models_json: row.get(5)?,
                     default_model: row.get(6)?,
-                    created_at: row.get(7)?,
-                    updated_at: row.get(8)?,
+                    enabled: row.get::<_, i64>(7)? != 0, // Convert INTEGER to bool
+                    created_at: row.get(8)?,
+                    updated_at: row.get(9)?,
                 })
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -70,7 +72,7 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
     fn get_by_id(&self, id: &str) -> Result<Option<LLMConnection>, AppError> {
         let conn = crate::db::get_connection(&self.app)?;
         let result = conn.query_row(
-            "SELECT id, name, base_url, provider, api_key, models_json, default_model, created_at, updated_at FROM llm_connections WHERE id = ?1",
+            "SELECT id, name, base_url, provider, api_key, models_json, default_model, enabled, created_at, updated_at FROM llm_connections WHERE id = ?1",
             params![id],
             |row| {
                 Ok(LLMConnection {
@@ -81,8 +83,9 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
                     api_key: row.get(4)?,
                     models_json: row.get(5)?,
                     default_model: row.get(6)?,
-                    created_at: row.get(7)?,
-                    updated_at: row.get(8)?,
+                    enabled: row.get::<_, i64>(7)? != 0, // Convert INTEGER to bool
+                    created_at: row.get(8)?,
+                    updated_at: row.get(9)?,
                 })
             },
         );
@@ -103,6 +106,7 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
         api_key: Option<&str>,
         models_json: Option<&str>,
         default_model: Option<&str>,
+        enabled: Option<bool>,
     ) -> Result<(), AppError> {
         let conn = crate::db::get_connection(&self.app)?;
         let now = std::time::SystemTime::now()
@@ -157,6 +161,13 @@ impl LLMConnectionRepository for SqliteLLMConnectionRepository {
                     params![default_model, now, id],
                 )?;
             }
+        }
+
+        if let Some(enabled) = enabled {
+            conn.execute(
+                "UPDATE llm_connections SET enabled = ?1, updated_at = ?2 WHERE id = ?3",
+                params![enabled as i64, now, id],
+            )?;
         }
 
         Ok(())

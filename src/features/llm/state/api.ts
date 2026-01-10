@@ -11,6 +11,7 @@ interface DbLLMConnection {
   api_key: string;
   models_json: string | null;
   default_model: string | null;
+  enabled: boolean;
   created_at: number;
   updated_at: number;
 }
@@ -48,6 +49,7 @@ function dbToFrontendLLMConnection(dbConn: DbLLMConnection): LLMConnection {
     provider,
     apiKey: dbConn.api_key,
     models,
+    enabled: dbConn.enabled,
   };
 }
 
@@ -113,10 +115,32 @@ export const llmConnectionsApi = baseApi.injectEndpoints({
             apiKey: connection.apiKey ?? null,
             modelsJson: modelsJson ?? null,
             defaultModel: null,
-            // defaultModel is no longer used in LLM connection
+            enabled: connection.enabled ?? null,
           },
         };
       },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'LLMConnection', id },
+        { type: 'LLMConnection', id: 'LIST' },
+      ],
+    }),
+    toggleLLMConnectionEnabled: builder.mutation<
+      void,
+      { id: string; enabled: boolean }
+    >({
+      query: ({ id, enabled }) => ({
+        command: TauriCommands.UPDATE_LLM_CONNECTION,
+        args: {
+          id,
+          name: null,
+          baseUrl: null,
+          provider: null,
+          apiKey: null,
+          modelsJson: null,
+          defaultModel: null,
+          enabled,
+        },
+      }),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'LLMConnection', id },
         { type: 'LLMConnection', id: 'LIST' },
@@ -140,4 +164,5 @@ export const {
   useCreateLLMConnectionMutation,
   useUpdateLLMConnectionMutation,
   useDeleteLLMConnectionMutation,
+  useToggleLLMConnectionEnabledMutation,
 } = llmConnectionsApi;

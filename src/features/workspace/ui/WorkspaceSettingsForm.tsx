@@ -119,9 +119,12 @@ export function WorkspaceSettingsForm({
   const [modelSearchTerm, setModelSearchTerm] = useState('');
 
   const filteredLLMConnections = useMemo(() => {
-    if (!modelSearchTerm) return llmConnections;
+    // First filter to only enabled connections
+    const enabledConnections = llmConnections.filter((conn) => conn.enabled);
 
-    return llmConnections
+    if (!modelSearchTerm) return enabledConnections;
+
+    return enabledConnections
       .map((conn) => ({
         ...conn,
         models: (conn.models || []).filter(

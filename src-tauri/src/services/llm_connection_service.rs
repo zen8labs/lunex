@@ -36,6 +36,7 @@ impl LLMConnectionService {
             api_key,
             models_json,
             default_model,
+            enabled: true, // New connections are enabled by default
             created_at: now,
             updated_at: now,
         };
@@ -62,6 +63,7 @@ impl LLMConnectionService {
         api_key: Option<String>,
         models_json: Option<String>,
         default_model: Option<String>,
+        enabled: Option<bool>,
     ) -> Result<(), AppError> {
         self.repository.update(
             &id,
@@ -71,6 +73,7 @@ impl LLMConnectionService {
             api_key.as_deref(),
             models_json.as_deref(),
             default_model.as_deref(),
+            enabled,
         )
     }
 

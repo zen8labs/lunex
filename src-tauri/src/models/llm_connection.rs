@@ -9,6 +9,7 @@ pub struct LLMConnection {
     pub api_key: String,
     pub models_json: Option<String>,   // JSON string of models array
     pub default_model: Option<String>, // Default model ID for this connection
+    pub enabled: bool,                 // Whether the connection is enabled
     pub created_at: i64,
     pub updated_at: i64,
 }
