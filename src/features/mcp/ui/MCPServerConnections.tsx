@@ -35,6 +35,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/ui/atoms/tooltip';
+import { Skeleton } from '@/ui/atoms/skeleton';
 import { HeadersEditor } from '@/features/settings';
 import { useAppDispatch } from '@/app/hooks';
 import {
@@ -91,6 +92,7 @@ export function MCPServerConnections() {
     []
   );
   const [nodeRuntimes, setNodeRuntimes] = useState<NodeRuntimeStatus[]>([]);
+  const [runtimesLoading, setRuntimesLoading] = useState(false);
   const [installDialogOpen, setInstallDialogOpen] = useState(false);
   const [serverToInstall, setServerToInstall] = useState<HubMCPServer | null>(
     null
@@ -98,6 +100,7 @@ export function MCPServerConnections() {
 
   React.useEffect(() => {
     const loadRuntimes = async () => {
+      setRuntimesLoading(true);
       try {
         const [pyStatus, nodeStatus] = await Promise.all([
           invokeCommand<PythonRuntimeStatus[]>(
@@ -111,10 +114,15 @@ export function MCPServerConnections() {
         setNodeRuntimes(nodeStatus);
       } catch (error) {
         console.error('Failed to load runtimes:', error);
+      } finally {
+        setRuntimesLoading(false);
       }
     };
     if (dialogOpen) {
       loadRuntimes();
+    } else {
+      // Reset loading state when dialog closes
+      setRuntimesLoading(false);
     }
   }, [dialogOpen]);
 
@@ -481,6 +489,7 @@ export function MCPServerConnections() {
         }
         pythonRuntimes={pythonRuntimes}
         nodeRuntimes={nodeRuntimes}
+        runtimesLoading={runtimesLoading}
       />
 
       <DeleteConfirmDialog
@@ -502,6 +511,16 @@ export function MCPServerConnections() {
   );
 }
 
+// Skeleton component for runtime selector loading state
+function RuntimeSelectorSkeleton() {
+  return (
+    <div className="space-y-2 w-full">
+      <Skeleton className="h-4 w-40" />
+      <Skeleton className="h-10 w-full" />
+    </div>
+  );
+}
+
 interface MCPServerConnectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -510,6 +529,7 @@ interface MCPServerConnectionDialogProps {
   onDelete?: () => void;
   pythonRuntimes: PythonRuntimeStatus[];
   nodeRuntimes: NodeRuntimeStatus[];
+  runtimesLoading: boolean;
 }
 
 function MCPServerConnectionDialog({
@@ -520,6 +540,7 @@ function MCPServerConnectionDialog({
   onDelete,
   pythonRuntimes,
   nodeRuntimes,
+  runtimesLoading,
 }: MCPServerConnectionDialogProps) {
   const { t } = useTranslation('settings');
   const [name, setName] = useState(connection?.name || '');
@@ -627,7 +648,7 @@ function MCPServerConnectionDialog({
           </p>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <DialogBody className="">
+          <DialogBody className="min-h-[400px]">
             <ScrollArea className="h-full">
               <div className="space-y-4 pr-4">
                 <div className="space-y-2 w-full">
@@ -662,38 +683,41 @@ function MCPServerConnectionDialog({
                   </Select>
                 </div>
 
-                {showRuntimeSelector && hasInstalledRuntimes && (
-                  <div className="space-y-2 w-full">
-                    <Label>{t('runtimeEnvironment')}</Label>
-                    <Select
-                      value={selectedRuntime}
-                      onValueChange={handleRuntimeChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={t('systemDefault')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">
-                          {t('systemDefault')}
-                        </SelectItem>
-                        {pythonRuntimes
-                          .filter((r) => r.installed && r.path)
-                          .map((r) => (
-                            <SelectItem key={r.version} value={r.path || ''}>
-                              Python {r.version} (Bundled)
-                            </SelectItem>
-                          ))}
-                        {nodeRuntimes
-                          .filter((r) => r.installed && r.path)
-                          .map((r) => (
-                            <SelectItem key={r.version} value={r.path || ''}>
-                              Node.js {r.version} (Bundled)
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                {showRuntimeSelector &&
+                  (runtimesLoading ? (
+                    <RuntimeSelectorSkeleton />
+                  ) : hasInstalledRuntimes ? (
+                    <div className="space-y-2 w-full">
+                      <Label>{t('runtimeEnvironment')}</Label>
+                      <Select
+                        value={selectedRuntime}
+                        onValueChange={handleRuntimeChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t('systemDefault')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">
+                            {t('systemDefault')}
+                          </SelectItem>
+                          {pythonRuntimes
+                            .filter((r) => r.installed && r.path)
+                            .map((r) => (
+                              <SelectItem key={r.version} value={r.path || ''}>
+                                Python {r.version} (Bundled)
+                              </SelectItem>
+                            ))}
+                          {nodeRuntimes
+                            .filter((r) => r.installed && r.path)
+                            .map((r) => (
+                              <SelectItem key={r.version} value={r.path || ''}>
+                                Node.js {r.version} (Bundled)
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : null)}
 
                 <div className="space-y-2 w-full">
                   <Label htmlFor="mcp-url">
