@@ -161,7 +161,7 @@ export function TitleBar({ leftContent, rightContent }: TitleBarProps = {}) {
       data-tauri-drag-region
       onDoubleClick={handleTitleBarDoubleClick}
       className={cn(
-        'flex h-9 items-center justify-between border-b border-border bg-background',
+        'flex h-8 items-center justify-between border-b border-sidebar-border bg-sidebar select-none',
         'select-none'
       )}
     >

@@ -155,9 +155,9 @@ export function ChatSidebar() {
   };
 
   return (
-    <div className="flex h-full w-64 flex-col border-r border-border bg-sidebar select-none">
+    <div className="flex h-full w-full flex-col border-r border-sidebar-border bg-sidebar select-none">
       {/* New Chat Button */}
-      <div className="p-3">
+      <div className="p-2">
         <Button
           onClick={handleNewChat}
           className="w-full justify-center gap-2"
@@ -187,7 +187,7 @@ export function ChatSidebar() {
                   <div
                     key={chat.id}
                     className={cn(
-                      'group relative flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors',
+                      'group relative flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors',
                       'hover:bg-sidebar-accent',
                       selectedChatId === chat.id && 'bg-sidebar-accent'
                     )}
@@ -262,7 +262,7 @@ export function ChatSidebar() {
         </div>
       </ScrollArea>
 
-      <div className="p-3 mt-auto border-t border-border">
+      <div className="p-2 mt-auto border-t border-sidebar-border">
         <Button
           onClick={() => {
             dispatch(navigateToWorkspaceSettings());

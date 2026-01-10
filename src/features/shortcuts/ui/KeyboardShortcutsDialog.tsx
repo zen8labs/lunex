@@ -94,7 +94,7 @@ export function KeyboardShortcutsDialog() {
                         <span className="text-sm text-foreground">
                           {item.description}
                         </span>
-                        <kbd className="px-2.5 py-1 text-xs font-semibold text-foreground bg-muted border border-border rounded-md shadow-sm">
+                        <kbd className="px-2.5 py-1 text-xs font-semibold text-foreground bg-muted border border-border rounded-md">
                           {item.keys}
                         </kbd>
                       </div>

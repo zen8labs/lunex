@@ -831,67 +831,62 @@ export function WorkspaceSettingsForm({
 
               {/* Advanced Settings Section */}
               <div className="space-y-4">
-                <div className="space-y-2 w-full">
-                  <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-1">
+                  <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5">
-                      <Label htmlFor="stream-enabled">
+                      <Label htmlFor="stream-enabled" className="text-sm">
                         {t('streamMode', { ns: 'chat' })}
                       </Label>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="size-4 text-muted-foreground cursor-help" />
+                          <Info className="size-3.5 text-muted-foreground/70 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          {t('streamModeDescription', {
-                            ns: 'settings',
-                          })}
+                          {t('streamModeDescription', { ns: 'settings' })}
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <Switch
-                      id="stream-enabled"
-                      checked={streamEnabled}
-                      onCheckedChange={setStreamEnabled}
-                    />
+                    <p className="text-[11px] text-muted-foreground/80">
+                      Show tokens as they are generated.
+                    </p>
                   </div>
+                  <Switch
+                    id="stream-enabled"
+                    checked={streamEnabled}
+                    onCheckedChange={setStreamEnabled}
+                  />
                 </div>
 
-                <div className="space-y-2 w-full">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5">
-                        <Label htmlFor="max-iterations">
-                          Agent Max Iterations
-                        </Label>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="size-4 text-muted-foreground cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Số lần tối đa Agent có thể lặp (gọi Tool) trong một
-                            yêu cầu.
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        Giá trị mặc định là 25. Tăng giá trị này nếu Agent cần
-                        giải quyết các tác vụ phức tạp hơn.
-                      </p>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="max-iterations" className="text-sm">
+                        {t('maxIterations') || 'Agent Iterations'}
+                      </Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="size-3.5 text-muted-foreground/70 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Số lần tối đa Agent có thể gọi Tool trong một yêu cầu
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="max-iterations"
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={maxAgentIterations}
-                        onChange={(e) =>
-                          setMaxAgentIterations(parseInt(e.target.value) || 1)
-                        }
-                        className="w-20 h-8 text-right"
-                      />
-                    </div>
+                    <p className="text-[11px] text-muted-foreground/80">
+                      Default: 25. Increase for complex tasks.
+                    </p>
                   </div>
+                  <Input
+                    id="max-iterations"
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={maxAgentIterations}
+                    onChange={(e) =>
+                      setMaxAgentIterations(parseInt(e.target.value) || 1)
+                    }
+                    className="w-14 h-7 text-right text-xs bg-muted/20 border-border/50 shadow-none focus-visible:ring-1 focus-visible:ring-primary/20 no-spinner"
+                  />
                 </div>
               </div>
 

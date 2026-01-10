@@ -651,7 +651,7 @@ export function ChatInput({
         <div className="mx-auto max-w-3xl px-4 py-3">
           <div
             className={cn(
-              'rounded-2xl border border-border bg-muted/20 shadow-sm p-3 relative transition-colors',
+              'rounded-lg border border-border bg-muted/20 shadow-sm p-3 relative transition-colors',
               isDragging && 'border-primary ring-2 ring-primary/20 bg-muted/50'
             )}
             onDragOver={handleDragOver}
@@ -660,7 +660,7 @@ export function ChatInput({
           >
             {/* Drag Indicator Overlay */}
             {isDragging && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center rounded-2xl bg-background/80 backdrop-blur-sm">
+              <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2 text-primary">
                   <Paperclip className="h-8 w-8 animate-bounce" />
                   <span className="font-medium">

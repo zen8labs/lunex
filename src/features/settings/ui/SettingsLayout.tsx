@@ -21,8 +21,8 @@ export function SettingsLayout({
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
-      <div className="w-64 border-r border-border bg-muted/30 flex flex-col shrink-0">
-        <div className="p-4 border-b border-border flex items-center gap-2">
+      <div className="w-64 border-r border-sidebar-border bg-sidebar flex flex-col shrink-0">
+        <div className="p-4 border-b border-sidebar-border flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"

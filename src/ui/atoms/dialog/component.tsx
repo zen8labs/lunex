@@ -209,7 +209,7 @@ function DialogHeader({
     <div
       data-slot="dialog-header"
       className={cn(
-        'flex flex-col gap-2 text-center sm:text-left shrink-0 px-6 pt-6 pb-4',
+        'flex flex-col gap-2 text-center sm:text-left shrink-0 px-4 pt-4 pb-2',
         showBorder && 'border-b border-border',
         className
       )}
@@ -229,7 +229,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end shrink-0 px-6 pt-4 pb-6',
+        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end shrink-0 px-4 pt-2 pb-4',
         showBorder && 'border-t border-border',
         className
       )}
@@ -242,7 +242,7 @@ function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-body"
-      className={cn('flex-1 overflow-y-auto px-6 py-4 min-h-0', className)}
+      className={cn('flex-1 overflow-y-auto px-4 py-2 min-h-0', className)}
       {...props}
     />
   );

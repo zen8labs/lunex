@@ -207,7 +207,7 @@ export const MessageItem = memo(
             <div className="relative flex flex-col gap-1 group">
               <div
                 className={cn(
-                  'relative min-w-0 wrap-break-words rounded-2xl px-4 py-3 text-sm leading-relaxed select-text',
+                  'relative min-w-0 wrap-break-words rounded-lg px-3 py-2 text-sm leading-relaxed select-text',
 
                   isStreaming && 'will-change-contents',
                   message.role === 'user'
