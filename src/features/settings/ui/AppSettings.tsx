@@ -9,9 +9,6 @@ import {
 } from '@/ui/atoms/select';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import i18n from '@/i18n/config';
-import { useAppDispatch } from '@/app/hooks';
-import { navigateToChat } from '@/features/ui/state/uiSlice';
-import { Button } from '@/ui/atoms/button/button';
 
 type Theme =
   | 'light'
@@ -31,7 +28,6 @@ type Theme =
 
 export function AppSettings() {
   const { t } = useTranslation(['settings', 'common']);
-  const dispatch = useAppDispatch();
   const {
     language: currentLanguage,
     userMode: currentUserMode,
@@ -135,12 +131,6 @@ export function AppSettings() {
             </p>
           )}
         </div>
-      </div>
-
-      <div className="pt-6 flex justify-end">
-        <Button onClick={() => dispatch(navigateToChat())} className="min-w-32">
-          {t('common:save')}
-        </Button>
       </div>
     </div>
   );

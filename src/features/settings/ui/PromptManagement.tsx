@@ -18,7 +18,6 @@ import {
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppDispatch } from '@/app/hooks';
-import { navigateToChat } from '@/features/ui/state/uiSlice';
 import {
   showError,
   showSuccess,
@@ -120,7 +119,6 @@ export function PromptManagement() {
           editingPrompt ? t('promptUpdated') : t('newPromptCreated')
         )
       );
-      dispatch(navigateToChat());
     } catch (error) {
       console.error('Error saving prompt:', error);
       dispatch(showError(t('cannotSavePrompt')));

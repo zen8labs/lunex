@@ -38,7 +38,6 @@ import {
   useDeleteLLMConnectionMutation,
 } from '../hooks/useLLMConnections';
 import type { LLMConnection, LLMModel } from '../types';
-import { navigateToChat } from '@/features/ui/state/uiSlice';
 import {
   showError,
   showSuccess,
@@ -112,8 +111,6 @@ export function LLMConnections() {
 
       setDialogOpen(false);
       setEditingConnection(null);
-
-      dispatch(navigateToChat());
     } catch (error) {
       console.error('Error saving LLM connection:', error);
       dispatch(showError(t('cannotSaveConnection')));
@@ -546,7 +543,7 @@ function LLMConnectionForm({
                         key={model.id}
                         className="flex items-center justify-between rounded-md bg-muted px-2 py-1.5 text-sm"
                       >
-                        <span className="font-medium">{model.name}</span>
+                        <span>{model.name}</span>
                         {model.owned_by && (
                           <span className="text-xs text-muted-foreground">
                             {model.owned_by}

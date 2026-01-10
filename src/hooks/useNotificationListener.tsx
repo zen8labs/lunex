@@ -60,54 +60,54 @@ export function useNotificationListener() {
       // Mark as shown
       shownNotificationsRef.current.add(id);
 
+      // Flag to ensure cleanup only runs once
+      let cleanupCalled = false;
+
+      // Cleanup function to remove notification
+      const cleanup = () => {
+        if (cleanupCalled) return;
+        cleanupCalled = true;
+
+        shownNotificationsRef.current.delete(id);
+        dispatch(removeNotification(id));
+      };
+
+      // Common toast options
+      const commonOptions = {
+        id, // Use notification ID as toast ID
+        description,
+        onDismiss: cleanup,
+      };
+
       // Show toast based on type
       switch (type) {
         case 'success':
           toast.success(title, {
-            description,
+            ...commonOptions,
             duration: duration || 4000,
-            onDismiss: () => {
-              shownNotificationsRef.current.delete(id);
-              dispatch(removeNotification(id));
-            },
           });
           break;
         case 'error':
           toast.error(title, {
-            description,
+            ...commonOptions,
             duration: duration || 5000,
             icon: category ? getCategoryIcon(category) : undefined,
-            onDismiss: () => {
-              shownNotificationsRef.current.delete(id);
-              dispatch(removeNotification(id));
-            },
           });
           break;
         case 'warning':
           toast.warning(title, {
-            description,
+            ...commonOptions,
             duration: duration || 4000,
-            onDismiss: () => {
-              shownNotificationsRef.current.delete(id);
-              dispatch(removeNotification(id));
-            },
           });
           break;
         case 'info':
         default:
           toast.info(title, {
-            description,
+            ...commonOptions,
             duration: duration || 4000,
-            onDismiss: () => {
-              shownNotificationsRef.current.delete(id);
-              dispatch(removeNotification(id));
-            },
           });
           break;
       }
-
-      // Remove notification from store immediately after showing
-      dispatch(removeNotification(id));
     });
   }, [notifications, dispatch]);
 }
