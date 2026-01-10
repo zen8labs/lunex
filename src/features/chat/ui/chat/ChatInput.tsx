@@ -33,7 +33,6 @@ import { useAppSelector, useAppDispatch } from '@/app/hooks';
 import type { LLMConnection } from '@/features/llm/types';
 import { cn, formatFileSize } from '@/lib/utils';
 import { showError } from '@/features/notifications/state/notificationSlice';
-import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
 import { isVisionModel } from '@/features/llm/lib/model-utils';
 import { useChatInput } from '../../hooks/useChatInput';
 import { useMessages } from '../../hooks/useMessages';
@@ -45,6 +44,7 @@ import { AgentMentionDropdown } from '@/features/agent';
 import { VariableInputDialog } from '@/ui/molecules/VariableInputDialog';
 import { PromptPanel } from './PromptPanel';
 import { AgentMentionChips } from './AgentBadgeOverlay';
+import { AttachedFileItem } from './AttachedFileItem';
 
 import {
   parsePromptVariables,
@@ -677,44 +677,12 @@ export function ChatInput({
             {attachedFiles.length > 0 && (
               <div className="mb-2 flex flex-wrap gap-2">
                 {attachedFiles.map((file, index) => (
-                  <div key={index} className="relative group">
-                    {file.type.startsWith('image/') ? (
-                      <div
-                        className="relative h-16 w-16 overflow-hidden rounded-md border border-border cursor-pointer hover:opacity-80 transition-opacity bg-black/5 dark:bg-white/5 flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const url = URL.createObjectURL(file);
-                          dispatch(setImagePreviewOpen({ open: true, url }));
-                        }}
-                      >
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={file.name}
-                          className="max-h-full max-w-full object-contain"
-                          onLoad={(e) =>
-                            URL.revokeObjectURL(e.currentTarget.src)
-                          }
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs h-8">
-                        <span className="truncate max-w-[150px]">
-                          {file.name}
-                        </span>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFile(index);
-                      }}
-                      className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                      disabled={disabled}
-                    >
-                      ×
-                    </button>
-                  </div>
+                  <AttachedFileItem
+                    key={`${file.name}-${file.lastModified}-${file.size}`}
+                    file={file}
+                    onRemove={() => handleRemoveFile(index)}
+                    disabled={disabled}
+                  />
                 ))}
               </div>
             )}

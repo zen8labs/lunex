@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/ui/atoms/dialog/component';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
@@ -13,14 +12,6 @@ export function ImagePreviewDialog() {
   const handleClose = () => {
     dispatch(setImagePreviewOpen({ open: false }));
   };
-
-  useEffect(() => {
-    return () => {
-      if (imageUrl && imageUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [imageUrl]);
 
   if (!imageUrl) return null;
 
