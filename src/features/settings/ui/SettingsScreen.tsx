@@ -21,6 +21,7 @@ import { AppSettings, PromptManagement } from '@/features/settings';
 import { AddonSettings } from '@/features/addon';
 import { UsagePage } from '@/features/usage';
 import { AgentSettings } from '@/features/agent';
+import { UpdateSection } from '@/features/updater/ui/UpdateSection';
 
 export function SettingsScreen() {
   const { t } = useTranslation(['settings', 'common']);
@@ -99,6 +100,7 @@ export function SettingsScreen() {
     const { t: tSettings } = useTranslation('settings');
     return (
       <div className="space-y-6">
+        <UpdateSection />
         <div>
           <h3 className="text-lg font-semibold mb-1">
             {tCommon('aboutTitle')}

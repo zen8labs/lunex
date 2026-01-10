@@ -1,6 +1,6 @@
 [package]
 name = "nexo"
-version = "0.1.0-alpha.17"
+version = "0.1.0-alpha.18"
 description = "A smart AI assistant for everyone"
 authors = ["Thanh Nguyen"]
 edition = "2021"
@@ -49,6 +49,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tempfile = "3.24.0"
 base64 = "0.22.1"
+tauri-plugin-updater = "2.9.0"
+tauri-plugin-process = "2.3.1"
 [lints.clippy]
 pedantic = "warn"
 nursery = "warn"

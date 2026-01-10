@@ -22,6 +22,7 @@ Use this workflow when:
    - Ask questions if anything is unclear
    - Identify affected components and features
    - Understand user expectations and use cases
+   - MUST confirm that with user
 
 2. **Analyze Impact**
    - Review existing codebase

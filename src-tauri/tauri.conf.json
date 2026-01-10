@@ -1,7 +1,15 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/nexo-agent/nexo/releases/latest/download/latest.json"
+      ],
+      "pubkey": "RWS/hMThiUCDH4XEHW9nRsefH5vT5B3dmlcMbBveSikP0O/lCEyuIJJi"
+    }
+  },
   "productName": "Nexo",
-  "version": "0.1.0-alpha.17",
+  "version": "0.1.0-alpha.18",
   "identifier": "com.nexo.app",
   "build": {
     "beforeDevCommand": "yarn dev",
