@@ -30,6 +30,8 @@
     "dialog:default",
     "fs:default",
     "fs:allow-write-text-file",
+    "updater:allow-check",
+    "updater:allow-install",
     {
       "identifier": "fs:allow-read-file",
       "allow": [
