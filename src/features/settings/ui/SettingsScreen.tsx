@@ -19,6 +19,7 @@ import { setSettingsSection } from '@/features/ui/state/uiSlice';
 import { SettingsLayout } from '@/features/settings/ui/SettingsLayout';
 import { Separator } from '@/ui/atoms/separator';
 import { Button } from '@/ui/atoms/button/button';
+import { ScrollArea } from '@/ui/atoms/scroll-area';
 
 // Section Components
 import { LLMConnections } from '@/features/llm';
@@ -267,7 +268,7 @@ export function SettingsScreen() {
   );
 
   const content = (
-    <div className="h-full overflow-auto">
+    <ScrollArea className="h-full">
       <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">
@@ -276,7 +277,7 @@ export function SettingsScreen() {
         </div>
         {renderContent()}
       </div>
-    </div>
+    </ScrollArea>
   );
 
   return (

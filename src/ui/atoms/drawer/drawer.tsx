@@ -2,6 +2,7 @@ import * as React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/ui/atoms/button/button';
+import { ScrollArea } from '@/ui/atoms/scroll-area';
 
 interface DrawerProps {
   open: boolean;
@@ -175,8 +176,8 @@ interface DrawerBodyProps {
 
 export function DrawerBody({ children, className }: DrawerBodyProps) {
   return (
-    <div className={cn('flex-1 overflow-y-auto px-4 py-3', className)}>
-      {children}
-    </div>
+    <ScrollArea className={cn('flex-1', className)}>
+      <div className="px-4 py-3">{children}</div>
+    </ScrollArea>
   );
 }

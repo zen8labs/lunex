@@ -6,6 +6,7 @@ import { XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDialogOrigin } from './hook';
 import { useModalStack } from '../modal-stack';
+import { ScrollArea } from '../scroll-area';
 
 // Context to pass modal ID from Dialog to DialogContent
 const DialogModalIdContext = React.createContext<string | null>(null);
@@ -240,11 +241,12 @@ function DialogFooter({
 
 function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div
+    <ScrollArea
       data-slot="dialog-body"
-      className={cn('flex-1 overflow-y-auto px-4 py-2 min-h-0', className)}
-      {...props}
-    />
+      className={cn('flex-1 min-h-0', className)}
+    >
+      <div className="px-4 py-2" {...props} />
+    </ScrollArea>
   );
 }
 

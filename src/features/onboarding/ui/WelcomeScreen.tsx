@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/ui/atoms/dialog/component';
 import { Button } from '@/ui/atoms/button/button';
+import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { useAppDispatch } from '@/app/hooks';
 import {
   setWelcomeOpen,
@@ -172,52 +173,54 @@ export function WelcomeScreen({ open, onOpenChange }: WelcomeProps) {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 [&::-webkit-scrollbar]:hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              const isComingSoon = feature.comingSoon;
-              return (
-                <button
-                  key={feature.key}
-                  onClick={() =>
-                    handleFeatureClick(feature.navigateTo, isComingSoon)
-                  }
-                  disabled={isComingSoon}
-                  className={`group flex items-start gap-3 p-3 rounded-lg border bg-background/50 transition-all text-left w-full relative ${
-                    isComingSoon
-                      ? 'opacity-60 cursor-not-allowed border-dashed'
-                      : 'hover:bg-accent/50 hover:border-primary/20 cursor-pointer shadow-sm hover:shadow-md'
-                  }`}
-                >
-                  <div
-                    className={`rounded-md p-2 flex-shrink-0 transition-colors ${isComingSoon ? 'bg-muted' : 'bg-primary/5 group-hover:bg-primary/10'}`}
+        <ScrollArea className="flex-1">
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {features.map((feature) => {
+                const Icon = feature.icon;
+                const isComingSoon = feature.comingSoon;
+                return (
+                  <button
+                    key={feature.key}
+                    onClick={() =>
+                      handleFeatureClick(feature.navigateTo, isComingSoon)
+                    }
+                    disabled={isComingSoon}
+                    className={`group flex items-start gap-3 p-3 rounded-lg border bg-background/50 transition-all text-left w-full relative ${
+                      isComingSoon
+                        ? 'opacity-60 cursor-not-allowed border-dashed'
+                        : 'hover:bg-accent/50 hover:border-primary/20 cursor-pointer shadow-sm hover:shadow-md'
+                    }`}
                   >
-                    <Icon
-                      className={`size-4 ${isComingSoon ? 'text-muted-foreground' : 'text-primary'}`}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <p className="text-sm font-semibold leading-none">
-                        {t(`${feature.key}Title`)}
-                      </p>
-                      {isComingSoon && (
-                        <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">
-                          Soon
-                        </span>
-                      )}
+                    <div
+                      className={`rounded-md p-2 flex-shrink-0 transition-colors ${isComingSoon ? 'bg-muted' : 'bg-primary/5 group-hover:bg-primary/10'}`}
+                    >
+                      <Icon
+                        className={`size-4 ${isComingSoon ? 'text-muted-foreground' : 'text-primary'}`}
+                      />
                     </div>
+                    <div className="flex-1 min-w-0 pt-0.5">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <p className="text-sm font-semibold leading-none">
+                          {t(`${feature.key}Title`)}
+                        </p>
+                        {isComingSoon && (
+                          <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground">
+                            Soon
+                          </span>
+                        )}
+                      </div>
 
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {t(`${feature.key}Description`)}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {t(`${feature.key}Description`)}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </ScrollArea>
 
         {/* Footer Actions */}
         <div className="p-4 bg-muted/30 border-t mt-auto flex flex-col sm:flex-row gap-3 items-center justify-between">
