@@ -281,6 +281,75 @@ impl OpenAIProvider {
         })
     }
 
+    /// Transform messages to OpenAI-compatible format
+    /// OpenAI only supports 'text' and 'image_url' content types
+    fn transform_messages_for_openai(
+        messages: Vec<ChatMessage>,
+    ) -> Result<Vec<ChatMessage>, AppError> {
+        let transformed_messages = messages
+            .into_iter()
+            .map(|msg| match msg {
+                ChatMessage::User { content } => {
+                    let transformed_content = match content {
+                        UserContent::Text(text) => UserContent::Text(text),
+                        UserContent::Parts(parts) => {
+                            let filtered_parts: Vec<ContentPart> = parts
+                                .into_iter()
+                                .filter_map(|part| match part {
+                                    ContentPart::Text { .. } => Some(part),
+                                    ContentPart::ImageUrl { .. } => Some(part),
+                                    ContentPart::FileUrl { file_url } => {
+                                        // OpenAI doesn't support file_url, convert to text warning
+                                        eprintln!(
+                                            "Warning: OpenAI doesn't support file_url content type. \
+                                            File with mime type '{}' will be ignored.",
+                                            file_url.mime_type
+                                        );
+                                        None
+                                    }
+                                    ContentPart::InlineData { inline_data } => {
+                                        // Try to convert inline_data to image_url if it's an image
+                                        if inline_data.mime_type.starts_with("image/") {
+                                            Some(ContentPart::ImageUrl {
+                                                image_url: ImageUrl {
+                                                    url: format!(
+                                                        "data:{};base64,{}",
+                                                        inline_data.mime_type, inline_data.data
+                                                    ),
+                                                },
+                                            })
+                                        } else {
+                                            eprintln!(
+                                                "Warning: OpenAI doesn't support inline_data for non-image types. \
+                                                File with mime type '{}' will be ignored.",
+                                                inline_data.mime_type
+                                            );
+                                            None
+                                        }
+                                    }
+                                })
+                                .collect();
+
+                            if filtered_parts.is_empty() {
+                                // If all parts were filtered out, return empty text
+                                UserContent::Text(String::new())
+                            } else {
+                                UserContent::Parts(filtered_parts)
+                            }
+                        }
+                    };
+                    ChatMessage::User {
+                        content: transformed_content,
+                    }
+                }
+                // Other message types remain unchanged
+                other => other,
+            })
+            .collect();
+
+        Ok(transformed_messages)
+    }
+
     async fn handle_non_streaming(
         &self,
         req_builder: reqwest::RequestBuilder,
@@ -537,7 +606,16 @@ impl LLMProvider for OpenAIProvider {
 
         req_builder = req_builder.header("Content-Type", "application/json");
 
-        let request_body = serde_json::to_value(&request)?;
+        // Transform messages to OpenAI-compatible format (filter out unsupported content types)
+        let transformed_messages = Self::transform_messages_for_openai(request.messages)?;
+        
+        // Create a new request with transformed messages
+        let transformed_request = LLMChatRequest {
+            messages: transformed_messages,
+            ..request
+        };
+
+        let request_body = serde_json::to_value(&transformed_request)?;
 
         if request.stream {
             self.handle_streaming(
