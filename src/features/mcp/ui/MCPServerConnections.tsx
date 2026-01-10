@@ -310,7 +310,7 @@ export function MCPServerConnections() {
                     onClick={() => handleEdit(connection)}
                     className="flex items-center justify-between rounded-lg border p-4 hover:bg-accent/50 transition-colors cursor-pointer"
                   >
-                    <div className="flex-1 space-y-1">
+                    <div className="space-y-1 w-[80%]">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{connection.name}</h4>
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
