@@ -91,29 +91,55 @@ export function ChatArea() {
         if (message.metadata) {
           const parsed = JSON.parse(message.metadata);
           if (Array.isArray(parsed.images) && parsed.images.length > 0) {
-            const files: File[] = parsed.images.map(
-              (dataUrl: string, index: number) => {
-                // Determine mime type
-                const mimeMatch = dataUrl.match(/data:(.*?);/);
-                const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
-                const extension = mimeType.split('/')[1] || 'png';
+            const promises = parsed.images.map(
+              async (dataUrlOrPath: string, index: number) => {
+                try {
+                  let blob: Blob;
+                  let mimeType = 'image/png';
+                  let extension = 'png';
 
-                // Convert base64 to blob
-                const byteString = atob(dataUrl.split(',')[1]);
-                const ab = new ArrayBuffer(byteString.length);
-                const ia = new Uint8Array(ab);
-                for (let i = 0; i < byteString.length; i++) {
-                  ia[i] = byteString.charCodeAt(i);
+                  if (dataUrlOrPath.startsWith('data:')) {
+                    // Handle data URL (Legacy)
+                    const mimeMatch = dataUrlOrPath.match(/data:(.*?);/);
+                    mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+                    extension = mimeType.split('/')[1] || 'png';
+
+                    const byteString = atob(dataUrlOrPath.split(',')[1]);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    for (let i = 0; i < byteString.length; i++) {
+                      ia[i] = byteString.charCodeAt(i);
+                    }
+                    blob = new Blob([ab], { type: mimeType });
+                  } else {
+                    // Handle file path (New)
+                    const { convertFileSrc } =
+                      await import('@tauri-apps/api/core');
+                    const assetUrl = convertFileSrc(dataUrlOrPath);
+                    const response = await fetch(assetUrl);
+                    blob = await response.blob();
+                    mimeType = blob.type;
+                    extension = mimeType.split('/')[1] || 'png';
+                  }
+
+                  return new File([blob], `image-${index}.${extension}`, {
+                    type: mimeType,
+                  });
+                } catch (e) {
+                  console.error('Failed to restore image', e);
+                  return null;
                 }
-                const blob = new Blob([ab], { type: mimeType });
-
-                // Create File object
-                return new File([blob], `image-${index}.${extension}`, {
-                  type: mimeType,
-                });
               }
             );
-            dispatch(setAttachedFiles(files));
+
+            Promise.all(promises).then((results) => {
+              const validFiles = results.filter((f): f is File => f !== null);
+              if (validFiles.length > 0) {
+                dispatch(setAttachedFiles(validFiles));
+              } else {
+                dispatch(setAttachedFiles([]));
+              }
+            });
           } else {
             dispatch(setAttachedFiles([]));
           }

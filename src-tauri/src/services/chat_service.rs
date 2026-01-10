@@ -7,9 +7,12 @@ use crate::services::{
     LLMConnectionService, LLMService, MessageService, ToolService, UsageService,
     WorkspaceSettingsService,
 };
+use base64::{engine::general_purpose, Engine as _};
 use rust_mcp_sdk::{schema::CallToolRequestParams, McpClient};
 use serde_json;
 use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tauri::AppHandle;
 use tauri::Manager;
@@ -49,6 +52,108 @@ impl ChatService {
             usage_service,
             agent_manager,
             cancellation_senders: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    /// Save a base64 image to disk and return the file path.
+    fn save_image_to_disk(&self, app: &AppHandle, image_data: &str) -> Result<String, AppError> {
+        // 1. Check if it's likely already a path or url (doesn't start with data:)
+        if !image_data.starts_with("data:") {
+            return Ok(image_data.to_string());
+        }
+
+        // 2. Parse data URL
+        let parts: Vec<&str> = image_data.split(',').collect();
+        if parts.len() != 2 {
+            return Err(AppError::Validation(
+                "Invalid image data URL format".to_string(),
+            ));
+        }
+
+        let header = parts[0];
+        let data = parts[1];
+
+        // Extract extension from mime type
+        let mime_type = header
+            .split(';')
+            .next()
+            .and_then(|part| part.split(':').nth(1))
+            .unwrap_or("image/png");
+
+        let ext = mime_type.split('/').nth(1).unwrap_or("png");
+
+        // 3. Decode base64
+        let bytes = general_purpose::STANDARD
+            .decode(data)
+            .map_err(|e| AppError::Validation(format!("Failed to decode base64 image: {}", e)))?;
+
+        // 4. Determine path
+        let app_data_dir = app
+            .path()
+            .app_data_dir()
+            .map_err(|e| AppError::Generic(e.to_string()))?;
+        let images_dir = app_data_dir.join("images");
+
+        if !images_dir.exists() {
+            fs::create_dir_all(&images_dir).map_err(|e| {
+                AppError::Generic(format!("Failed to create images directory: {}", e))
+            })?;
+        }
+
+        let filename = format!("{}.{}", uuid::Uuid::new_v4(), ext);
+        let file_path = images_dir.join(filename);
+
+        // 5. Write to disk
+        fs::write(&file_path, bytes)
+            .map_err(|e| AppError::Generic(format!("Failed to write image file: {}", e)))?;
+
+        Ok(file_path.to_string_lossy().to_string())
+    }
+
+    /// Process a list of images: save base64 strings to disk and return paths.
+    fn process_incoming_images(
+        &self,
+        app: &AppHandle,
+        images: Option<Vec<String>>,
+    ) -> Result<Option<Vec<String>>, AppError> {
+        if let Some(imgs) = images {
+            let mut paths = Vec::new();
+            for img in imgs {
+                let path = self.save_image_to_disk(app, &img)?;
+                paths.push(path);
+            }
+            Ok(Some(paths))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Load an image from a path and convert to base64 data URL.
+    fn load_image_content(&self, path_or_data: &str) -> Result<String, AppError> {
+        if path_or_data.starts_with("data:") {
+            Ok(path_or_data.to_string())
+        } else {
+            let path = PathBuf::from(path_or_data);
+            if path.exists() {
+                let bytes = fs::read(&path)
+                    .map_err(|e| AppError::Generic(format!("Failed to read image file: {}", e)))?;
+                let encoded = general_purpose::STANDARD.encode(&bytes);
+
+                // Guess mime type from extension
+                let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("png");
+                let mime = match ext.to_lowercase().as_str() {
+                    "jpg" | "jpeg" => "image/jpeg",
+                    "png" => "image/png",
+                    "webp" => "image/webp",
+                    "gif" => "image/gif",
+                    "bmp" => "image/bmp",
+                    "svg" => "image/svg+xml",
+                    _ => "image/png",
+                };
+                Ok(format!("data:{};base64,{}", mime, encoded))
+            } else {
+                Ok(path_or_data.to_string())
+            }
         }
     }
 
@@ -212,6 +317,9 @@ impl ChatService {
             sentry::Level::Info,
         );
 
+        // Process images: Save incoming base64 images to disk and get paths
+        let processed_images = self.process_incoming_images(&app, images.clone())?;
+
         // 1. Get chat to find workspace_id
         let chat = self
             .repository
@@ -260,7 +368,7 @@ impl ChatService {
             .as_secs() as i64;
         let user_message_id = uuid::Uuid::new_v4().to_string();
 
-        let metadata = if let Some(imgs) = &images {
+        let metadata = if let Some(imgs) = &processed_images {
             if !imgs.is_empty() {
                 Some(serde_json::json!({ "images": imgs }).to_string())
             } else {
@@ -476,7 +584,7 @@ impl ChatService {
             &existing_messages,
             &workspace_settings,
             &content,
-            images.as_deref(),
+            processed_images.as_deref(),
             system_prompt_override.clone(),
         )?;
 
@@ -642,6 +750,9 @@ impl ChatService {
         llm_connection_id: Option<String>,
         app: AppHandle,
     ) -> Result<(String, String), AppError> {
+        // Process new images
+        let processed_new_images = self.process_incoming_images(&app, new_images)?;
+
         // 1. Get the message to find its timestamp before deleting
         let message_timestamp =
             if let Some(message) = self.message_service.get_by_id(&message_id)? {
@@ -655,7 +766,7 @@ impl ChatService {
                     .send_message(
                         chat_id,
                         new_content,
-                        new_images,
+                        processed_new_images,
                         selected_model,
                         reasoning_effort,
                         llm_connection_id,
@@ -679,7 +790,7 @@ impl ChatService {
         self.send_message(
             chat_id,
             new_content,
-            new_images,
+            processed_new_images,
             selected_model,
             reasoning_effort,
             llm_connection_id,
@@ -1538,8 +1649,9 @@ impl ChatService {
                             }
                             // Image parts
                             for img in images {
+                                let img_content = self.load_image_content(&img).unwrap_or(img);
                                 parts.push(ContentPart::ImageUrl {
-                                    image_url: ImageUrl { url: img },
+                                    image_url: ImageUrl { url: img_content },
                                 });
                             }
                             UserContent::Parts(parts)
@@ -1590,10 +1702,9 @@ impl ChatService {
                 }
                 // Image parts
                 for img in images {
+                    let img_content = self.load_image_content(img).unwrap_or(img.to_string());
                     parts.push(ContentPart::ImageUrl {
-                        image_url: ImageUrl {
-                            url: img.to_string(),
-                        },
+                        image_url: ImageUrl { url: img_content },
                     });
                 }
                 UserContent::Parts(parts)

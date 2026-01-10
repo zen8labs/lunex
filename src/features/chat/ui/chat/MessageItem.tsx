@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { MessageImage } from './MessageImage';
 import { Button } from '@/ui/atoms/button/button';
 import { Textarea } from '@/ui/atoms/textarea';
 import { cn } from '@/lib/utils';
@@ -248,20 +249,19 @@ export const MessageItem = memo(
                                     <div
                                       key={index}
                                       className="relative w-fit max-w-[400px] overflow-hidden rounded-lg border border-border/50 bg-background/50 cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={() =>
-                                        dispatch(
-                                          setImagePreviewOpen({
-                                            open: true,
-                                            url: imgSrc,
-                                          })
-                                        )
-                                      }
                                     >
-                                      <img
+                                      <MessageImage
                                         src={imgSrc}
                                         alt={`Attached image ${index + 1}`}
                                         className="max-h-[300px] w-auto h-auto object-contain"
-                                        loading="lazy"
+                                        onClick={(url) =>
+                                          dispatch(
+                                            setImagePreviewOpen({
+                                              open: true,
+                                              url,
+                                            })
+                                          )
+                                        }
                                       />
                                     </div>
                                   )

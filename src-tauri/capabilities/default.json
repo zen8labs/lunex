@@ -29,6 +29,22 @@
     "clipboard-manager:default",
     "dialog:default",
     "fs:default",
-    "fs:allow-write-text-file"
+    "fs:allow-write-text-file",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        {
+          "path": "$APPDATA/images/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        {
+          "path": "$APPDATA/images/**"
+        }
+      ]
+    }
   ]
 }
