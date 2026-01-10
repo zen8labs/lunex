@@ -8,7 +8,7 @@ import {
 } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
-import { Textarea } from '@/ui/atoms/textarea';
+
 import {
   Select,
   SelectContent,
@@ -720,15 +720,19 @@ export function ChatInput({
 
             {/* Row 1: Text Input Only */}
             <div className="mb-0 relative" ref={inputContainerRef}>
-              <Textarea
+              <textarea
                 ref={textareaRef}
+                data-slot="textarea"
                 value={input}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
                 placeholder={t('enterMessage')}
                 disabled={disabled}
-                className="w-full min-h-[40px] max-h-[200px] resize-none leading-relaxed text-base py-0 px-2 border-0 rounded-lg outline-none flex content-center ring-0 shadow-none focus:ring-0 focus:shadow-none bg-transparent dark:bg-transparent"
+                className={cn(
+                  'border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+                  'w-full min-h-[40px] max-h-[200px] resize-none leading-relaxed text-base py-0 px-2 border-0 rounded-lg outline-none flex content-center ring-0 shadow-none focus:ring-0 focus:shadow-none bg-transparent dark:bg-transparent'
+                )}
                 rows={1}
                 data-tour="chat-input-textarea"
               />
