@@ -1,5 +1,5 @@
+use super::models::LLMConnection;
 use crate::error::AppError;
-use crate::models::LLMConnection;
 use rusqlite::params;
 use std::sync::Arc;
 use tauri::AppHandle;

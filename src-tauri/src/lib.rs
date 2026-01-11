@@ -166,11 +166,11 @@ pub fn run() {
             features::workspace::settings::commands::save_workspace_settings,
             features::workspace::settings::commands::get_workspace_settings,
             // LLM Connection commands
-            commands::llm_connection::create_llm_connection,
-            commands::llm_connection::get_llm_connections,
-            commands::llm_connection::update_llm_connection,
-            commands::llm_connection::delete_llm_connection,
-            commands::llm_connection::test_llm_connection,
+            features::llm_connection::commands::create_llm_connection,
+            features::llm_connection::commands::get_llm_connections,
+            features::llm_connection::commands::update_llm_connection,
+            features::llm_connection::commands::delete_llm_connection,
+            features::llm_connection::commands::test_llm_connection,
             // MCP Server Connection commands
             commands::mcp_connection::create_mcp_server_connection,
             commands::mcp_connection::get_mcp_server_connections,

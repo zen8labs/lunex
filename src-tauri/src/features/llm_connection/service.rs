@@ -1,6 +1,6 @@
+use super::models::LLMConnection;
+use super::repository::LLMConnectionRepository;
 use crate::error::AppError;
-use crate::models::LLMConnection;
-use crate::repositories::LLMConnectionRepository;
 use std::sync::Arc;
 
 pub struct LLMConnectionService {

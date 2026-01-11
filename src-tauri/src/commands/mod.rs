@@ -2,7 +2,7 @@ pub mod addon;
 pub mod chat;
 pub mod chat_input_settings;
 pub mod hub;
-pub mod llm_connection;
+
 pub mod mcp_connection;
 pub mod mcp_tool;
 pub mod message;

@@ -4,7 +4,7 @@ pub mod chat_service;
 pub mod hub_service;
 pub mod index_config_service;
 pub mod llm;
-pub mod llm_connection_service;
+
 pub mod mcp_client_service;
 pub mod mcp_config_service;
 pub mod mcp_connection_service;
@@ -22,7 +22,7 @@ pub use chat_service::ChatService;
 pub use hub_service::HubService;
 pub use index_config_service::IndexConfigService;
 pub use llm::LLMService;
-pub use llm_connection_service::LLMConnectionService;
+
 pub use mcp_client_service::MCPClientService;
 pub use mcp_config_service::MCPConfigService;
 pub use mcp_connection_service::MCPConnectionService;
