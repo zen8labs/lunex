@@ -172,11 +172,11 @@ pub fn run() {
             features::llm_connection::commands::delete_llm_connection,
             features::llm_connection::commands::test_llm_connection,
             // MCP Server Connection commands
-            commands::mcp_connection::create_mcp_server_connection,
-            commands::mcp_connection::get_mcp_server_connections,
-            commands::mcp_connection::update_mcp_server_connection,
-            commands::mcp_connection::delete_mcp_server_connection,
-            commands::mcp_connection::update_mcp_server_status,
+            features::mcp_connection::commands::create_mcp_server_connection,
+            features::mcp_connection::commands::get_mcp_server_connections,
+            features::mcp_connection::commands::update_mcp_server_connection,
+            features::mcp_connection::commands::delete_mcp_server_connection,
+            features::mcp_connection::commands::update_mcp_server_status,
             // App Settings commands
             commands::settings::save_app_setting,
             commands::settings::get_app_setting,

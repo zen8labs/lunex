@@ -7,7 +7,7 @@ pub mod llm;
 
 pub mod mcp_client_service;
 pub mod mcp_config_service;
-pub mod mcp_connection_service;
+
 pub mod mcp_tool_refresh_service;
 pub mod message_service;
 pub mod node_runtime;
@@ -25,7 +25,7 @@ pub use llm::LLMService;
 
 pub use mcp_client_service::MCPClientService;
 pub use mcp_config_service::MCPConfigService;
-pub use mcp_connection_service::MCPConnectionService;
+
 pub use mcp_tool_refresh_service::MCPToolRefreshService;
 pub use message_service::MessageService;
 pub use node_runtime::NodeRuntime;

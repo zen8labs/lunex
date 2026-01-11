@@ -1,5 +1,5 @@
+use super::models::MCPServerConnection;
 use crate::error::AppError;
-use crate::models::MCPServerConnection;
 use rusqlite::params;
 use std::sync::Arc;
 use tauri::AppHandle;

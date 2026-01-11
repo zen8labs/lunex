@@ -1,6 +1,6 @@
+use super::models::MCPServerConnection;
+use super::repository::MCPConnectionRepository;
 use crate::error::AppError;
-use crate::models::MCPServerConnection;
-use crate::repositories::MCPConnectionRepository;
 use std::sync::Arc;
 
 pub struct MCPConnectionService {

@@ -5,7 +5,7 @@ pub mod chat_input_settings;
 pub mod hub_index;
 
 pub mod llm_types;
-pub mod mcp_connection;
+
 pub mod mcp_tool;
 pub mod message;
 pub mod prompt;
@@ -19,7 +19,6 @@ pub use hub_index::{
     HubAgent, HubGitInstall, HubIndex, HubMCPServer, HubMCPServerConfig, HubPrompt,
 };
 
-pub use mcp_connection::MCPServerConnection;
 pub use message::Message;
 pub use prompt::Prompt;
 pub use prompt_template::ParsedPromptTemplate;

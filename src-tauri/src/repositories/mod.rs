@@ -2,7 +2,6 @@ pub mod app_settings_repository;
 pub mod chat_input_settings_repository;
 pub mod chat_repository;
 
-pub mod mcp_connection_repository;
 pub mod message_repository;
 pub mod prompt_repository;
 
@@ -12,6 +11,5 @@ pub use chat_input_settings_repository::{
 };
 pub use chat_repository::{ChatRepository, SqliteChatRepository};
 
-pub use mcp_connection_repository::{MCPConnectionRepository, SqliteMCPConnectionRepository};
 pub use message_repository::{MessageRepository, SqliteMessageRepository};
 pub use prompt_repository::{PromptRepository, SqlitePromptRepository};

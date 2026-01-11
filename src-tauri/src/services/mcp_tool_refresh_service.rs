@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use crate::repositories::MCPConnectionRepository;
+use crate::features::mcp_connection::MCPConnectionRepository;
 use crate::services::MCPClientService;
 use std::sync::Arc;
 use std::time::Duration;

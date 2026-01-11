@@ -1,5 +1,5 @@
+use super::models::MCPServerConnection;
 use crate::error::AppError;
-use crate::models::MCPServerConnection;
 use crate::state::AppState;
 use tauri::State;
 

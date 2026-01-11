@@ -1,6 +1,9 @@
 use crate::features::llm_connection::{
     LLMConnectionRepository, LLMConnectionService, SqliteLLMConnectionRepository,
 };
+use crate::features::mcp_connection::{
+    MCPConnectionRepository, MCPConnectionService, SqliteMCPConnectionRepository,
+};
 use crate::features::usage::{SqliteUsageRepository, UsageRepository, UsageService};
 use crate::features::workspace::{
     management::{SqliteWorkspaceRepository, WorkspaceRepository, WorkspaceService},
@@ -70,8 +73,6 @@ impl AppState {
         let workspace_settings_repo: Arc<dyn WorkspaceSettingsRepository> =
             Arc::new(SqliteWorkspaceSettingsRepository::new(app.clone()));
 
-        let mcp_connection_repo: Arc<dyn MCPConnectionRepository> =
-            Arc::new(SqliteMCPConnectionRepository::new(app.clone()));
         let app_settings_repo: Arc<dyn AppSettingsRepository> =
             Arc::new(SqliteAppSettingsRepository::new(app.clone()));
         let prompt_repo: Arc<dyn PromptRepository> =
@@ -108,6 +109,8 @@ impl AppState {
 
         let llm_service = Arc::new(LLMService::new());
         let usage_service = Arc::new(UsageService::new(usage_repo));
+        let mcp_connection_repo: Arc<dyn MCPConnectionRepository> =
+            Arc::new(SqliteMCPConnectionRepository::new(app.clone()));
         let mcp_connection_service =
             Arc::new(MCPConnectionService::new(mcp_connection_repo.clone()));
         let tool_service = Arc::new(ToolService::new(
