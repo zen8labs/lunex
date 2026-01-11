@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 pub mod agent_emitter;
-pub mod message_emitter;
+
 pub mod tool_emitter;
 
+pub use crate::features::message::MessageEmitter;
 pub use agent_emitter::AgentEmitter;
-pub use message_emitter::MessageEmitter;
 pub use tool_emitter::ToolEmitter;
 
 // Event types for Phase 1 (LLM streaming)

@@ -120,6 +120,10 @@ impl MessageEmitter {
                     message_id,
                 },
             )
-            .map_err(|e| AppError::Generic(format!("Failed to emit message-metadata-updated event: {e}")))
+            .map_err(|e| {
+                AppError::Generic(format!(
+                    "Failed to emit message-metadata-updated event: {e}"
+                ))
+            })
     }
 }

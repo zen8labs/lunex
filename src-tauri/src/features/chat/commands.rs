@@ -1,5 +1,5 @@
+use super::models::Chat;
 use crate::error::AppError;
-use crate::models::Chat;
 use crate::state::AppState;
 use tauri::{AppHandle, State};
 

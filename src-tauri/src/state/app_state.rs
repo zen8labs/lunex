@@ -1,9 +1,14 @@
+use crate::features::chat::input_settings::{
+    ChatInputSettingsRepository, ChatInputSettingsService, SqliteChatInputSettingsRepository,
+};
+use crate::features::chat::{ChatRepository, ChatService, SqliteChatRepository};
 use crate::features::llm_connection::{
     LLMConnectionRepository, LLMConnectionService, SqliteLLMConnectionRepository,
 };
 use crate::features::mcp_connection::{
     MCPConnectionRepository, MCPConnectionService, SqliteMCPConnectionRepository,
 };
+use crate::features::message::{MessageRepository, MessageService, SqliteMessageRepository};
 use crate::features::prompt::{PromptRepository, PromptService, SqlitePromptRepository};
 use crate::features::usage::{SqliteUsageRepository, UsageRepository, UsageService};
 use crate::features::workspace::{

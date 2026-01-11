@@ -1,12 +1,13 @@
+use super::models::Chat;
+use super::repository::ChatRepository;
 use crate::error::AppError;
-use crate::events::{AgentEmitter, MessageEmitter, ToolEmitter};
+use crate::events::{AgentEmitter, ToolEmitter};
 use crate::features::llm_connection::LLMConnectionService;
+use crate::features::message::{Message, MessageEmitter, MessageService};
 use crate::features::usage::UsageService;
 use crate::features::workspace::settings::{WorkspaceSettings, WorkspaceSettingsService};
 use crate::models::llm_types::*;
-use crate::models::{Chat, Message};
-use crate::repositories::ChatRepository;
-use crate::services::{LLMService, MessageService, ToolService};
+use crate::services::{LLMService, ToolService};
 use base64::{engine::general_purpose, Engine as _};
 use rust_mcp_sdk::{schema::CallToolRequestParams, McpClient};
 use serde_json;

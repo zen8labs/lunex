@@ -1,5 +1,5 @@
+use super::models::ChatInputSettings;
 use crate::error::AppError;
-use crate::models::ChatInputSettings;
 use crate::state::AppState;
 use tauri::State;
 

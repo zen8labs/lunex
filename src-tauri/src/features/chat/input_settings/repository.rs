@@ -1,5 +1,5 @@
+use super::models::ChatInputSettings;
 use crate::error::AppError;
-use crate::models::ChatInputSettings;
 use rusqlite::params;
 use std::sync::Arc;
 use tauri::AppHandle;

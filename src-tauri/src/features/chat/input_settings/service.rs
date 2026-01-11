@@ -1,6 +1,6 @@
+use super::models::ChatInputSettings;
+use super::repository::ChatInputSettingsRepository;
 use crate::error::AppError;
-use crate::models::ChatInputSettings;
-use crate::repositories::ChatInputSettingsRepository;
 use std::sync::Arc;
 
 pub struct ChatInputSettingsService {
