@@ -389,7 +389,9 @@ export function ChatInput({
     return enabledConnections
       .map((conn: LLMConnection) => ({
         ...conn,
-        models: (conn.models || []).filter(
+        models: (
+          conn.models?.sort((a, b) => a.id.localeCompare(b.id)) || []
+        ).filter(
           (m) =>
             m.name?.toLowerCase().includes(modelSearchTerm.toLowerCase()) ||
             m.id.toLowerCase().includes(modelSearchTerm.toLowerCase())
@@ -652,14 +654,14 @@ export function ChatInput({
           <div className="mx-auto max-w-3xl px-4 pb-2">
             <div className="rounded-lg bg-destructive/10 px-3 py-2 border border-destructive/30 flex items-center justify-between">
               <span className="text-xs text-destructive font-medium">
-                ❌ {t('streamingTimeoutError')}
+                {t('streamingTimeoutError')}
               </span>
               {onRetryStreaming && (
                 <button
                   onClick={onRetryStreaming}
                   className="ml-2 px-2 py-0.5 text-xs bg-destructive/20 hover:bg-destructive/30 rounded transition-colors"
                 >
-                  🔄 {t('retry')}
+                  {t('retry')}
                 </button>
               )}
             </div>

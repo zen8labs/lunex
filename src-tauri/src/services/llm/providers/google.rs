@@ -227,21 +227,24 @@ impl GoogleProvider {
         ))
     }
 
-    fn check_model_capabilities(model_id: &str) -> (bool, bool, bool) {
+    fn is_image_generation_model(model_id: &str) -> bool {
         let model_lower = model_id.to_lowercase();
-
-        // Check if model supports image generation
-        // Image generation models: gemini-2.5-flash-image, gemini-3-pro-image, imagen-2, imagen-3, mono-banana
-        let supports_image_generation = model_lower.contains("flash-image")
-            || model_lower.contains("pro-image")
+        // Image generation models: gemini-2.5-flash-image, gemini-3-pro-image, imagen-2, imagen-3, mono-banana, nano-banana
+        model_lower.contains("image")
             || model_lower.contains("imagen")
-            || model_lower.contains("mono-banana")
-            || model_lower.contains("nano-banana");
+            || model_lower.contains("banana")
+    }
+
+    fn check_model_capabilities(model_id: &str) -> (bool, bool, bool) {
+        // Check if model supports image generation
+        let supports_image_generation = Self::is_image_generation_model(model_id);
 
         // Image generation models don't support tools or thinking
         if supports_image_generation {
             return (false, false, true);
         }
+
+        let model_lower = model_id.to_lowercase();
 
         // Tool Calling Support:
         // All Gemini models (1.0, 1.5, 2.0, 2.5, 3.0) support tool calling
@@ -819,10 +822,7 @@ impl LLMProvider for GoogleProvider {
         cancellation_rx: Option<tokio::sync::broadcast::Receiver<()>>,
     ) -> Result<LLMChatResponse, AppError> {
         // Auto-detect and configure for image generation models
-        let model_lower = request.model.to_lowercase();
-        let is_image_generation_model = model_lower.contains("image")
-            || model_lower.contains("nano-banana")
-            || model_lower.contains("imagen");
+        let is_image_generation_model = Self::is_image_generation_model(&request.model);
 
         if is_image_generation_model {
             // Image generation models require specific configuration
@@ -1146,10 +1146,7 @@ impl LLMProvider for GoogleProvider {
         // - Gemini 3: thinkingLevel (low, medium, high)
         // - Gemini 2.5: thinkingBudget (number of tokens)
         // Image generation models don't support thinking
-        let model_lower = model.to_lowercase();
-        let is_image_generation_model = model_lower.contains("image")
-            || model_lower.contains("nano-banana")
-            || model_lower.contains("imagen");
+        let is_image_generation_model = Self::is_image_generation_model(&model);
 
         if let Some(effort) = request.reasoning_effort.as_ref() {
             if !effort.is_empty() && !is_image_generation_model {
@@ -1194,12 +1191,7 @@ impl LLMProvider for GoogleProvider {
 
         if let Some(sys) = system_instruction {
             // Image generation models don't support systemInstruction
-            let model_lower = model.to_lowercase();
-            let is_image_generation_model = model_lower.contains("image")
-                || model_lower.contains("nano-banana")
-                || model_lower.contains("imagen");
-
-            if !is_image_generation_model {
+            if !Self::is_image_generation_model(&model) {
                 // Only add systemInstruction for non-image generation models
                 if let Some(obj) = body.as_object_mut() {
                     obj.insert("systemInstruction".to_string(), sys);
@@ -1210,12 +1202,7 @@ impl LLMProvider for GoogleProvider {
         // Add tools if present
         if let Some(tools) = request.tools {
             // Image generation models don't support tools
-            let model_lower = model.to_lowercase();
-            let is_image_generation_model = model_lower.contains("image")
-                || model_lower.contains("nano-banana")
-                || model_lower.contains("imagen");
-
-            if !is_image_generation_model {
+            if !Self::is_image_generation_model(&model) {
                 // Map tools to Google format if needed.
                 // Start simple without tools or implement mapping.
                 // Google tools format: function_declarations inside 'tools' array.
