@@ -50,6 +50,23 @@ impl WorkspaceSettingsService {
         &self,
         workspace_id: &str,
     ) -> Result<Option<WorkspaceSettings>, AppError> {
-        self.repository.get_by_workspace_id(workspace_id)
+        let settings = self.repository.get_by_workspace_id(workspace_id)?;
+
+        if settings.is_none() {
+            // Lazy initialize settings if they don't exist
+            self.save(
+                workspace_id.to_string(),
+                None,
+                None,
+                None,
+                Some(true),
+                None,
+                None,
+                Some(10),
+            )?;
+            return self.repository.get_by_workspace_id(workspace_id);
+        }
+
+        Ok(settings)
     }
 }

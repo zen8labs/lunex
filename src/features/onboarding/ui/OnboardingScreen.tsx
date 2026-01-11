@@ -20,6 +20,7 @@ import {
 import { useAppDispatch } from '@/app/hooks';
 import { setWelcomeOpen } from '@/features/ui/state/uiSlice';
 import { LLMConnectionForm } from '@/features/llm/ui/LLMConnections';
+import { useSaveWorkspaceSettingsMutation } from '@/features/workspace/state/workspaceSettingsApi';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export function OnboardingScreen() {
   const { data: connections = [], isLoading: isLoadingConnections } =
     useGetLLMConnectionsQuery();
   const [createConnection] = useCreateLLMConnectionMutation();
+  const [saveWorkspaceSettings] = useSaveWorkspaceSettingsMutation();
 
   const [step, setStep] = useState(1);
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
@@ -70,13 +72,32 @@ export function OnboardingScreen() {
   const handleSaveConnection = useCallback(
     async (connection: Omit<LLMConnection, 'id'>) => {
       try {
-        await createConnection(connection).unwrap();
+        const result = await createConnection(connection).unwrap();
+
+        // Link the new connection to the current workspace
+        if (workspaces.length > 0) {
+          const workspace = workspaces[0];
+          await saveWorkspaceSettings({
+            workspaceId: workspace.id,
+            settings: {
+              id: workspace.id,
+              name: workspace.name,
+              llmConnectionId: result.id,
+              systemMessage: '',
+              mcpToolIds: {},
+              streamEnabled: true,
+              maxAgentIterations: 10,
+              toolPermissionConfig: {},
+            },
+          }).unwrap();
+        }
+
         setShowLLMForm(false);
       } catch (error) {
         console.error('Failed to save connection during onboarding:', error);
       }
     },
-    [createConnection]
+    [createConnection, saveWorkspaceSettings, workspaces]
   );
 
   const handleFinishOnboarding = () => {

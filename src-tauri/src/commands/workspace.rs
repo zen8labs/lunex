@@ -9,10 +9,24 @@ pub fn create_workspace(
     name: String,
     state: State<'_, AppState>,
 ) -> Result<Workspace, AppError> {
-    state
+    let workspace = state
         .workspace_service
-        .create(id, name)
-        .map_err(|e| AppError::Generic(e.to_string()))
+        .create(id.clone(), name)
+        .map_err(|e| AppError::Generic(e.to_string()))?;
+
+    // Create default settings for the new workspace
+    state.workspace_settings_service.save(
+        id,
+        None,       // llm_connection_id
+        None,       // system_message
+        None,       // mcp_tool_ids
+        Some(true), // stream_enabled
+        None,       // default_model
+        None,       // tool_permission_config
+        Some(10),   // max_agent_iterations
+    )?;
+
+    Ok(workspace)
 }
 
 #[tauri::command]
