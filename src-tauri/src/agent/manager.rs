@@ -329,7 +329,7 @@ impl AgentManager {
         app: &tauri::AppHandle,
         agent_id: &str,
     ) -> Result<std::sync::Arc<rust_mcp_sdk::mcp_client::ClientRuntime>> {
-        use crate::services::MCPClientService;
+        use crate::features::tool::mcp_client::MCPClientService;
         use crate::state::MCPClientState;
         use tauri::Manager;
 
@@ -415,8 +415,9 @@ impl AgentManager {
         &self,
         app: &tauri::AppHandle,
         agent_id: &str,
-    ) -> Result<(Vec<crate::models::mcp_tool::MCPTool>, String), anyhow::Error> {
-        use crate::services::MCPClientService;
+    ) -> Result<(Vec<crate::features::tool::models::MCPTool>, String), anyhow::Error> {
+        use crate::features::tool::mcp_client::MCPClientService;
+        use crate::features::tool::models::MCPTool;
 
         // 1. Get instructions
         let instructions = self.get_agent_instructions(agent_id)?;
@@ -459,12 +460,12 @@ impl AgentManager {
             .map_err(|e| anyhow::anyhow!("Failed to list tools: {}", e))?;
 
         // Convert to MCPTool format
-        let tools: Vec<crate::models::mcp_tool::MCPTool> = tools_result
+        let tools: Vec<MCPTool> = tools_result
             .tools
             .into_iter()
             .map(|tool| {
                 let input_schema = serde_json::to_string(&tool.input_schema).ok();
-                crate::models::mcp_tool::MCPTool {
+                MCPTool {
                     name: tool.name,
                     description: tool.description,
                     input_schema,

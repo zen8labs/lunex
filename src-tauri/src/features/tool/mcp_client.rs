@@ -1,7 +1,7 @@
+use super::models::MCPTool;
 use crate::error::AppError;
-use crate::models::mcp_tool::MCPTool;
-use crate::models::AddonIndex;
-use crate::services::PythonRuntime;
+use crate::features::addon::models::AddonIndex;
+use crate::features::runtime::python::service::PythonRuntime;
 use rust_mcp_sdk::{
     mcp_client::{client_runtime, ClientHandler, ClientRuntime},
     schema::{

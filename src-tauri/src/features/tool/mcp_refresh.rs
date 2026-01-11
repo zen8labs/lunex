@@ -1,6 +1,6 @@
+use super::mcp_client::MCPClientService;
 use crate::error::AppError;
 use crate::features::mcp_connection::MCPConnectionRepository;
-use crate::services::MCPClientService;
 use std::sync::Arc;
 use std::time::Duration;
 

@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use crate::models::HubMCPServerConfig;
+use crate::features::hub::models::HubMCPServerConfig;
 use regex::Regex;
 use std::collections::HashMap;
 

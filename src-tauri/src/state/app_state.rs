@@ -1,3 +1,7 @@
+use crate::features::app_settings::{
+    repository::{AppSettingsRepository, SqliteAppSettingsRepository},
+    service::AppSettingsService,
+};
 use crate::features::chat::input_settings::{
     ChatInputSettingsRepository, ChatInputSettingsService, SqliteChatInputSettingsRepository,
 };
@@ -10,6 +14,8 @@ use crate::features::mcp_connection::{
 };
 use crate::features::message::{MessageRepository, MessageService, SqliteMessageRepository};
 use crate::features::prompt::{PromptRepository, PromptService, SqlitePromptRepository};
+
+use crate::features::tool::{mcp_refresh::MCPToolRefreshService, service::ToolService};
 use crate::features::usage::{SqliteUsageRepository, UsageRepository, UsageService};
 use crate::features::workspace::{
     management::{SqliteWorkspaceRepository, WorkspaceRepository, WorkspaceService},
@@ -18,7 +24,7 @@ use crate::features::workspace::{
     },
     WorkspaceFeature,
 };
-use crate::repositories::*;
+
 use crate::services::*;
 use rusqlite::Connection;
 use std::collections::HashMap;
@@ -94,7 +100,7 @@ impl AppState {
                 .path()
                 .app_data_dir()
                 .map_err(crate::error::AppError::Tauri)?,
-            crate::services::python_runtime::get_bundled_uv_path(&app)?,
+            crate::features::runtime::python::service::get_bundled_uv_path(&app)?,
         ));
 
         // Create services

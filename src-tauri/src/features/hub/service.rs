@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use crate::models::{HubAgent, HubIndex, HubMCPServer, HubPrompt};
+use crate::features::hub::models::{HubAgent, HubIndex, HubMCPServer, HubPrompt};
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime};
 

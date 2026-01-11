@@ -1,8 +1,11 @@
 use crate::error::AppError;
+use crate::features::hub::mcp_config::MCPConfigService;
+use crate::features::hub::models::{
+    HubAgent, HubGitInstall, HubMCPServer, HubMCPServerConfig, HubPrompt,
+};
+use crate::features::hub::service::HubService;
 use crate::features::mcp_connection::MCPServerConnection;
 use crate::features::prompt::{ParsedPromptTemplate, Prompt, PromptTemplateService};
-use crate::models::{HubMCPServer, HubPrompt};
-use crate::services::{HubService, MCPConfigService};
 use crate::state::AppState;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -23,7 +26,7 @@ pub struct InstallMCPServerFromHubPayload {
     pub server_id: String,
     pub name: String,
     pub server_type: String,
-    pub config: crate::models::HubMCPServerConfig,
+    pub config: HubMCPServerConfig,
     pub variables: HashMap<String, String>,
 }
 
@@ -160,11 +163,11 @@ pub struct InstallAgentFromHubPayload {
     pub agent_id: String,
     #[allow(dead_code)]
     pub name: String,
-    pub git_install: crate::models::HubGitInstall,
+    pub git_install: HubGitInstall,
 }
 
 #[tauri::command]
-pub async fn fetch_hub_agents() -> Result<Vec<crate::models::HubAgent>, AppError> {
+pub async fn fetch_hub_agents() -> Result<Vec<HubAgent>, AppError> {
     let hub_service = Arc::new(HubService::new());
     hub_service.get_agents().await
 }

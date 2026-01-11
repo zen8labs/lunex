@@ -1,6 +1,6 @@
+use super::mcp_client::MCPClientService;
+use super::models::MCPTool;
 use crate::error::AppError;
-use crate::models::mcp_tool::MCPTool;
-use crate::services::mcp_client_service::MCPClientService;
 use crate::state::mcp_client_state::MCPClientState;
 use tauri::State;
 

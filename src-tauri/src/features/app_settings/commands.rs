@@ -1,5 +1,5 @@
+use super::models::AppSetting;
 use crate::error::AppError;
-use crate::models::AppSetting;
 use crate::state::AppState;
 use tauri::State;
 

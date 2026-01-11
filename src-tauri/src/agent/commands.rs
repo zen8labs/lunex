@@ -78,7 +78,7 @@ pub async fn update_agent(state: State<'_, AppState>, agent_id: String) -> Resul
 
 #[derive(serde::Serialize)]
 pub struct AgentInfo {
-    pub tools: Vec<crate::models::mcp_tool::MCPTool>,
+    pub tools: Vec<crate::features::tool::models::MCPTool>,
     pub instructions: String,
 }
 

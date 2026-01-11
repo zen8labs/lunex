@@ -1,6 +1,6 @@
+use super::models::AppSetting;
+use super::repository::AppSettingsRepository;
 use crate::error::AppError;
-use crate::models::AppSetting;
-use crate::repositories::AppSettingsRepository;
 use std::sync::Arc;
 
 pub struct AppSettingsService {

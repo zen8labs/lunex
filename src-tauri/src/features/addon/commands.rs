@@ -1,6 +1,6 @@
+use super::models::AddonIndex;
+use super::service::IndexConfigService;
 use crate::error::AppError;
-use crate::models::AddonIndex;
-use crate::services::IndexConfigService;
 use tauri::{command, State};
 
 #[command]

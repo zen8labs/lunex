@@ -1,4 +1,4 @@
-use crate::models::addon_config::{AddonIndex, REMOTE_INDEX_URL};
+use crate::features::addon::models::{AddonIndex, REMOTE_INDEX_URL};
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime};
 

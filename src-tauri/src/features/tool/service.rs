@@ -1,8 +1,9 @@
+use super::mcp_client::MCPClientService;
 use crate::error::AppError;
 use crate::features::mcp_connection::MCPConnectionService;
+use crate::features::tool::models::MCPTool;
 use crate::features::workspace::settings::WorkspaceSettingsService;
 use crate::models::llm_types::ChatCompletionTool;
-use crate::services::MCPClientService;
 use serde_json;
 use std::sync::Arc;
 use tauri::AppHandle;
@@ -69,18 +70,17 @@ impl ToolService {
         let mut all_tools = Vec::new();
         for connection in workspace_connections {
             // Parse cached tools from tools_json column
-            let mcp_tools: Vec<crate::models::mcp_tool::MCPTool> =
-                if let Some(tools_json) = &connection.tools_json {
-                    serde_json::from_str(tools_json).map_err(|e| {
-                        AppError::Generic(format!(
-                            "Failed to parse cached tools for connection {}: {}",
-                            connection.id, e
-                        ))
-                    })?
-                } else {
-                    // No cached tools available, skip this connection
-                    continue;
-                };
+            let mcp_tools: Vec<MCPTool> = if let Some(tools_json) = &connection.tools_json {
+                serde_json::from_str(tools_json).map_err(|e| {
+                    AppError::Generic(format!(
+                        "Failed to parse cached tools for connection {}: {}",
+                        connection.id, e
+                    ))
+                })?
+            } else {
+                // No cached tools available, skip this connection
+                continue;
+            };
 
             // Convert MCP tools to OpenAI format, but only for selected tools
             for mcp_tool in mcp_tools {

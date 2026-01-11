@@ -1,5 +1,6 @@
 use crate::error::AppError;
-use crate::services::{IndexConfigService, PythonRuntime};
+use crate::features::addon::service::IndexConfigService;
+use crate::features::runtime::python::service::PythonRuntime;
 use tauri::{command, AppHandle, State};
 
 #[derive(serde::Serialize)]
@@ -70,6 +71,6 @@ pub async fn execute_python_code(
     app: AppHandle,
     code: String,
     version: Option<String>,
-) -> Result<crate::services::python_runtime::ExecutionResult, AppError> {
+) -> Result<crate::features::runtime::python::service::ExecutionResult, AppError> {
     PythonRuntime::execute_script(&app, version, &code)
 }

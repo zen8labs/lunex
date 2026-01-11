@@ -1,5 +1,6 @@
 use crate::error::AppError;
-use crate::services::{IndexConfigService, NodeRuntime};
+use crate::features::addon::service::IndexConfigService;
+use crate::features::runtime::node::service::NodeRuntime;
 use tauri::{command, AppHandle, State};
 
 #[derive(serde::Serialize)]

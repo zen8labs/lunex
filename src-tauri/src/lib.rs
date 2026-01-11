@@ -1,5 +1,5 @@
 mod agent;
-mod commands;
+
 mod constants;
 mod db;
 mod error;
@@ -7,7 +7,7 @@ mod events;
 mod features;
 mod menu;
 mod models;
-mod repositories;
+
 mod services;
 mod state;
 
@@ -119,7 +119,7 @@ pub fn run() {
             app.manage(mcp_client_state);
 
             // Initialize IndexConfigService
-            let index_config_service = services::IndexConfigService::new();
+            let index_config_service = features::addon::service::IndexConfigService::new();
             app.manage(index_config_service);
 
             // Create and set menu
@@ -178,41 +178,41 @@ pub fn run() {
             features::mcp_connection::commands::delete_mcp_server_connection,
             features::mcp_connection::commands::update_mcp_server_status,
             // App Settings commands
-            commands::settings::save_app_setting,
-            commands::settings::get_app_setting,
-            commands::settings::get_all_app_settings,
+            features::app_settings::commands::save_app_setting,
+            features::app_settings::commands::get_app_setting,
+            features::app_settings::commands::get_all_app_settings,
             // Prompt commands
             features::prompt::commands::create_prompt,
             features::prompt::commands::get_prompts,
             features::prompt::commands::update_prompt,
             features::prompt::commands::delete_prompt,
             // Hub commands
-            commands::hub::fetch_hub_prompts,
-            commands::hub::fetch_prompt_template,
-            commands::hub::install_prompt_from_hub,
-            commands::hub::fetch_hub_mcp_servers,
-            commands::hub::install_mcp_server_from_hub,
-            commands::hub::refresh_hub_index,
-            commands::hub::fetch_hub_agents,
-            commands::hub::install_agent_from_hub,
+            features::hub::commands::fetch_hub_prompts,
+            features::hub::commands::fetch_prompt_template,
+            features::hub::commands::install_prompt_from_hub,
+            features::hub::commands::fetch_hub_mcp_servers,
+            features::hub::commands::install_mcp_server_from_hub,
+            features::hub::commands::refresh_hub_index,
+            features::hub::commands::fetch_hub_agents,
+            features::hub::commands::install_agent_from_hub,
             // MCP Tools commands
-            commands::mcp_tool::test_mcp_connection_and_fetch_tools,
-            commands::mcp_tool::connect_mcp_server_and_fetch_tools,
-            commands::mcp_tool::get_mcp_client,
-            commands::mcp_tool::call_mcp_tool,
-            commands::mcp_tool::disconnect_mcp_client,
+            features::tool::commands::test_mcp_connection_and_fetch_tools,
+            features::tool::commands::connect_mcp_server_and_fetch_tools,
+            features::tool::commands::get_mcp_client,
+            features::tool::commands::call_mcp_tool,
+            features::tool::commands::disconnect_mcp_client,
             // Python commands
-            commands::python::get_python_runtimes_status,
-            commands::python::install_python_runtime,
-            commands::python::uninstall_python_runtime,
-            commands::python::execute_python_code,
+            features::runtime::python::commands::get_python_runtimes_status,
+            features::runtime::python::commands::install_python_runtime,
+            features::runtime::python::commands::uninstall_python_runtime,
+            features::runtime::python::commands::execute_python_code,
             // Addon config commands
-            commands::addon::get_addon_config,
-            commands::addon::refresh_addon_config,
+            features::addon::commands::get_addon_config,
+            features::addon::commands::refresh_addon_config,
             // Node commands
-            commands::node::get_node_runtimes_status,
-            commands::node::install_node_runtime,
-            commands::node::uninstall_node_runtime,
+            features::runtime::node::commands::get_node_runtimes_status,
+            features::runtime::node::commands::install_node_runtime,
+            features::runtime::node::commands::uninstall_node_runtime,
             // Usage commands
             features::usage::commands::get_usage_summary,
             features::usage::commands::get_usage_chart,
