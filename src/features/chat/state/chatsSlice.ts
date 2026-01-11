@@ -58,7 +58,7 @@ export const fetchChats = createAsyncThunk(
 export const createChat = createAsyncThunk(
   'chats/createChat',
   async ({ workspaceId, title }: { workspaceId: string; title: string }) => {
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     await invokeCommand<Chat>(TauriCommands.CREATE_CHAT, {
       id,
       workspaceId,

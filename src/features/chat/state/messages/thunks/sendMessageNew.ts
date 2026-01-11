@@ -31,7 +31,7 @@ export function createSendMessageThunkNew(_actions: {
         content: string;
         files?: string[];
       },
-      { getState }
+      { getState, dispatch }
     ) => {
       const state = getState() as RootState;
 
@@ -40,7 +40,12 @@ export function createSendMessageThunkNew(_actions: {
 
       const { isThinkingEnabled, reasoningEffort } = state.chatInput;
 
-      // 2. Call Tauri command
+      // 2. Update chat last message immediately to prevent it from being deleted as "empty"
+      // when switching chats
+      const { updateChatLastMessage } = await import('../../chatsSlice');
+      dispatch(updateChatLastMessage({ id: chatId, lastMessage: content }));
+
+      // 3. Call Tauri command
       // Rust will:
       // - Create user message
       // - Create assistant message placeholder

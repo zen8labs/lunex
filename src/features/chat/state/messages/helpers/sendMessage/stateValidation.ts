@@ -50,17 +50,14 @@ export function validateAndExtractState(
     throw new Error('No model selected');
   }
 
-  if (!workspaceSettings) {
-    throw new Error('Workspace settings not found');
-  }
-
-  const streamEnabled = workspaceSettings.streamEnabled ?? true;
+  const streamEnabled = workspaceSettings?.streamEnabled ?? true;
+  const systemMessage = workspaceSettings?.systemMessage || '';
 
   // Get existing messages
   const existingMessages = state.messages.messagesByChatId[chatId] || [];
 
   // Get MCP connections from workspace settings
-  const mcpToolIds = workspaceSettings.mcpToolIds || {};
+  const mcpToolIds = workspaceSettings?.mcpToolIds || {};
   const mcpConnectionIds = Array.from(new Set(Object.values(mcpToolIds)));
 
   const mcpConnectionsResult =
@@ -73,7 +70,16 @@ export function validateAndExtractState(
   );
 
   return {
-    workspaceSettings,
+    workspaceSettings: workspaceSettings || {
+      id: selectedWorkspaceId,
+      name: '',
+      llmConnectionId,
+      systemMessage,
+      mcpToolIds,
+      streamEnabled,
+      maxAgentIterations: 10,
+      toolPermissionConfig: {},
+    },
     llmConnection,
     selectedModel,
     streamEnabled,

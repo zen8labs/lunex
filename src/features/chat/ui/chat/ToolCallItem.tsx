@@ -244,13 +244,7 @@ export const ToolCallItem = memo(
                     {t('toolCallInput')}
                   </div>
                   <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                    {toolCallData.arguments instanceof Object
-                      ? JSON.stringify(toolCallData.arguments, null, 2)
-                      : JSON.stringify(
-                          JSON.parse(toolCallData.arguments),
-                          null,
-                          2
-                        )}
+                    {formatJSONSafety(toolCallData.arguments)}
                   </pre>
                 </div>
                 {isExecuting && !isPending ? (
@@ -277,7 +271,7 @@ export const ToolCallItem = memo(
                       {t('toolCallOutput')}
                     </div>
                     <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                      {JSON.stringify(toolCallData.result, null, 2)}
+                      {formatJSONSafety(toolCallData.result)}
                     </pre>
                   </div>
                 ) : null}
@@ -310,3 +304,15 @@ export const ToolCallItem = memo(
     );
   }
 );
+
+function formatJSONSafety(str: any): string {
+  if (typeof str === 'object') {
+    return JSON.stringify(str, null, 2);
+  }
+
+  try {
+    return JSON.stringify(JSON.parse(str), null, 2);
+  } catch (_) {
+    return str.toString();
+  }
+}

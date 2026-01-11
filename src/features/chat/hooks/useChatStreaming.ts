@@ -10,6 +10,7 @@ import {
   updateMessageTokenUsage,
 } from '@/features/chat/state/messages';
 import type { Message } from '@/app/types';
+import { updateChatLastMessage } from '@/features/chat/state/chatsSlice';
 import { addPermissionRequest } from '@/features/tools/state/toolPermissionSlice';
 import { useTranslation } from 'react-i18next';
 import { messagesApi } from '@/features/chat/state/messagesApi';
@@ -267,6 +268,12 @@ export function useChatStreaming() {
         );
         dispatch(clearStreamingMessageId());
         dispatch(clearStreamingStartTime(payload.chat_id));
+        dispatch(
+          updateChatLastMessage({
+            id: payload.chat_id,
+            lastMessage: payload.content,
+          })
+        );
       }
     );
 

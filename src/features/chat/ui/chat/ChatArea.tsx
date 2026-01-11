@@ -10,6 +10,7 @@ import { MAX_MESSAGE_LENGTH } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
 import { Sparkles } from 'lucide-react';
 import { sendMessage, editAndResendMessage } from '../../state/messages';
+import { createChat } from '../../state/chatsSlice';
 import {
   setLoading,
   clearInput,
@@ -206,16 +207,38 @@ export function ChatArea() {
       overrideContent !== undefined ? overrideContent : input;
 
     const hasFiles = files && files.length > 0;
+    const userInput = contentToSend.trim();
 
-    if (
-      (!contentToSend.trim() && !hasFiles) ||
-      !selectedWorkspace ||
-      !selectedChatId
-    ) {
+    if ((!userInput && !hasFiles) || !selectedWorkspace) {
       return;
     }
 
-    if (contentToSend.length > MAX_MESSAGE_LENGTH) {
+    let currentChatId = selectedChatId;
+
+    // Auto-create chat if none selected
+    if (!currentChatId && selectedWorkspaceId) {
+      try {
+        const title =
+          userInput.split('\n')[0].slice(0, 50) || t('newConversation');
+        const newChat = await dispatch(
+          createChat({
+            workspaceId: selectedWorkspaceId,
+            title,
+          })
+        ).unwrap();
+        currentChatId = newChat.id;
+      } catch (error) {
+        console.error('Failed to auto-create chat:', error);
+        dispatch(showError(t('cannotCreateChat', { ns: 'settings' })));
+        return;
+      }
+    }
+
+    if (!currentChatId) {
+      return;
+    }
+
+    if (userInput.length > MAX_MESSAGE_LENGTH) {
       dispatch(
         showError(
           t('messageTooLong', {
@@ -260,14 +283,12 @@ export function ChatArea() {
     const { trackMessageSend, setLLMContext, setChatContext } =
       await import('@/lib/sentry-utils');
     trackMessageSend(
-      selectedChatId,
-      contentToSend.trim().length,
+      currentChatId,
+      userInput.length,
       hasFiles || attachedFiles.length > 0
     );
     setLLMContext(llmConnection.provider, modelId);
-    setChatContext(selectedChatId);
-
-    const userInput = contentToSend.trim();
+    setChatContext(currentChatId);
 
     // Clear input immediately for better UX
     dispatch(clearInput());
@@ -287,7 +308,7 @@ export function ChatArea() {
           if (message.role === 'user') {
             await dispatch(
               editAndResendMessage({
-                chatId: selectedChatId,
+                chatId: currentChatId,
                 messageId: currentEditingId,
                 newContent: userInput,
                 files, // Pass updated files
@@ -302,7 +323,7 @@ export function ChatArea() {
             });
             dispatch(
               messagesApi.util.invalidateTags([
-                { type: 'Message', id: `LIST_${selectedChatId}` },
+                { type: 'Message', id: `LIST_${currentChatId}` },
               ])
             );
           }
@@ -310,7 +331,7 @@ export function ChatArea() {
       } else {
         await dispatch(
           sendMessage({
-            chatId: selectedChatId,
+            chatId: currentChatId,
             content: userInput,
             files,
           })
