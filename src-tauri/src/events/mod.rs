@@ -141,3 +141,9 @@ pub struct ToolPermissionRequestEvent {
     pub message_id: String,
     pub tool_calls: Vec<ToolCall>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ChatUpdatedEvent {
+    pub chat_id: String,
+    pub title: String,
+}

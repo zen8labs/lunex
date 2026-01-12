@@ -412,6 +412,17 @@ impl ChatService {
         // 5. Get conversation history
         let existing_messages = self.message_service.get_by_chat_id(&chat_id)?;
 
+        // 5.5 Auto-rename chat if it's the first message
+        if existing_messages.is_empty() {
+            self.auto_rename_chat(
+                app.clone(),
+                chat_id.clone(),
+                content.clone(),
+                model.clone(),
+                llm_connection_id.clone(),
+            );
+        }
+
         // 6. Create user message
         let user_timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -1186,6 +1197,96 @@ impl ChatService {
         let fallback_content =
             "Iteration limit reached. Please try asking for more specific information.".to_string();
         Ok((assistant_message_id, fallback_content))
+    }
+
+    /// Automatically rename a chat based on the first user prompt
+    fn auto_rename_chat(
+        &self,
+        app: AppHandle,
+        chat_id: String,
+        user_content: String,
+        model: String,
+        llm_connection_id: String,
+    ) {
+        // Use tokio::spawn to run this in summary/background
+        tokio::spawn(async move {
+            let state = app.state::<crate::state::AppState>();
+            let chat_service = &state.chat_service;
+
+            // 1. Get LLM connection
+            let llm_connection = match chat_service
+                .llm_connection_service
+                .get_by_id(&llm_connection_id)
+            {
+                Ok(Some(conn)) => conn,
+                _ => return,
+            };
+
+            // 2. Prepare rename prompt
+            let system_prompt = "You are a concise chat title generator. Generate a 3-6 word title that captures the intent of the user's prompt. Output only the title without any formatting, quotes, or punctuation.";
+            let user_prompt = format!("User Prompt: {user_content}");
+
+            let messages = vec![
+                ChatMessage::System {
+                    content: system_prompt.to_string(),
+                },
+                ChatMessage::User {
+                    content: UserContent::Text(user_prompt),
+                },
+            ];
+
+            let request = LLMChatRequest {
+                model,
+                messages,
+                temperature: Some(0.3),
+                max_tokens: Some(30),
+                stream: false,
+                tools: None,
+                tool_choice: None,
+                reasoning_effort: None,
+                stream_options: None,
+                response_modalities: None,
+                image_config: None,
+            };
+
+            // 3. Call LLM
+            // Use dummy IDs to avoid interfering with current chat UI
+            let result = chat_service
+                .llm_service
+                .chat(
+                    &llm_connection.base_url,
+                    Some(&llm_connection.api_key),
+                    request,
+                    "system_auto_rename".to_string(),
+                    format!("rename_{chat_id}"),
+                    app.clone(),
+                    None,
+                    &llm_connection.provider,
+                )
+                .await;
+
+            if let Ok(response) = result {
+                let mut title = response.content.trim().to_string();
+
+                // Clean up any quotes if the model ignored directions
+                if title.starts_with('"') && title.ends_with('"') && title.len() > 2 {
+                    title = title[1..title.len() - 1].to_string();
+                }
+
+                if !title.is_empty() {
+                    // 4. Update Database
+                    if chat_service
+                        .repository
+                        .update(&chat_id, Some(&title), None)
+                        .is_ok()
+                    {
+                        // 5. Emit event to notify frontend
+                        let emitter = crate::features::chat::ChatEmitter::new(app);
+                        let _ = emitter.emit_chat_updated(chat_id, title);
+                    }
+                }
+            }
+        });
     }
 
     /// Check tool permissions and filter allowed tools

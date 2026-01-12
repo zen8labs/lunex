@@ -41,6 +41,9 @@ export const TauriEvents = {
   MENU_DOCUMENTATION: 'menu-documentation',
   MENU_ABOUT: 'menu-about',
   MENU_KEYBOARD_SHORTCUTS: 'menu-keyboard-shortcuts',
+
+  // Chat events
+  CHAT_UPDATED: 'chat-updated',
 } as const;
 
 export type TauriEvent = (typeof TauriEvents)[keyof typeof TauriEvents];

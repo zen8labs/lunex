@@ -10,7 +10,10 @@ import {
   updateMessageTokenUsage,
 } from '@/features/chat/state/messages';
 import type { Message } from '@/app/types';
-import { updateChatLastMessage } from '@/features/chat/state/chatsSlice';
+import {
+  updateChatTitle,
+  updateChatLastMessage,
+} from '@/features/chat/state/chatsSlice';
 import { addPermissionRequest } from '@/features/tools/state/toolPermissionSlice';
 import { useTranslation } from 'react-i18next';
 import { messagesApi } from '@/features/chat/state/messagesApi';
@@ -114,6 +117,11 @@ interface ToolPermissionRequestEvent {
 interface MessageMetadataUpdatedEvent {
   chat_id: string;
   message_id: string;
+}
+
+interface ChatUpdatedEvent {
+  chat_id: string;
+  title: string;
 }
 
 export function useChatStreaming() {
@@ -432,6 +440,19 @@ export function useChatStreaming() {
         }
       );
 
+    const unlistenChatUpdated = listenToEvent<ChatUpdatedEvent>(
+      TauriEvents.CHAT_UPDATED,
+      (payload) => {
+        dispatch(
+          updateChatTitle.fulfilled(
+            { id: payload.chat_id, title: payload.title },
+            '',
+            { id: payload.chat_id, title: payload.title }
+          )
+        );
+      }
+    );
+
     return () => {
       unlistenStarted.then((fn) => fn());
       unlistenChunk.then((fn) => fn());
@@ -446,6 +467,7 @@ export function useChatStreaming() {
       unlistenAgentLoopIteration.then((fn) => fn());
       unlistenToolPermissionRequest.then((fn) => fn());
       unlistenMetadataUpdated.then((fn) => fn());
+      unlistenChatUpdated.then((fn) => fn());
     };
   }, [dispatch, t]);
 }
