@@ -3,6 +3,9 @@ use std::path::PathBuf;
 use std::process::Command;
 use tauri::{AppHandle, Manager};
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
 /// Get the path to bundled FNM binary
 fn get_bundled_fnm_path(app: &AppHandle) -> Result<PathBuf, AppError> {
     let fnm_name = if cfg!(windows) { "fnm.exe" } else { "fnm" };
@@ -128,7 +131,12 @@ impl NodeRuntime {
             _ => arch,
         };
 
-        let output = Command::new(&fnm_path)
+        let mut command = Command::new(&fnm_path);
+
+        #[cfg(windows)]
+        command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+        let output = command
             .arg("install")
             .arg(full_version)
             .arg("--arch")
@@ -156,7 +164,12 @@ impl NodeRuntime {
         let app_data = app.path().app_data_dir().map_err(AppError::Tauri)?;
         let fnm_dir = app_data.join("node-runtimes");
 
-        let output = Command::new(&fnm_path)
+        let mut command = Command::new(&fnm_path);
+
+        #[cfg(windows)]
+        command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+        let output = command
             .arg("uninstall")
             .arg(full_version)
             .env("FNM_DIR", &fnm_dir)

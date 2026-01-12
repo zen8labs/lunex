@@ -4,6 +4,9 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Manifest {
     pub schema_version: u32,
@@ -63,7 +66,12 @@ pub fn setup_venv(agent_root: &Path, uv_path: &Path) -> Result<()> {
 
     // 1. Create venv
     // uv venv .venv
-    let status = Command::new(uv_path)
+    let mut command = Command::new(uv_path);
+
+    #[cfg(windows)]
+    command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+    let status = command
         .current_dir(agent_root)
         .arg("venv")
         .arg(".venv")
@@ -81,8 +89,12 @@ pub fn setup_venv(agent_root: &Path, uv_path: &Path) -> Result<()> {
 
     // On different OSs the venv python path might vary, but uv supports identifying it via --python or VIRTUAL_ENV
     // Simpler: Use `uv pip sync` or `uv pip install` pointing to the venv.
+    let mut command = Command::new(uv_path);
 
-    let status = Command::new(uv_path)
+    #[cfg(windows)]
+    command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+    let status = command
         .current_dir(&tools_dir)
         .arg("pip")
         .arg("install")

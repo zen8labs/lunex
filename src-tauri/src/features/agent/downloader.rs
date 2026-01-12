@@ -1,6 +1,9 @@
 use anyhow::{Context, Result};
 use std::path::Path;
 use std::process::Command;
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
@@ -55,7 +58,12 @@ pub async fn git_clone(
     }
 
     // 1. Clone
-    let status = Command::new("git")
+    let mut command = Command::new("git");
+
+    #[cfg(windows)]
+    command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+    let status = command
         .arg("clone")
         .arg("--quiet")
         .arg(repo_url)
@@ -69,7 +77,12 @@ pub async fn git_clone(
 
     // 2. Checkout revision if specified
     if let Some(rev) = revision {
-        let status = Command::new("git")
+        let mut command = Command::new("git");
+
+        #[cfg(windows)]
+        command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+        let status = command
             .current_dir(output_path)
             .arg("checkout")
             .arg("--quiet")
@@ -83,7 +96,12 @@ pub async fn git_clone(
     }
 
     // 3. Get current commit hash (short)
-    let output = Command::new("git")
+    let mut command = Command::new("git");
+
+    #[cfg(windows)]
+    command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+    let output = command
         .current_dir(output_path)
         .arg("rev-parse")
         .arg("--short")
