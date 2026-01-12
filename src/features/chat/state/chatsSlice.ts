@@ -199,14 +199,22 @@ const chatsSlice = createSlice({
           action.payload.chats;
 
         // Restore last selected chat if it exists and is in this workspace
-        if (
+        const savedChatInWorkspace =
           action.payload.lastChatId &&
-          action.payload.chats.some((c) => c.id === action.payload.lastChatId)
-        ) {
+          action.payload.chats.some((c) => c.id === action.payload.lastChatId);
+
+        if (savedChatInWorkspace) {
           state.selectedChatId = action.payload.lastChatId;
-        } else if (!state.selectedChatId && action.payload.chats.length > 0) {
-          // Auto-select first chat if none selected
-          state.selectedChatId = action.payload.chats[0].id;
+        } else {
+          // If current selected chat doesn't belong to this workspace,
+          // or no chat is selected, pick the most recent one.
+          const currentChatInWorkspace =
+            state.selectedChatId &&
+            action.payload.chats.some((c) => c.id === state.selectedChatId);
+
+          if (!currentChatInWorkspace && action.payload.chats.length > 0) {
+            state.selectedChatId = action.payload.chats[0].id;
+          }
         }
       })
       .addCase(fetchChats.rejected, (state, action) => {

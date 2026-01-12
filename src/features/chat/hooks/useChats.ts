@@ -66,6 +66,21 @@ export function useChats(selectedWorkspaceId: string | null) {
     };
   }, [selectedWorkspaceId, dispatch, chatsByWorkspaceId]);
 
+  // Ensure the selected chat belongs to the current workspace
+  useEffect(() => {
+    if (!selectedWorkspaceId) return;
+
+    const workspaceChats = chatsByWorkspaceId[selectedWorkspaceId];
+    if (workspaceChats && workspaceChats.length > 0) {
+      const isCurrentChatInWorkspace = workspaceChats.some(
+        (c) => c.id === selectedChatId
+      );
+      if (!isCurrentChatInWorkspace) {
+        dispatch(setSelectedChat(workspaceChats[0].id));
+      }
+    }
+  }, [selectedWorkspaceId, selectedChatId, chatsByWorkspaceId, dispatch]);
+
   // Handlers
   const handleNewChat = async () => {
     if (!selectedWorkspaceId) return;
