@@ -17,6 +17,8 @@ import { Textarea } from '@/ui/atoms/textarea';
 import { cn } from '@/lib/utils';
 import { MarkdownContent } from '@/ui/organisms/markdown/MarkdownContent';
 import { AgentCard } from './AgentCard';
+import { MessageMentions } from './MessageMentions';
+import { parseMessageMentions } from './utils/mentionUtils';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { useAppDispatch } from '@/app/hooks';
 import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
@@ -232,6 +234,25 @@ export const MessageItem = memo(
                         : 'max-h-[9999px]'
                     )}
                   >
+                    {/* Parse mentions */}
+                    {(() => {
+                      const { mentions } = parseMessageMentions(
+                        message.content
+                      );
+
+                      if (mentions.length === 0) return null;
+
+                      return (
+                        <MessageMentions
+                          mentions={mentions}
+                          role={message.role}
+                          className={cn(
+                            message.role === 'user' ? 'opacity-90' : ''
+                          )}
+                        />
+                      );
+                    })()}
+
                     {/* Check for Files/Images in metadata */}
                     {message.metadata &&
                       (() => {
@@ -337,24 +358,30 @@ export const MessageItem = memo(
                         }
                       })()}
 
-                    {message.role === 'assistant' ? (
-                      <>
-                        {markdownEnabled ? (
-                          <MarkdownContent
-                            content={message.content}
-                            messageId={message.id}
-                          />
-                        ) : (
-                          <div className="whitespace-pre-wrap wrap-break-words">
-                            {message.content}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="whitespace-pre-wrap wrap-break-words">
-                        {message.content}
-                      </div>
-                    )}
+                    {(() => {
+                      const { cleanedContent } = parseMessageMentions(
+                        message.content
+                      );
+
+                      return message.role === 'assistant' ? (
+                        <>
+                          {markdownEnabled ? (
+                            <MarkdownContent
+                              content={cleanedContent}
+                              messageId={message.id}
+                            />
+                          ) : (
+                            <div className="whitespace-pre-wrap wrap-break-words">
+                              {cleanedContent}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="whitespace-pre-wrap wrap-break-words">
+                          {cleanedContent}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Gradient fade overlay when collapsed */}
