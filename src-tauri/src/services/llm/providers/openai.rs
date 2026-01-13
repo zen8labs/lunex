@@ -5,6 +5,7 @@ use crate::models::llm_types::*;
 use async_trait::async_trait;
 use futures::StreamExt;
 use reqwest::Client;
+use serde_json::json;
 use std::sync::Arc;
 use tauri::AppHandle;
 
@@ -56,7 +57,109 @@ impl OpenAIProvider {
         (supports_tools, supports_thinking, supports_image_generation)
     }
 
-    async fn handle_streaming(
+    /// Transform messages to the new generalized 'input' format for Responses API
+    fn transform_messages_to_input(messages: Vec<ChatMessage>) -> Vec<serde_json::Value> {
+        messages
+            .into_iter()
+            .map(|msg| match msg {
+                ChatMessage::User { content } => {
+                    let content_arr = match content {
+                        UserContent::Text(text) => vec![json!({
+                            "type": "input_text",
+                            "text": text
+                        })],
+                        UserContent::Parts(parts) => parts
+                            .into_iter()
+                            .filter_map(|part| match part {
+                                ContentPart::Text { text } => Some(json!({
+                                    "type": "input_text",
+                                    "text": text
+                                })),
+                                ContentPart::ImageUrl { image_url } => Some(json!({
+                                    "type": "input_image",
+                                    "image_url": image_url.url
+                                })),
+                                ContentPart::FileUrl { file_url } => {
+                                    eprintln!(
+                                        "Warning: FileUrl '{}' ignored. Automatic file upload not implemented in logic layer.",
+                                        file_url.mime_type
+                                    );
+                                    None
+                                }
+                                ContentPart::InlineData { inline_data } => {
+                                    if inline_data.mime_type.starts_with("image/") {
+                                        Some(json!({
+                                            "type": "input_image",
+                                            "image_url": format!(
+                                                "data:{};base64,{}",
+                                                inline_data.mime_type, inline_data.data
+                                            )
+                                        }))
+                                    } else {
+                                        None
+                                    }
+                                }
+                            })
+                            .collect(),
+                    };
+                    json!({
+                        "role": "user",
+                        "content": content_arr
+                    })
+                }
+                ChatMessage::Assistant { content, tool_calls } => {
+                    let content_arr = match content {
+                        AssistantContent::Text(text) => {
+                             if text.is_empty() {
+                                 vec![]
+                             } else {
+                                 vec![json!({
+                                     "type": "output_text", // CORRECTED: output_text
+                                     "text": text
+                                 })]
+                             }
+                        },
+                        AssistantContent::Parts(parts) => parts.into_iter().filter_map(|part| {
+                             match part {
+                                 ContentPart::Text { text } => Some(json!({ "type": "output_text", "text": text })), // CORRECTED: output_text
+                                 _ => None
+                             }
+                        }).collect()
+                    };
+                    
+                    let mut obj = json!({
+                        "role": "assistant",
+                        "content": content_arr
+                    });
+                    
+                    if let Some(tc) = tool_calls {
+                        obj.as_object_mut().unwrap().insert("tool_calls".to_string(), json!(tc));
+                    }
+                    obj
+                }
+                ChatMessage::System { content } => json!({
+                    "role": "system",
+                    "content": [{
+                        "type": "input_text",
+                        "text": content
+                    }]
+                }),
+                ChatMessage::Tool {
+                    tool_call_id,
+                    content,
+                } => json!({
+                    "role": "tool",
+                    "tool_call_id": tool_call_id,
+                    "content": [{
+                        "type": "input_text",
+                        "text": content
+                    }]
+                }),
+            })
+            .collect()
+    }
+
+    async fn handle_responses_api(
         &self,
         req_builder: reqwest::RequestBuilder,
         request_body: serde_json::Value,
@@ -64,20 +167,20 @@ impl OpenAIProvider {
         message_id: String,
         app: AppHandle,
         mut cancellation_rx: Option<tokio::sync::broadcast::Receiver<()>>,
+        is_streaming_requested: bool,
     ) -> Result<LLMChatResponse, AppError> {
         let response = req_builder.json(&request_body).send().await?;
 
-        let message_emitter = MessageEmitter::new(app.clone());
-        let tool_emitter = ToolEmitter::new(app.clone());
-
+        // Handle error responses before creating emitters
         if !response.status().is_success() {
             let status = response.status();
             let error_text = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
-            let error_msg = format!("OpenAI API error ({status}): {error_text}");
+            let error_msg = format!("OpenAI Responses API error ({status}): {error_text}");
 
+            let message_emitter = MessageEmitter::new(app.clone());
             message_emitter.emit_message_error(
                 chat_id.clone(),
                 message_id.clone(),
@@ -87,26 +190,27 @@ impl OpenAIProvider {
             return Err(AppError::Llm(error_msg));
         }
 
+        let message_emitter = MessageEmitter::new(app.clone());
+        let tool_emitter = ToolEmitter::new(app.clone());
+
         let mut stream = response.bytes_stream();
+        let mut buffer = String::new();
+
+        // State for aggregation
         let mut full_content = String::new();
-        let mut full_reasoning = String::new();
         let mut tool_calls: Vec<ToolCall> = Vec::new();
         let mut finish_reason: Option<String> = None;
-        let mut buffer = String::new();
-        let mut tool_calls_emitted = false; // Track if we've already emitted tool calls
         let mut final_usage: Option<TokenUsage> = None;
+        let mut tool_calls_emitted = false; 
 
         while let Some(item) = tokio::select! {
-            // Listen for stream chunks
             next_item = stream.next() => next_item,
-            // Listen for cancellation signal
             _ = async {
                 if let Some(ref mut rx) = cancellation_rx {
                     let _ = rx.recv().await;
                 }
                 futures::future::pending::<()>().await
             }, if cancellation_rx.is_some() => {
-                // Cancellation received
                 message_emitter.emit_message_error(
                     chat_id.clone(),
                     message_id.clone(),
@@ -119,159 +223,171 @@ impl OpenAIProvider {
             let text = String::from_utf8_lossy(&chunk);
             buffer.push_str(&text);
 
-            // Parse SSE format: "data: {...}\n\n"
+            // Parse SSE: Look for double newline
             while let Some(end_idx) = buffer.find("\n\n") {
-                let line = buffer[..end_idx].trim().to_string();
+                let block = buffer[..end_idx].to_string();
                 buffer = buffer[end_idx + 2..].to_string();
 
-                if let Some(data) = line.strip_prefix("data: ") {
-                    if data == "[DONE]" {
-                        break;
+                // Extract event type and data
+                let mut event_type = String::new();
+                let mut event_data_str = String::new();
+
+                for line in block.lines() {
+                    if let Some(evt) = line.strip_prefix("event: ") {
+                        event_type = evt.trim().to_string();
+                    } else if let Some(data) = line.strip_prefix("data: ") {
+                        event_data_str = data.trim().to_string();
                     }
+                }
 
-                    match serde_json::from_str::<SSEChunk>(data) {
-                        Ok(sse_chunk) => {
-                            // Check for usage
-                            if let Some(usage) = sse_chunk.usage {
-                                final_usage = Some(usage);
-                            }
+                if event_data_str == "[DONE]" {
+                    continue;
+                }
 
-                            if let Some(choices) = sse_chunk.choices {
-                                for choice in choices {
-                                    if let Some(delta) = choice.delta {
-                                        // Handle content delta
-                                        if let Some(ref content) = delta.content {
-                                            full_content.push_str(content);
+                // If no data, skip
+                if event_data_str.is_empty() {
+                    continue;
+                }
 
-                                            // Emit chunk event
-                                            message_emitter.emit_message_chunk(
-                                                chat_id.clone(),
-                                                message_id.clone(),
-                                                content.clone(),
-                                            )?;
-                                        }
+                match serde_json::from_str::<serde_json::Value>(&event_data_str) {
+                    Ok(data) => {
+                        // Determine event type: check "event:" line first, then "type" field in JSON
+                        let type_from_data = data.get("type").and_then(|s| s.as_str());
+                        let effective_event_type = if !event_type.is_empty() {
+                             event_type.as_str()
+                        } else if let Some(t) = type_from_data {
+                             t
+                        } else {
+                             "unknown"
+                        };
 
-                                        // Handle reasoning/thinking content
-                                        // Official OpenAI might add support for this in the future or via specific fields
-                                        if let Some(reasoning) = delta.get_reasoning() {
-                                            full_reasoning.push_str(&reasoning);
-                                            message_emitter.emit_thinking_chunk(
-                                                chat_id.clone(),
-                                                message_id.clone(),
-                                                reasoning,
-                                            )?;
-                                        }
+                        // Log for debugging
+                        // eprintln!("Debug: Received Event: {} | Data keys: {:?}", effective_event_type, data.as_object().map(|o| o.keys().collect::<Vec<_>>()));
 
-                                        // Handle tool calls delta
-                                        if let Some(tool_call_deltas) = delta.tool_calls {
-                                            for tool_call_delta in tool_call_deltas {
-                                                let index =
-                                                    tool_call_delta.index.unwrap_or(0) as usize;
+                        match effective_event_type {
+                            "response.output_text.delta" | "response.text.delta" => {
+                                // Try multiple fields for content
+                                let content_candidate = data.get("delta").and_then(|d| d.get("text")).and_then(|s| s.as_str())
+                                    .or_else(|| data.get("delta").and_then(|s| s.as_str())) // delta as string
+                                    .or_else(|| data.get("text").and_then(|s| s.as_str()))
+                                    .or_else(|| data.get("value").and_then(|s| s.as_str()))
+                                    .or_else(|| data.get("content").and_then(|s| s.as_str()));
 
-                                                // Ensure we have enough tool calls
-                                                while tool_calls.len() <= index {
-                                                    tool_calls.push(ToolCall {
-                                                        id: String::new(),
-                                                        r#type: "function".to_string(),
-                                                        function: ToolCallFunction {
-                                                            name: String::new(),
-                                                            arguments: String::new(),
-                                                        },
-                                                    });
-                                                }
-
-                                                // Update tool call
-                                                if let Some(id) = tool_call_delta.id {
-                                                    tool_calls[index].id = id;
-                                                }
-                                                if let Some(name) = tool_call_delta
-                                                    .function
-                                                    .as_ref()
-                                                    .and_then(|f| f.name.as_ref())
-                                                {
-                                                    tool_calls[index].function.name.push_str(name);
-                                                }
-                                                if let Some(args) = tool_call_delta
-                                                    .function
-                                                    .as_ref()
-                                                    .and_then(|f| f.arguments.as_ref())
-                                                {
-                                                    tool_calls[index]
-                                                        .function
-                                                        .arguments
-                                                        .push_str(args);
-                                                }
-                                            }
-
-                                            // Emit tool calls detected event when we first detect tool calls
-                                            if !tool_calls_emitted
-                                                && !tool_calls.is_empty()
-                                                && tool_calls.iter().any(|tc| !tc.id.is_empty())
-                                            {
-                                                let tool_calls: Vec<crate::events::ToolCall> =
-                                                    tool_calls
-                                                        .iter()
-                                                        .filter(|tc| !tc.id.is_empty())
-                                                        .map(|tc| crate::events::ToolCall {
-                                                            id: tc.id.clone(),
-                                                            name: tc.function.name.clone(),
-                                                            arguments: serde_json::from_str(
-                                                                &tc.function.arguments,
-                                                            )
-                                                            .unwrap_or_else(|_| {
-                                                                serde_json::json!({})
-                                                            }),
-                                                        })
-                                                        .collect();
-
-                                                tool_emitter.emit_tool_calls_detected(
-                                                    chat_id.clone(),
-                                                    message_id.clone(),
-                                                    tool_calls,
-                                                )?;
-
-                                                tool_calls_emitted = true;
-                                            }
-                                        }
-                                    }
-
-                                    if let Some(reason) = choice.finish_reason {
-                                        finish_reason = Some(reason);
+                                if let Some(text) = content_candidate {
+                                    full_content.push_str(text);
+                                    if is_streaming_requested {
+                                        message_emitter.emit_message_chunk(
+                                            chat_id.clone(),
+                                            message_id.clone(),
+                                            text.to_string(),
+                                        )?;
                                     }
                                 }
+                            },
+                             "response.output_tool_call" | "response.tool_call" => {
+                                 // New tool call received
+                                 let id = data.get("tool_call_id")
+                                     .or_else(|| data.get("id"))
+                                     .and_then(|s| s.as_str())
+                                     .unwrap_or_default()
+                                     .to_string();
+                                 
+                                 let name = data.get("function")
+                                     .and_then(|f| f.get("name"))
+                                     .and_then(|s| s.as_str())
+                                     .unwrap_or_default()
+                                     .to_string();
+                                     
+                                 let args = data.get("function")
+                                     .and_then(|f| f.get("arguments"))
+                                     .and_then(|s| s.as_str())
+                                     .unwrap_or_default()
+                                     .to_string();
+
+                                 // Only add if we have at least a name or ID
+                                 if !id.is_empty() || !name.is_empty() {
+                                     let call = ToolCall {
+                                         id,
+                                         r#type: "function".to_string(),
+                                         function: ToolCallFunction {
+                                             name,
+                                             arguments: args,
+                                         }
+                                     };
+                                     tool_calls.push(call);
+                                 }
+                             },
+                             "response.usage" => {
+                                 if let Some(u) = data.get("usage") {
+                                      final_usage = u.as_object().map(|obj| TokenUsage {
+                                          prompt_tokens: obj.get("prompt_tokens").and_then(|v| v.as_u64()).map(|v| v as u32),
+                                          completion_tokens: obj.get("completion_tokens").and_then(|v| v.as_u64()).map(|v| v as u32),
+                                          total_tokens: obj.get("total_tokens").and_then(|v| v.as_u64()).map(|v| v as u32),
+                                      });
+                                 }
+                             },
+                             "response.completed" | "response.end" => {
+                                 if let Some(fr) = data.get("finish_reason").and_then(|v| v.as_str()) {
+                                     finish_reason = Some(fr.to_string());
+                                 }
+                                  if let Some(u) = data.get("usage") {
+                                      final_usage = u.as_object().map(|obj| TokenUsage {
+                                          prompt_tokens: obj.get("prompt_tokens").and_then(|v| v.as_u64()).map(|v| v as u32),
+                                          completion_tokens: obj.get("completion_tokens").and_then(|v| v.as_u64()).map(|v| v as u32),
+                                          total_tokens: obj.get("total_tokens").and_then(|v| v.as_u64()).map(|v| v as u32),
+                                      });
+                                 }
+                             }
+                            "response.output_text.done" | "response.content_part.done" => {
+                                // IGNORE to avoid duplication
+                            },
+                            _ => {
+                                // Fallback: Check if 'choices' exists (Legacy format mixed in?)
+                                if let Some(choices) = data.get("choices").and_then(|c| c.as_array()) {
+                                    for choice in choices {
+                                        if let Some(content) = choice.get("delta").and_then(|d| d.get("content")).and_then(|s| s.as_str()) {
+                                            full_content.push_str(content);
+                                            if is_streaming_requested {
+                                                message_emitter.emit_message_chunk(
+                                                    chat_id.clone(),
+                                                    message_id.clone(),
+                                                    content.to_string(),
+                                                )?;
+                                            }
+                                        }
+                                        if let Some(reason) = choice.get("finish_reason").and_then(|s| s.as_str()) {
+                                            finish_reason = Some(reason.to_string());
+                                        }
+                                    }
+                                } 
+                                // REMOVED generic fallback extracting 'text'/'content' from unknown events.
                             }
                         }
-                        Err(e) => {
-                            // Ignore parse errors for incomplete chunks
-                            if !data.is_empty() {
-                                eprintln!("Failed to parse SSE chunk: {e} - Data: {data}");
-                            }
+                    }
+                    Err(e) => {
+                        if !event_data_str.is_empty() {
+                            eprintln!("Failed to parse SSE data: {} - Data: {}", e, event_data_str);
                         }
                     }
                 }
             }
         }
 
-        // Emit tool calls detected event if we haven't already and have tool calls
-        if !tool_calls_emitted && !tool_calls.is_empty() {
-            let tool_calls: Vec<crate::events::ToolCall> = tool_calls
-                .iter()
-                .map(|tc| crate::events::ToolCall {
-                    id: tc.id.clone(),
-                    name: tc.function.name.clone(),
-                    arguments: serde_json::from_str(&tc.function.arguments)
+        // Final tool emission
+        if !tool_calls.is_empty() && !tool_calls_emitted {
+            let event_tool_calls: Vec<crate::events::ToolCall> = tool_calls
+                 .iter()
+                 .map(|tc| crate::events::ToolCall {
+                     id: tc.id.clone(),
+                     name: tc.function.name.clone(),
+                     arguments: serde_json::from_str(&tc.function.arguments)
                         .unwrap_or_else(|_| serde_json::json!({})),
-                })
-                .collect();
-
-            tool_emitter.emit_tool_calls_detected(
-                chat_id.clone(),
-                message_id.clone(),
-                tool_calls,
-            )?;
+                 })
+                 .collect();
+            
+            tool_emitter.emit_tool_calls_detected(chat_id.clone(), message_id.clone(), event_tool_calls)?;
         }
 
-        // Emit complete event
         message_emitter.emit_message_complete(
             chat_id.clone(),
             message_id.clone(),
@@ -286,248 +402,12 @@ impl OpenAIProvider {
         Ok(LLMChatResponse {
             content: full_content,
             finish_reason,
-            tool_calls: if tool_calls.is_empty() {
-                None
-            } else {
-                Some(tool_calls)
-            },
+            tool_calls: if tool_calls.is_empty() { None } else { Some(tool_calls) },
             usage: final_usage,
-            reasoning: if full_reasoning.is_empty() {
-                None
-            } else {
-                Some(full_reasoning)
-            },
+            reasoning: None, 
             images: None,
         })
-    }
-
-    /// Transform messages to OpenAI-compatible format
-    /// OpenAI only supports 'text' and 'image_url' content types
-    fn transform_messages_for_openai(
-        messages: Vec<ChatMessage>,
-    ) -> Result<Vec<ChatMessage>, AppError> {
-        let transformed_messages = messages
-            .into_iter()
-            .map(|msg| match msg {
-                ChatMessage::User { content } => {
-                    let transformed_content = match content {
-                        UserContent::Text(text) => UserContent::Text(text),
-                        UserContent::Parts(parts) => {
-                            let filtered_parts: Vec<ContentPart> = parts
-                                .into_iter()
-                                .filter_map(|part| match part {
-                                    ContentPart::Text { .. } => Some(part),
-                                    ContentPart::ImageUrl { .. } => Some(part),
-                                    ContentPart::FileUrl { file_url } => {
-                                        // OpenAI doesn't support file_url, convert to text warning
-                                        eprintln!(
-                                            "Warning: OpenAI doesn't support file_url content type. \
-                                            File with mime type '{}' will be ignored.",
-                                            file_url.mime_type
-                                        );
-                                        None
-                                    }
-                                    ContentPart::InlineData { inline_data } => {
-                                        // Try to convert inline_data to image_url if it's an image
-                                        if inline_data.mime_type.starts_with("image/") {
-                                            Some(ContentPart::ImageUrl {
-                                                image_url: ImageUrl {
-                                                    url: format!(
-                                                        "data:{};base64,{}",
-                                                        inline_data.mime_type, inline_data.data
-                                                    ),
-                                                },
-                                            })
-                                        } else {
-                                            eprintln!(
-                                                "Warning: OpenAI doesn't support inline_data for non-image types. \
-                                                File with mime type '{}' will be ignored.",
-                                                inline_data.mime_type
-                                            );
-                                            None
-                                        }
-                                    }
-                                })
-                                .collect();
-
-                            if filtered_parts.is_empty() {
-                                // If all parts were filtered out, return empty text
-                                UserContent::Text(String::new())
-                            } else {
-                                UserContent::Parts(filtered_parts)
-                            }
-                        }
-                    };
-                    ChatMessage::User {
-                        content: transformed_content,
-                    }
-                }
-                // Other message types remain unchanged
-                other => other,
-            })
-            .collect();
-
-        Ok(transformed_messages)
-    }
-
-    async fn handle_non_streaming(
-        &self,
-        req_builder: reqwest::RequestBuilder,
-        request_body: serde_json::Value,
-        chat_id: String,
-        message_id: String,
-        app: AppHandle,
-    ) -> Result<LLMChatResponse, AppError> {
-        let response = req_builder
-            .json(&request_body)
-            .send()
-            .await
-            .map_err(|e| AppError::Generic(format!("HTTP request failed: {e}")))?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let error_text = response
-                .text()
-                .await
-                .unwrap_or_else(|_| "Unknown error".to_string());
-            let error_msg = format!("OpenAI API error ({status}): {error_text}");
-
-            let message_emitter = MessageEmitter::new(app.clone());
-            message_emitter.emit_message_error(
-                chat_id.clone(),
-                message_id.clone(),
-                error_msg.clone(),
-            )?;
-
-            return Err(AppError::Generic(error_msg));
-        }
-
-        let json_response: serde_json::Value = response
-            .json()
-            .await
-            .map_err(|e| AppError::Generic(format!("Failed to parse response: {e}")))?;
-
-        let choices = json_response
-            .get("choices")
-            .and_then(|c| c.as_array())
-            .ok_or_else(|| {
-                AppError::Generic("Invalid response format: missing choices".to_string())
-            })?;
-
-        let message = choices
-            .first()
-            .and_then(|c| c.get("message"))
-            .ok_or_else(|| {
-                AppError::Generic("Invalid response format: missing message".to_string())
-            })?;
-
-        let content = message
-            .get("content")
-            .and_then(|c| c.as_str())
-            .unwrap_or("")
-            .to_string();
-
-        let finish_reason = choices
-            .first()
-            .and_then(|c| c.get("finish_reason"))
-            .and_then(|r| r.as_str())
-            .map(|s| s.to_string());
-
-        // Parse tool calls
-        let tool_calls: Option<Vec<ToolCall>> = message
-            .get("tool_calls")
-            .and_then(|tc| tc.as_array())
-            .map(|tc_array| {
-                tc_array
-                    .iter()
-                    .filter_map(|tc| {
-                        let id = tc.get("id")?.as_str()?.to_string();
-                        let function = tc.get("function")?;
-                        let name = function.get("name")?.as_str()?.to_string();
-                        let arguments = function
-                            .get("arguments")
-                            .and_then(|a| a.as_str().map(|s| s.to_string()))
-                            .or_else(|| {
-                                function
-                                    .get("arguments")
-                                    .and_then(|a| serde_json::to_string(a).ok())
-                            })
-                            .unwrap_or_else(|| "{}".to_string());
-
-                        Some(ToolCall {
-                            id,
-                            r#type: tc
-                                .get("type")
-                                .and_then(|t| t.as_str())
-                                .unwrap_or("function")
-                                .to_string(),
-                            function: ToolCallFunction { name, arguments },
-                        })
-                    })
-                    .collect()
-            });
-
-        let tool_emitter = ToolEmitter::new(app.clone());
-        let message_emitter = MessageEmitter::new(app.clone());
-
-        // Emit tool calls detected event if we have tool calls
-        if let Some(ref tool_calls_vec) = tool_calls {
-            if !tool_calls_vec.is_empty() {
-                let tool_calls: Vec<crate::events::ToolCall> = tool_calls_vec
-                    .iter()
-                    .map(|tc| crate::events::ToolCall {
-                        id: tc.id.clone(),
-                        name: tc.function.name.clone(),
-                        arguments: serde_json::from_str(&tc.function.arguments)
-                            .unwrap_or_else(|_| serde_json::json!({})),
-                    })
-                    .collect();
-
-                tool_emitter.emit_tool_calls_detected(
-                    chat_id.clone(),
-                    message_id.clone(),
-                    tool_calls,
-                )?;
-            }
-        }
-
-        // Parse usage
-        let usage = json_response.get("usage").map(|u| TokenUsage {
-            prompt_tokens: u
-                .get("prompt_tokens")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as u32),
-            completion_tokens: u
-                .get("completion_tokens")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as u32),
-            total_tokens: u
-                .get("total_tokens")
-                .and_then(|v| v.as_u64())
-                .map(|v| v as u32),
-        });
-
-        // Emit complete event
-        message_emitter.emit_message_complete(
-            chat_id.clone(),
-            message_id.clone(),
-            content.clone(),
-            usage.as_ref().map(|u| EventTokenUsage {
-                prompt_tokens: u.prompt_tokens,
-                completion_tokens: u.completion_tokens,
-                total_tokens: u.total_tokens,
-            }),
-        )?;
-
-        Ok(LLMChatResponse {
-            content,
-            finish_reason,
-            tool_calls,
-            usage,
-            reasoning: None,
-            images: None,
-        })
-    }
+    }    
 }
 
 #[async_trait]
@@ -541,7 +421,6 @@ impl LLMProvider for OpenAIProvider {
 
         let mut req_builder = self.client.get(&url);
 
-        // Add authorization header if API key is provided
         if let Some(key) = api_key {
             req_builder = req_builder.header("Authorization", format!("Bearer {key}"));
         }
@@ -591,12 +470,7 @@ impl LLMProvider for OpenAIProvider {
         let models = if let Some(data) = json.get("data").and_then(|d| d.as_array()) {
             data.iter().filter_map(parse_model).collect()
         } else {
-            // Fallback just in case, but unexpected for official API
-            eprintln!(
-                "Unexpected OpenAI response format. Response: {}",
-                serde_json::to_string_pretty(&json)
-                    .unwrap_or_else(|_| "Failed to serialize".to_string())
-            );
+            // Fallback just in case
             return Err(AppError::Llm(format!(
                 "Unexpected response format. Expected object with 'data' field. Got: {}",
                 json.to_string()
@@ -616,41 +490,43 @@ impl LLMProvider for OpenAIProvider {
         app: AppHandle,
         cancellation_rx: Option<tokio::sync::broadcast::Receiver<()>>,
     ) -> Result<LLMChatResponse, AppError> {
-        let url = format!("{}/chat/completions", base_url.trim_end_matches('/'));
+        let url = format!("{}/responses", base_url.trim_end_matches('/'));
 
         let mut req_builder = self.client.post(&url);
 
-        // Add authorization header if API key is provided
         if let Some(key) = api_key {
             req_builder = req_builder.header("Authorization", format!("Bearer {key}"));
         }
 
         req_builder = req_builder.header("Content-Type", "application/json");
 
-        // Transform messages to OpenAI-compatible format (filter out unsupported content types)
-        let transformed_messages = Self::transform_messages_for_openai(request.messages)?;
+        // Transform to new input format
+        let input_messages = Self::transform_messages_to_input(request.messages);
 
-        // Create a new request with transformed messages
-        let transformed_request = LLMChatRequest {
-            messages: transformed_messages,
-            ..request
-        };
+        // Construct body for Responses API
+        let mut request_body = json!({
+            "model": request.model,
+            "input": input_messages,
+            "stream": true, // Always stream for event-driven handling
+        });
 
-        let request_body = serde_json::to_value(&transformed_request)?;
-
-        if request.stream {
-            self.handle_streaming(
-                req_builder,
-                request_body,
-                chat_id,
-                message_id,
-                app,
-                cancellation_rx,
-            )
-            .await
-        } else {
-            self.handle_non_streaming(req_builder, request_body, chat_id, message_id, app)
-                .await
+        if let Some(temp) = request.temperature {
+            request_body.as_object_mut().unwrap().insert("temperature".to_string(), json!(temp));
         }
+        
+        // Add tools if present
+        if let Some(tools) = request.tools {
+           request_body.as_object_mut().unwrap().insert("tools".to_string(), json!(tools));
+        }
+
+        self.handle_responses_api(
+            req_builder,
+            request_body,
+            chat_id,
+            message_id,
+            app,
+            cancellation_rx,
+            request.stream,
+        ).await
     }
 }
