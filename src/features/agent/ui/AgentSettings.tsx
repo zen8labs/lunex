@@ -222,7 +222,7 @@ export function AgentSettings() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3">
               {agents.map((agent) => (
                 <Card
                   key={agent.manifest.id}

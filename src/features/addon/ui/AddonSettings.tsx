@@ -1,8 +1,15 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
-import { Download, Trash2, RefreshCw } from 'lucide-react';
+import {
+  Download,
+  Trash2,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/ui/atoms/tooltip';
 import { Skeleton } from '@/ui/atoms/skeleton';
 import { useAddons } from '../hooks/useAddons';
 
@@ -31,20 +38,22 @@ const NodeIcon = ({ className }: { className?: string }) => (
 );
 
 const RuntimeCardSkeleton = () => (
-  <div className="flex flex-col rounded-lg border p-4">
-    <div className="flex items-center gap-3 mb-4">
-      <Skeleton className="size-10 rounded-full" />
-      <div className="min-w-0 flex-1">
-        <Skeleton className="h-5 w-24 mb-2" />
-        <Skeleton className="h-4 w-16" />
+  <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm">
+    <div className="flex items-start justify-between mb-6">
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-12 rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
       </div>
+      <Skeleton className="h-6 w-20 rounded-full" />
     </div>
-    <div className="h-5 mb-4">
-      <Skeleton className="h-3 w-full" />
+    <div className="space-y-3 mb-6">
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-2/3" />
     </div>
-    <div className="mt-auto pt-2">
-      <Skeleton className="h-9 w-full" />
-    </div>
+    <Skeleton className="h-10 w-full rounded-lg" />
   </div>
 );
 
@@ -61,234 +70,310 @@ export default function AddonSettings() {
     actions,
   } = useAddons();
 
+  const latestPython = useMemo(() => {
+    if (pythonRuntimes.length === 0) return null;
+    return [...pythonRuntimes].sort((a, b) =>
+      b.version.localeCompare(a.version, undefined, { numeric: true })
+    )[0];
+  }, [pythonRuntimes]);
+
+  const latestNode = useMemo(() => {
+    if (nodeRuntimes.length === 0) return null;
+    return [...nodeRuntimes].sort((a, b) =>
+      b.version.localeCompare(a.version, undefined, { numeric: true })
+    )[0];
+  }, [nodeRuntimes]);
+
+  const otherInstalledPythonCount = useMemo(() => {
+    if (!latestPython) return 0;
+    return pythonRuntimes.filter(
+      (r) => r.installed && r.version !== latestPython.version
+    ).length;
+  }, [pythonRuntimes, latestPython]);
+
+  const otherInstalledNodeCount = useMemo(() => {
+    if (!latestNode) return 0;
+    return nodeRuntimes.filter(
+      (r) => r.installed && r.version !== latestNode.version
+    ).length;
+  }, [nodeRuntimes, latestNode]);
+
+  const handleCleanupOtherPython = async () => {
+    if (!latestPython) return;
+    const others = pythonRuntimes.filter(
+      (r) => r.installed && r.version !== latestPython.version
+    );
+    for (const r of others) {
+      await actions.uninstallPython(r.version);
+    }
+  };
+
+  const handleCleanupOtherNode = async () => {
+    if (!latestNode) return;
+    const others = nodeRuntimes.filter(
+      (r) => r.installed && r.version !== latestNode.version
+    );
+    for (const r of others) {
+      await actions.uninstallNode(r.version);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-xl font-semibold tracking-tight">
+          {t('runtimeEnvironment')}
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-2xl">
           {t('addonManagementDescription')}
         </p>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-brand-python">
-          <PythonIcon className="size-4" />
-          <h4 className="font-medium">{t('pythonRuntime')}</h4>
-        </div>
-
-        <p className="text-sm text-muted-foreground">
-          {t('pythonRuntimeDescription')}
-          {addonConfig && (
-            <span className="ml-1 text-xs opacity-70">
-              (uv {addonConfig.addons.python.uv.version})
-            </span>
-          )}
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {isLoading ? (
-            <>
-              <RuntimeCardSkeleton />
-              <RuntimeCardSkeleton />
-              <RuntimeCardSkeleton />
-            </>
-          ) : (
-            pythonRuntimes.map((runtime) => (
-              <div
-                key={runtime.version}
-                className="flex flex-col rounded-lg border bg-card/40 p-4 hover:bg-accent/10 hover:shadow-sm transition-all duration-200"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="size-10 rounded-full bg-brand-python/10 flex items-center justify-center shrink-0 border border-brand-python/10">
-                    <PythonIcon className="size-5 text-brand-python" />
-                  </div>
-                  <div className="min-w-0">
-                    {runtime.installed && runtime.path ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <h5 className="font-semibold text-sm cursor-help">
-                            Python {runtime.version}
-                          </h5>
-                        </TooltipTrigger>
-                        <TooltipContent>{runtime.path}</TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <h5 className="font-semibold text-sm">
-                        Python {runtime.version}
-                      </h5>
-                    )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={cn(
-                          'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-colors',
-                          runtime.installed
-                            ? 'bg-success/15 text-success border border-success/20'
-                            : 'bg-muted text-muted-foreground border border-border'
-                        )}
-                      >
-                        {runtime.installed ? t('installed') : t('notInstalled')}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Python Card */}
+        {isLoading ? (
+          <RuntimeCardSkeleton />
+        ) : latestPython ? (
+          <div className="group relative flex flex-col rounded-xl border bg-card p-6 hover:shadow-md transition-all duration-300 border-border/60">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-xl bg-brand-python/10 flex items-center justify-center border border-brand-python/20 group-hover:scale-110 transition-transform duration-300">
+                  <PythonIcon className="size-6 text-brand-python" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-base flex items-center gap-2">
+                    Python
+                    {addonConfig && (
+                      <span className="text-[10px] font-normal text-muted-foreground opacity-70">
+                        (uv {addonConfig.addons.python.uv.version})
                       </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="h-5 mb-4">
-                  {runtime.path ? (
-                    <span
-                      className="text-[10px] text-muted-foreground font-mono block truncate opacity-80"
-                      title={runtime.path}
-                    >
-                      {runtime.path}
-                    </span>
-                  ) : (
-                    <div className="h-full" />
-                  )}
-                </div>
-
-                <div className="mt-auto pt-2">
-                  {!runtime.installed ? (
-                    <Button
-                      onClick={() => actions.installPython(runtime.version)}
-                      disabled={installingPython !== null}
-                      size="sm"
-                      className="w-full h-9 bg-brand-python hover:opacity-90 text-white shadow-sm"
-                    >
-                      {installingPython === runtime.version ? (
-                        <>
-                          <RefreshCw className="mr-2 size-4 animate-spin" />
-                          {t('installing')}
-                        </>
-                      ) : (
-                        <>
-                          <Download className="mr-2 size-4" />
-                          {t('install')}
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => actions.uninstallPython(runtime.version)}
-                      disabled={installingPython !== null}
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-9 text-destructive hover:bg-destructive/10 hover:text-destructive border-transparent hover:border-destructive/20"
-                    >
-                      <Trash2 className="mr-2 size-4" />
-                      {t('uninstall')}
-                    </Button>
-                  )}
+                    )}
+                  </h4>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    v{latestPython.version}
+                  </p>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-brand-node">
-          <NodeIcon className="size-4" />
-          <h4 className="font-medium">{t('nodeRuntime')}</h4>
-        </div>
-
-        <p className="text-sm text-muted-foreground">
-          {t('nodeRuntimeDescription')}
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {isLoading ? (
-            <>
-              <RuntimeCardSkeleton />
-              <RuntimeCardSkeleton />
-            </>
-          ) : (
-            nodeRuntimes.map((runtime) => (
               <div
-                key={runtime.version}
-                className="flex flex-col rounded-lg border bg-card/40 p-4 hover:bg-accent/10 hover:shadow-sm transition-all duration-200"
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border transition-all duration-300',
+                  latestPython.installed
+                    ? 'bg-success/10 text-success border-success/20'
+                    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                )}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="size-10 rounded-full bg-brand-node/10 flex items-center justify-center shrink-0 border border-brand-node/10">
-                    <NodeIcon className="size-5 text-brand-node" />
-                  </div>
-                  <div className="min-w-0">
-                    {runtime.installed && runtime.path ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <h5 className="font-semibold text-sm cursor-help">
-                            Node.js {runtime.version}
-                          </h5>
-                        </TooltipTrigger>
-                        <TooltipContent>{runtime.path}</TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <h5 className="font-semibold text-sm">
-                        Node.js {runtime.version}
-                      </h5>
-                    )}
-                    <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={cn(
-                          'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-colors',
-                          runtime.installed
-                            ? 'bg-success/15 text-success border border-success/20'
-                            : 'bg-muted text-muted-foreground border border-border'
-                        )}
-                      >
-                        {runtime.installed ? t('installed') : t('notInstalled')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {latestPython.installed ? (
+                  <>
+                    <CheckCircle2 className="size-3.5" />
+                    <span>{t('installed')}</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="size-3.5" />
+                    <span>{t('notInstalled')}</span>
+                  </>
+                )}
+              </div>
+            </div>
 
-                <div className="h-5 mb-4">
-                  {runtime.path ? (
-                    <span
-                      className="text-[10px] text-muted-foreground font-mono block truncate opacity-80"
-                      title={runtime.path}
-                    >
-                      {runtime.path}
-                    </span>
-                  ) : (
-                    <div className="h-full" />
-                  )}
-                </div>
+            <div className="space-y-4 mb-6 flex-1">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t('pythonRuntimeDescription')}
+              </p>
 
-                <div className="mt-auto pt-2">
-                  {!runtime.installed ? (
-                    <Button
-                      onClick={() => actions.installNode(runtime.version)}
-                      disabled={installingNode !== null}
-                      size="sm"
-                      className="w-full h-9 bg-brand-node hover:opacity-90 text-white shadow-sm"
-                    >
-                      {installingNode === runtime.version ? (
-                        <>
-                          <RefreshCw className="mr-2 size-4 animate-spin" />
-                          {t('installing')}
-                        </>
-                      ) : (
-                        <>
-                          <Download className="mr-2 size-4" />
-                          {t('install')}
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => actions.uninstallNode(runtime.version)}
-                      disabled={installingNode !== null}
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-9 text-destructive hover:bg-destructive/10 hover:text-destructive border-transparent hover:border-destructive/20"
-                    >
-                      <Trash2 className="mr-2 size-4" />
-                      {t('uninstall')}
-                    </Button>
-                  )}
+              {latestPython.installed && latestPython.path && (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border border-border/40 overflow-hidden">
+                  <Info className="size-3.5 text-muted-foreground shrink-0" />
+                  <span
+                    className="text-[10px] font-mono text-muted-foreground truncate"
+                    title={latestPython.path}
+                  >
+                    {latestPython.path}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-auto space-y-3">
+              <Button
+                onClick={() => actions.installPython(latestPython.version)}
+                disabled={installingPython !== null}
+                className={cn(
+                  'w-full h-11 transition-all duration-300',
+                  latestPython.installed
+                    ? 'bg-muted hover:bg-muted/80 text-foreground'
+                    : 'bg-brand-python hover:bg-brand-python/90 text-white shadow-lg shadow-brand-python/20'
+                )}
+              >
+                {installingPython === latestPython.version ? (
+                  <>
+                    <RefreshCw className="mr-2 size-4 animate-spin" />
+                    {t('installing')}
+                  </>
+                ) : latestPython.installed ? (
+                  <>
+                    <RefreshCw className="mr-2 size-4" />
+                    {t('reinstall', { defaultValue: 'Cài lại' })}
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 size-4" />
+                    {t('install')}
+                  </>
+                )}
+              </Button>
+
+              {latestPython.installed && (
+                <Button
+                  onClick={() => actions.uninstallPython(latestPython.version)}
+                  disabled={installingPython !== null}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="mr-2 size-3.5" />
+                  {t('uninstall')}
+                </Button>
+              )}
+
+              {otherInstalledPythonCount > 0 && (
+                <div className="pt-2 border-t border-border/40">
+                  <Button
+                    onClick={handleCleanupOtherPython}
+                    variant="link"
+                    size="sm"
+                    className="w-full h-auto p-0 text-[11px] text-muted-foreground hover:text-destructive"
+                  >
+                    {t('cleanupOldVersions', {
+                      defaultValue: 'Dọn dẹp {{count}} phiên bản cũ khác',
+                      count: otherInstalledPythonCount,
+                    })}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Node.js Card */}
+        {isLoading ? (
+          <RuntimeCardSkeleton />
+        ) : latestNode ? (
+          <div className="group relative flex flex-col rounded-xl border bg-card p-6 hover:shadow-md transition-all duration-300 border-border/60">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-xl bg-brand-node/10 flex items-center justify-center border border-brand-node/20 group-hover:scale-110 transition-transform duration-300">
+                  <NodeIcon className="size-6 text-brand-node" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-base">Node.js</h4>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    v{latestNode.version}
+                  </p>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+
+              <div
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border transition-all duration-300',
+                  latestNode.installed
+                    ? 'bg-success/10 text-success border-success/20'
+                    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                )}
+              >
+                {latestNode.installed ? (
+                  <>
+                    <CheckCircle2 className="size-3.5" />
+                    <span>{t('installed')}</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="size-3.5" />
+                    <span>{t('notInstalled')}</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6 flex-1">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t('nodeRuntimeDescription')}
+              </p>
+
+              {latestNode.installed && latestNode.path && (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border border-border/40 overflow-hidden">
+                  <Info className="size-3.5 text-muted-foreground shrink-0" />
+                  <span
+                    className="text-[10px] font-mono text-muted-foreground truncate"
+                    title={latestNode.path}
+                  >
+                    {latestNode.path}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-auto space-y-3">
+              <Button
+                onClick={() => actions.installNode(latestNode.version)}
+                disabled={installingNode !== null}
+                className={cn(
+                  'w-full h-11 transition-all duration-300',
+                  latestNode.installed
+                    ? 'bg-muted hover:bg-muted/80 text-foreground'
+                    : 'bg-brand-node hover:bg-brand-node/90 text-white shadow-lg shadow-brand-node/20'
+                )}
+              >
+                {installingNode === latestNode.version ? (
+                  <>
+                    <RefreshCw className="mr-2 size-4 animate-spin" />
+                    {t('installing')}
+                  </>
+                ) : latestNode.installed ? (
+                  <>
+                    <RefreshCw className="mr-2 size-4" />
+                    {t('reinstall', { defaultValue: 'Cài lại' })}
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 size-4" />
+                    {t('install')}
+                  </>
+                )}
+              </Button>
+
+              {latestNode.installed && (
+                <Button
+                  onClick={() => actions.uninstallNode(latestNode.version)}
+                  disabled={installingNode !== null}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="mr-2 size-3.5" />
+                  {t('uninstall')}
+                </Button>
+              )}
+
+              {otherInstalledNodeCount > 0 && (
+                <div className="pt-2 border-t border-border/40">
+                  <Button
+                    onClick={handleCleanupOtherNode}
+                    variant="link"
+                    size="sm"
+                    className="w-full h-auto p-0 text-[11px] text-muted-foreground hover:text-destructive"
+                  >
+                    {t('cleanupOldVersions', {
+                      defaultValue: 'Dọn dẹp {{count}} phiên bản cũ khác',
+                      count: otherInstalledNodeCount,
+                    })}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

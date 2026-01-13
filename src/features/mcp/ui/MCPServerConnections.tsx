@@ -281,7 +281,7 @@ export function MCPServerConnections() {
         <EmptyState icon={Server} title={t('noConnections')} />
       ) : (
         <ScrollArea className="flex-1 min-h-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {mcpConnections.map((connection) => (
               <div
                 key={connection.id}

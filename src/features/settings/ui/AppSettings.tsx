@@ -56,8 +56,10 @@ export function AppSettings() {
       {/* Language */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Languages className="size-4 text-muted-foreground" />
-          <h3 className="font-medium text-sm">{t('language')}</h3>
+          <Languages className="size-4 text-muted-foreground shrink-0" />
+          <h3 className="font-medium text-sm leading-none my-0">
+            {t('language')}
+          </h3>
         </div>
         <Select
           value={currentLanguage}
@@ -78,8 +80,10 @@ export function AppSettings() {
       {/* Theme */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Palette className="size-4 text-muted-foreground" />
-          <h3 className="font-medium text-sm">{t('theme')}</h3>
+          <Palette className="size-4 text-muted-foreground shrink-0" />
+          <h3 className="font-medium text-sm leading-none my-0">
+            {t('theme')}
+          </h3>
         </div>
         <Select
           value={currentTheme}
@@ -118,8 +122,10 @@ export function AppSettings() {
       {/* User Mode */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <User className="size-4 text-muted-foreground" />
-          <h3 className="font-medium text-sm">{t('userMode')}</h3>
+          <User className="size-4 text-muted-foreground shrink-0" />
+          <h3 className="font-medium text-sm leading-none my-0">
+            {t('userMode')}
+          </h3>
         </div>
         <Select
           value={currentUserMode}

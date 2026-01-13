@@ -152,7 +152,7 @@ export function LLMConnections() {
         <EmptyState icon={Network} title={t('noConnections')} />
       ) : (
         <ScrollArea className="h-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {llmConnections.map((connection) => {
               // Filter models for display
               const displayModels = connection.models

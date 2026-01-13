@@ -134,7 +134,7 @@ export function PromptManagement() {
         <EmptyState icon={FileText} title={t('noPrompts')} />
       ) : (
         <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {prompts.map((prompt) => (
               <div
                 key={prompt.id}
