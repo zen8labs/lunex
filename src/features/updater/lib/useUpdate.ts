@@ -59,13 +59,19 @@ export function useUpdate() {
       setStatus('downloading');
       setDownloadProgress(0);
 
+      let contentLength: number | undefined;
+      let downloaded = 0;
+
       await update.downloadAndInstall((event) => {
         switch (event.event) {
           case 'Started':
-            // contentLength is available here
+            contentLength = event.data.contentLength;
             break;
           case 'Progress':
-            setDownloadProgress((prev) => prev + event.data.chunkLength);
+            downloaded += event.data.chunkLength;
+            if (contentLength) {
+              setDownloadProgress((downloaded / contentLength) * 100);
+            }
             break;
           case 'Finished':
             setStatus('installing');

@@ -20,6 +20,8 @@ import OnboardingGuide from '@/features/onboarding/ui/OnboardingGuide';
 import { OnboardingScreen } from '@/features/onboarding/ui/OnboardingScreen';
 import { useWorkspaces } from '@/features/workspace';
 import i18n from '@/i18n/config';
+import { useAutoUpdate } from '@/features/updater/hooks/useAutoUpdate';
+import { UpdateModal } from '@/features/updater/ui/UpdateModal';
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -117,6 +119,9 @@ function AppContent() {
   // Show onboarding if no workspaces exist
   const showOnboarding = workspaces.length === 0;
 
+  // Handle auto-updates
+  const { modalOpen, setModalOpen } = useAutoUpdate();
+
   return (
     <>
       {!loading && showOnboarding ? <OnboardingScreen /> : <MainLayout />}
@@ -126,6 +131,7 @@ function AppContent() {
         onOpenChange={(open) => dispatch(setWelcomeOpen(open))}
       />
       <OnboardingGuide />
+      <UpdateModal open={modalOpen} onOpenChange={setModalOpen} />
     </>
   );
 }
