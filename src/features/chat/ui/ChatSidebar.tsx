@@ -187,9 +187,11 @@ export function ChatSidebar() {
                   <div
                     key={chat.id}
                     className={cn(
-                      'group relative flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors',
-                      'hover:bg-sidebar-accent',
-                      selectedChatId === chat.id && 'bg-sidebar-accent'
+                      'group relative flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-all',
+                      'hover:bg-accent hover:text-accent-foreground',
+                      selectedChatId === chat.id
+                        ? 'bg-accent text-accent-foreground shadow-sm'
+                        : 'text-muted-foreground'
                     )}
                     onClick={() => {
                       setContextMenu(null);
@@ -197,10 +199,31 @@ export function ChatSidebar() {
                     }}
                     onContextMenu={(e) => handleContextMenu(e, chat.id)}
                   >
-                    <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
+                    <div
+                      className={cn(
+                        'transition-transform shrink-0',
+                        selectedChatId === chat.id && 'scale-110'
+                      )}
+                    >
+                      <MessageSquare
+                        className={cn(
+                          'size-4',
+                          selectedChatId === chat.id
+                            ? 'text-primary'
+                            : 'text-muted-foreground'
+                        )}
+                      />
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <div className="line-clamp-1 text-sm font-medium text-sidebar-foreground flex-1">
+                        <div
+                          className={cn(
+                            'line-clamp-1 text-sm font-medium flex-1',
+                            selectedChatId === chat.id
+                              ? 'text-foreground'
+                              : 'text-sidebar-foreground'
+                          )}
+                        >
                           {chat.title}
                         </div>
                         {streamingByChatId[chat.id] && (
