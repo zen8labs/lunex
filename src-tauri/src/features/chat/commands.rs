@@ -171,3 +171,18 @@ pub fn respond_tool_permission(
         )))
     }
 }
+
+#[tauri::command]
+pub async fn generate_chat_title(
+    chat_id: String,
+    user_prompt: String,
+    model: Option<String>,
+    llm_connection_id: Option<String>,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), AppError> {
+    state
+        .chat_service
+        .generate_chat_title(app, chat_id, user_prompt, model, llm_connection_id);
+    Ok(())
+}

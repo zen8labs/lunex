@@ -412,17 +412,6 @@ impl ChatService {
         // 5. Get conversation history
         let existing_messages = self.message_service.get_by_chat_id(&chat_id)?;
 
-        // 5.5 Auto-rename chat if it's the first message
-        if existing_messages.is_empty() {
-            self.auto_rename_chat(
-                app.clone(),
-                chat_id.clone(),
-                content.clone(),
-                model.clone(),
-                llm_connection_id.clone(),
-            );
-        }
-
         // 6. Create user message
         let user_timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -1200,27 +1189,69 @@ impl ChatService {
     }
 
     /// Automatically rename a chat based on the first user prompt
-    fn auto_rename_chat(
+    pub fn generate_chat_title(
         &self,
         app: AppHandle,
         chat_id: String,
         user_content: String,
-        model: String,
-        llm_connection_id: String,
+        model: Option<String>,
+        llm_connection_id: Option<String>,
     ) {
         // Use tokio::spawn to run this in summary/background
         tokio::spawn(async move {
             let state = app.state::<crate::state::AppState>();
             let chat_service = &state.chat_service;
 
-            // 1. Get LLM connection
-            let llm_connection = match chat_service
-                .llm_connection_service
-                .get_by_id(&llm_connection_id)
+            // 1. Get LLM connection and workspace default model
+            let (llm_connection, workspace_default_model) = if let Some(conn_id) = llm_connection_id
             {
-                Ok(Some(conn)) => conn,
-                _ => return,
+                let conn = match chat_service.llm_connection_service.get_by_id(&conn_id) {
+                    Ok(Some(conn)) => conn,
+                    _ => {
+                        return;
+                    }
+                };
+                (conn, None)
+            } else {
+                // Try to get from chat -> workspace settings
+                let chat = match chat_service.repository.get_by_id(&chat_id) {
+                    Ok(Some(c)) => c,
+                    _ => {
+                        return;
+                    }
+                };
+                let settings = match chat_service
+                    .workspace_settings_service
+                    .get_by_workspace_id(&chat.workspace_id)
+                {
+                    Ok(Some(s)) => s,
+                    _ => {
+                        return;
+                    }
+                };
+                let conn_id = match settings.llm_connection_id {
+                    Some(id) => id,
+                    None => {
+                        return;
+                    }
+                };
+
+                let conn = match chat_service.llm_connection_service.get_by_id(&conn_id) {
+                    Ok(Some(conn)) => conn,
+                    _ => {
+                        return;
+                    }
+                };
+                (conn, settings.default_model.clone())
             };
+
+            let model = model
+                .or(workspace_default_model)
+                .or(llm_connection.default_model.clone())
+                .unwrap_or_default();
+            if model.is_empty() {
+                return;
+            }
 
             // 2. Prepare rename prompt
             let system_prompt = "You are a concise chat title generator. Generate a 3-6 word title that captures the intent of the user's prompt. Output only the title without any formatting, quotes, or punctuation.";
@@ -1285,6 +1316,8 @@ impl ChatService {
                         let _ = emitter.emit_chat_updated(chat_id, title);
                     }
                 }
+            } else if let Err(e) = result {
+                eprintln!("Error generating chat title for chat_id {}: {}", chat_id, e);
             }
         });
     }

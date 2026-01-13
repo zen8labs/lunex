@@ -22,6 +22,7 @@ impl TauriCommands {
     pub const SEND_MESSAGE: &'static str = "send_message";
     pub const EDIT_AND_RESEND_MESSAGE: &'static str = "edit_and_resend_message";
     pub const RESPOND_TOOL_PERMISSION: &'static str = "respond_tool_permission";
+    pub const GENERATE_CHAT_TITLE: &'static str = "generate_chat_title";
 
     // Message commands
     pub const CREATE_MESSAGE: &'static str = "create_message";

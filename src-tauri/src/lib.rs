@@ -149,6 +149,7 @@ pub fn run() {
             features::chat::commands::get_or_create_specialist_session,
             features::chat::commands::delete_all_chats_by_workspace,
             features::chat::commands::send_message,
+            features::chat::commands::generate_chat_title,
             features::chat::commands::edit_and_resend_message,
             features::chat::commands::respond_tool_permission,
             // Message commands
