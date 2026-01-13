@@ -12,7 +12,6 @@ import { Button } from '@/ui/atoms/button/button';
 import { EmptyState } from '@/ui/atoms/empty-state';
 import { Input } from '@/ui/atoms/input';
 import { Label } from '@/ui/atoms/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/atoms/tabs';
 import {
   Select,
   SelectContent,
@@ -50,9 +49,8 @@ import {
   showError,
   showSuccess,
 } from '@/features/notifications/state/notificationSlice';
-import { CommunityMCPServersSection } from './CommunityMCPServersSection';
-import { InstallMCPServerDialog } from './InstallMCPServerDialog';
-import type { HubMCPServer, MCPToolType, MCPServerConnection } from '../types';
+
+import type { MCPToolType, MCPServerConnection } from '../types';
 
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 
@@ -93,10 +91,6 @@ export function MCPServerConnections() {
   );
   const [nodeRuntimes, setNodeRuntimes] = useState<NodeRuntimeStatus[]>([]);
   const [runtimesLoading, setRuntimesLoading] = useState(false);
-  const [installDialogOpen, setInstallDialogOpen] = useState(false);
-  const [serverToInstall, setServerToInstall] = useState<HubMCPServer | null>(
-    null
-  );
 
   React.useEffect(() => {
     const loadRuntimes = async () => {
@@ -251,9 +245,6 @@ export function MCPServerConnections() {
           showSuccess(t('connectionSaved'), t('newMCPConnectionCreated'))
         );
 
-        // Switch to installed tab
-        setActiveTab('installed');
-
         // Start async connection immediately in background
         connectConnection({
           id: result.id,
@@ -274,207 +265,152 @@ export function MCPServerConnections() {
     }
   };
 
-  const [activeTab, setActiveTab] = useState('installed');
-
-  const handleInstallClick = (server: HubMCPServer) => {
-    setServerToInstall(server);
-    setInstallDialogOpen(true);
-  };
-
-  const handleInstalled = () => {
-    // Refetch connections to update the list immediately
-    refetchConnections();
-    // Switch to installed tab
-    setActiveTab('installed');
-  };
-
-  const installedServerIds = mcpConnections.map((c) => c.id);
-
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full flex flex-col flex-1 min-h-0"
-      >
-        <TabsList className="grid w-full grid-cols-2 shrink-0">
-          <TabsTrigger value="installed">
-            {t('installedConnections', {
-              defaultValue: 'Installed Connections',
-            })}
-          </TabsTrigger>
-          <TabsTrigger value="community">
-            {t('communityServers', { defaultValue: 'Community Servers' })}
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex items-center justify-between shrink-0">
+        <p className="text-sm text-muted-foreground">
+          {t('manageMCPServerConnections')}
+        </p>
+        <Button onClick={handleAdd} size="sm">
+          <Plus className="mr-2 size-4" />
+          {t('addConnection')}
+        </Button>
+      </div>
 
-        <TabsContent
-          value="installed"
-          className="mt-6 space-y-4 flex-1 flex flex-col min-h-0"
-        >
-          <div className="flex items-center justify-between shrink-0">
-            <p className="text-sm text-muted-foreground">
-              {t('manageMCPServerConnections')}
-            </p>
-            <Button onClick={handleAdd} size="sm">
-              <Plus className="mr-2 size-4" />
-              {t('addConnection')}
-            </Button>
-          </div>
+      {mcpConnections.length === 0 ? (
+        <EmptyState icon={Server} title={t('noConnections')} />
+      ) : (
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {mcpConnections.map((connection) => (
+              <div
+                key={connection.id}
+                onClick={() => handleEdit(connection)}
+                className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
+              >
+                {/* Subtle gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
-          {mcpConnections.length === 0 ? (
-            <EmptyState icon={Server} title={t('noConnections')} />
-          ) : (
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {mcpConnections.map((connection) => (
-                  <div
-                    key={connection.id}
-                    onClick={() => handleEdit(connection)}
-                    className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
-                  >
-                    {/* Subtle gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-
-                    <div className="relative space-y-3">
-                      {/* Header with icon and name */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                          <Server className="size-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <h4 className="font-normal truncate">
-                              {connection.name}
-                            </h4>
-                            {connection.errorMessage && (
-                              <TooltipProvider>
-                                <Tooltip delayDuration={0}>
-                                  <TooltipTrigger asChild>
-                                    <AlertCircle className="size-4 text-destructive shrink-0 cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent
-                                    side="top"
-                                    className="max-w-xs"
-                                  >
-                                    <p className="text-sm">
-                                      {connection.errorMessage}
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground capitalize">
-                            {connection.type}
-                          </p>
-                        </div>
-                        <div
-                          className="flex gap-1 shrink-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {connection.status === 'connected' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8"
-                              onClick={() => handleDisconnect(connection)}
-                              title={t('disconnectConnection')}
-                            >
-                              <PowerOff className="size-3.5" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8"
-                            onClick={() => handleReload(connection)}
-                            title={t('reloadConnection')}
-                            disabled={connection.status === 'connecting'}
-                          >
-                            <RefreshCw
-                              className={`size-3.5 ${connection.status === 'connecting' ? 'animate-spin' : ''}`}
-                            />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Status and URL */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {connection.status && (
-                            <span
-                              className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
-                                connection.status === 'connected'
-                                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                  : connection.status === 'connecting'
-                                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                              }`}
-                            >
-                              {connection.status === 'connected'
-                                ? t('connected')
-                                : connection.status === 'connecting'
-                                  ? t('connecting')
-                                  : t('disconnected')}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {connection.url}
-                        </p>
-                      </div>
-
-                      {/* Tools list - Fixed height to prevent layout shift */}
-                      <div className="flex items-center gap-1.5 overflow-hidden min-h-[28px]">
-                        {connection.tools && connection.tools.length > 0 ? (
-                          <>
-                            <div className="flex gap-1.5 overflow-hidden">
-                              {connection.tools
-                                .slice(0, 3)
-                                .map((tool: MCPToolType, index: number) => (
-                                  <span
-                                    key={index}
-                                    className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors whitespace-nowrap"
-                                  >
-                                    {tool.name}
-                                  </span>
-                                ))}
-                            </div>
-                            {connection.tools.length > 3 && (
-                              <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium whitespace-nowrap shrink-0">
-                                +{connection.tools.length - 3}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="inline-flex items-center rounded-md bg-muted/40 px-2 py-1 text-xs text-muted-foreground/60 whitespace-nowrap">
-                            {t('noTools', { defaultValue: 'No tools' })}
-                          </span>
+                <div className="relative space-y-3">
+                  {/* Header with icon and name */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                      <Server className="size-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-normal truncate">
+                          {connection.name}
+                        </h4>
+                        {connection.errorMessage && (
+                          <TooltipProvider>
+                            <Tooltip delayDuration={0}>
+                              <TooltipTrigger asChild>
+                                <AlertCircle className="size-4 text-destructive shrink-0 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <p className="text-sm">
+                                  {connection.errorMessage}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
+                      <p className="text-xs text-muted-foreground capitalize">
+                        {connection.type}
+                      </p>
+                    </div>
+                    <div
+                      className="flex gap-1 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {connection.status === 'connected' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                          onClick={() => handleDisconnect(connection)}
+                          title={t('disconnectConnection')}
+                        >
+                          <PowerOff className="size-3.5" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        onClick={() => handleReload(connection)}
+                        title={t('reloadConnection')}
+                        disabled={connection.status === 'connecting'}
+                      >
+                        <RefreshCw
+                          className={`size-3.5 ${connection.status === 'connecting' ? 'animate-spin' : ''}`}
+                        />
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </TabsContent>
 
-        <TabsContent
-          value="community"
-          className="mt-6 space-y-4 flex-1 flex flex-col min-h-0"
-        >
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="pr-4">
-              <CommunityMCPServersSection
-                installedServerIds={installedServerIds}
-                onInstall={handleInstallClick}
-              />
-            </div>
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
+                  {/* Status and URL */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {connection.status && (
+                        <span
+                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
+                            connection.status === 'connected'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : connection.status === 'connecting'
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                          }`}
+                        >
+                          {connection.status === 'connected'
+                            ? t('connected')
+                            : connection.status === 'connecting'
+                              ? t('connecting')
+                              : t('disconnected')}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {connection.url}
+                    </p>
+                  </div>
+
+                  {/* Tools list - Fixed height to prevent layout shift */}
+                  <div className="flex items-center gap-1.5 overflow-hidden min-h-[28px]">
+                    {connection.tools && connection.tools.length > 0 ? (
+                      <>
+                        <div className="flex gap-1.5 overflow-hidden">
+                          {connection.tools
+                            .slice(0, 3)
+                            .map((tool: MCPToolType, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors whitespace-nowrap"
+                              >
+                                {tool.name}
+                              </span>
+                            ))}
+                        </div>
+                        {connection.tools.length > 3 && (
+                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium whitespace-nowrap shrink-0">
+                            +{connection.tools.length - 3}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="inline-flex items-center rounded-md bg-muted/40 px-2 py-1 text-xs text-muted-foreground/60 whitespace-nowrap">
+                        {t('noTools', { defaultValue: 'No tools' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
 
       <MCPServerConnectionDialog
         open={dialogOpen}
@@ -502,13 +438,6 @@ export function MCPServerConnections() {
         connectionName={
           mcpConnections.find((c) => c.id === connectionToDelete)?.name
         }
-      />
-
-      <InstallMCPServerDialog
-        open={installDialogOpen}
-        onOpenChange={setInstallDialogOpen}
-        server={serverToInstall}
-        onInstalled={handleInstalled}
       />
     </div>
   );

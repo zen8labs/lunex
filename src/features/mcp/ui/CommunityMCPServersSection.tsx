@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/ui/atoms/card';
 import { EmptyState } from '@/ui/atoms/empty-state';
+import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppDispatch } from '@/app/hooks';
 import {
@@ -161,73 +162,79 @@ export function CommunityMCPServersSection({
         </Button>
       </div>
 
-      {filteredServers.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-muted/10">
-          <p className="text-muted-foreground">
-            {t('noMCPServersFound', { defaultValue: 'No MCP servers found.' })}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {filteredServers.map((server) => {
-            const isInstalled = installedServerIds.includes(server.id);
-            return (
-              <Card
-                key={server.id}
-                className="hover:bg-accent/50 transition-colors"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-3">
-                    {server.icon && (
-                      <img
-                        src={server.icon}
-                        alt={server.name}
-                        className="size-8 rounded object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base">{server.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        {server.id}
-                      </CardDescription>
+      <ScrollArea className="h-[calc(100vh-280px)]">
+        {filteredServers.length === 0 ? (
+          <div className="text-center py-12 border rounded-lg bg-muted/10">
+            <p className="text-muted-foreground">
+              {t('noMCPServersFound', {
+                defaultValue: 'No MCP servers found.',
+              })}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            {filteredServers.map((server) => {
+              const isInstalled = installedServerIds.includes(server.id);
+              return (
+                <Card
+                  key={server.id}
+                  className="hover:bg-accent/50 transition-colors"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start gap-3">
+                      {server.icon && (
+                        <img
+                          src={server.icon}
+                          alt={server.name}
+                          className="size-8 rounded object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base">
+                          {server.name}
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-1">
+                          {server.id}
+                        </CardDescription>
+                      </div>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                        {server.type.toUpperCase()}
+                      </span>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                      {server.type.toUpperCase()}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
-                    {server.description}
-                  </p>
-                  <Button
-                    onClick={() => handleInstall(server)}
-                    disabled={isInstalled}
-                    className="w-full"
-                    size="sm"
-                    variant={isInstalled ? 'outline' : 'default'}
-                  >
-                    {isInstalled ? (
-                      <>
-                        <Server className="mr-2 size-4" />
-                        {t('installed', { defaultValue: 'Installed' })}
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 size-4" />
-                        {t('install', { defaultValue: 'Install' })}
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">
+                      {server.description}
+                    </p>
+                    <Button
+                      onClick={() => handleInstall(server)}
+                      disabled={isInstalled}
+                      className="w-full"
+                      size="sm"
+                      variant={isInstalled ? 'outline' : 'default'}
+                    >
+                      {isInstalled ? (
+                        <>
+                          <Server className="mr-2 size-4" />
+                          {t('installed', { defaultValue: 'Installed' })}
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-2 size-4" />
+                          {t('install', { defaultValue: 'Install' })}
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 }

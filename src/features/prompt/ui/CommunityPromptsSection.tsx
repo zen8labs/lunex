@@ -116,7 +116,7 @@ export function CommunityPromptsSection({
           </Button>
         </div>
         <ScrollArea className="h-[calc(100vh-280px)]">
-          <div className="grid gap-4 md:grid-cols-2 pr-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader className="pb-3">
@@ -201,7 +201,7 @@ export function CommunityPromptsSection({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 pr-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {filteredPrompts.map((prompt) => {
               const isInstalled = installedPromptIds.includes(prompt.id);
               return (

@@ -11,6 +11,7 @@ interface UIState {
   aboutOpen: boolean;
   keyboardShortcutsOpen: boolean;
   settingsSection:
+    | 'hub'
     | 'general'
     | 'llm'
     | 'mcp'
@@ -243,6 +244,7 @@ const uiSlice = createSlice({
     setSettingsSection: (
       state,
       action: PayloadAction<
+        | 'hub'
         | 'general'
         | 'llm'
         | 'mcp'

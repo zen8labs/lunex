@@ -28,6 +28,7 @@ import { LLMConnections } from '@/features/llm';
 import { MCPServerConnections } from '@/features/mcp';
 import { AppSettings, PromptManagement } from '@/features/settings';
 import { AddonSettings } from '@/features/addon';
+import { HubScreen } from '@/features/hub/ui/HubScreen';
 import { UsagePage } from '@/features/usage';
 import { AgentSettings } from '@/features/agent';
 import { UpdateSection } from '@/features/updater/ui/UpdateSection';
@@ -82,6 +83,11 @@ export function SettingsScreen() {
       icon: <Package className="size-4" />,
     },
     {
+      id: 'hub',
+      label: 'Hub',
+      icon: <Globe className="size-4" />,
+    },
+    {
       id: 'usage',
       label: 'Usage',
       icon: <BarChart className="size-4" />,
@@ -95,6 +101,8 @@ export function SettingsScreen() {
 
   const renderContent = () => {
     switch (selectedSection) {
+      case 'hub':
+        return <HubScreen />;
       case 'general':
         return <AppSettings />;
       case 'llm':
@@ -112,7 +120,7 @@ export function SettingsScreen() {
       case 'about':
         return <AboutContent />;
       default:
-        return <AppSettings />;
+        return <HubScreen />;
     }
   };
 
