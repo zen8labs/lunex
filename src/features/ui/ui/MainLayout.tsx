@@ -14,6 +14,7 @@ import { ChatSearchDialog } from '@/features/chat/ui/ChatSearchDialog';
 import { KeyboardShortcutsDialog } from '@/features/shortcuts/ui/KeyboardShortcutsDialog';
 import { TitleBar } from '@/features/ui/ui/TitleBar';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { cn } from '@/lib/utils';
 import {
   toggleSidebar,
   setAboutOpen,
@@ -88,6 +89,25 @@ export function MainLayout() {
         }
         rightContent={
           <>
+            <Button
+              variant="ghost"
+              onClick={handleSettingsClick}
+              aria-label={t('settings', { ns: 'common' })}
+              data-tour="settings-nav"
+              className={cn(
+                'h-7 gap-1.5 px-1.5 py-1 hover:bg-accent',
+                activePage === 'settings' &&
+                  settingsSection !== 'agent' &&
+                  'bg-accent text-accent-foreground'
+              )}
+            >
+              <div className="flex size-5 items-center justify-center rounded bg-primary text-primary-foreground">
+                <SettingsIcon className="size-3" />
+              </div>
+              <span className="text-sm font-medium">
+                {t('settings', { ns: 'common' })}
+              </span>
+            </Button>
             {activePage === 'chat' && (
               <Button
                 variant="ghost"
@@ -107,21 +127,6 @@ export function MainLayout() {
                 )}
               </Button>
             )}
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSettingsClick}
-              aria-label={t('settings', { ns: 'common' })}
-              data-tour="settings-nav"
-              className={
-                activePage === 'settings' && settingsSection !== 'agent'
-                  ? 'bg-accent text-accent-foreground h-7 w-7'
-                  : 'h-7 w-7'
-              }
-            >
-              <SettingsIcon className="size-4" />
-            </Button>
           </>
         }
       />
