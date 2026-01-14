@@ -172,7 +172,7 @@ export function CommunityMCPServersSection({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 mb-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
             {filteredServers.map((server) => {
               const isInstalled = installedServerIds.includes(server.id);
               return (

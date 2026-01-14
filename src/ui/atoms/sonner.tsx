@@ -19,6 +19,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       visibleToasts={5}
       expand={false}
       richColors={false}
+      duration={2000}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
@@ -27,12 +28,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
+      toastOptions={{
+        style: {
+          background: 'var(--popover)',
+          color: 'var(--primary)',
+          border: '1px solid var(--border)',
+        },
+      }}
       style={
         {
           '--normal-bg': 'var(--popover)',
           '--normal-text': 'var(--popover-foreground)',
           '--normal-border': 'var(--border)',
           '--border-radius': 'var(--radius)',
+          '--viewport-border-color': 'var(--border)',
         } as React.CSSProperties
       }
       {...props}

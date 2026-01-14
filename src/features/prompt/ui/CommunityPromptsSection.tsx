@@ -201,7 +201,7 @@ export function CommunityPromptsSection({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredPrompts.map((prompt) => {
               const isInstalled = installedPromptIds.includes(prompt.id);
               return (
