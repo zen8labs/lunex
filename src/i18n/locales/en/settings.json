@@ -256,5 +256,8 @@
   "workspaceSettingsSaved": "Workspace settings saved",
   "workspaceSettingsSavedDescription": "Settings have been saved successfully",
   "aboutDescription": "A comprehensive platform for managing MCP servers, LLM connections, and workspace prompts.",
-  "generalSetting": "General Setting"
+  "generalSetting": "General Setting",
+  "experiments": "Experiments",
+  "showUsage": "Show token usage",
+  "showUsageDescription": "If enabled, token usage details will be displayed below each AI response."
 }

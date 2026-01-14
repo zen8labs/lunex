@@ -256,5 +256,8 @@
   "workspaceSettingsMenu": "Cài đặt workspace",
   "workspaceSettingsSaved": "Đã lưu cài đặt workspace",
   "workspaceSettingsSavedDescription": "Cài đặt đã được lưu thành công",
-  "aboutDescription": "Một nền tảng toàn diện để quản lý các MCP server, kết nối LLM và các prompt trong workspace."
+  "aboutDescription": "Một nền tảng toàn diện để quản lý các MCP server, kết nối LLM và các prompt trong workspace.",
+  "experiments": "Thử nghiệm",
+  "showUsage": "Hiển thị thông số sử dụng",
+  "showUsageDescription": "Nếu được bật, thông số (token usage) sẽ được hiển thị ở dưới mỗi tin nhắn của AI."
 }

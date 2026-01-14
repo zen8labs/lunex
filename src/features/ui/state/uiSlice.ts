@@ -19,6 +19,7 @@ interface UIState {
     | 'addon'
     | 'usage'
     | 'agent'
+    | 'experiments'
     | 'about';
   language: 'vi' | 'en';
   userMode: 'normal' | 'developer';
@@ -45,6 +46,9 @@ interface UIState {
   imagePreviewOpen: boolean;
   imagePreviewUrl: string | null;
   isRightPanelOpen: boolean;
+  experiments: {
+    showUsage: boolean;
+  };
 }
 
 // Load all app settings from database
@@ -53,7 +57,7 @@ export const loadAppSettings = createAsyncThunk(
   async () => {
     try {
       // Load all settings in parallel
-      const [language, userMode, theme] = await Promise.all([
+      const settingsResults = await Promise.all([
         invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
           key: 'language',
         }),
@@ -63,7 +67,12 @@ export const loadAppSettings = createAsyncThunk(
         invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
           key: 'theme',
         }),
+        invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
+          key: 'showUsage',
+        }),
       ]);
+
+      const [language, userMode, theme, showUsage] = settingsResults;
 
       // Validate and set language
       let finalLanguage: 'vi' | 'en' = 'vi';
@@ -122,6 +131,11 @@ export const loadAppSettings = createAsyncThunk(
         language: finalLanguage,
         userMode: finalUserMode,
         theme: finalTheme,
+        experiments: {
+          showUsage:
+            showUsage === 'true' ||
+            (showUsage === null && finalUserMode === 'developer'),
+        },
       };
     } catch (error) {
       console.error('Failed to load app settings from database:', error);
@@ -129,6 +143,9 @@ export const loadAppSettings = createAsyncThunk(
         language: 'vi' as const,
         userMode: 'normal' as const,
         theme: 'light' as const,
+        experiments: {
+          showUsage: false,
+        },
       };
     }
   }
@@ -216,6 +233,9 @@ const initialState: UIState = {
   imagePreviewOpen: false,
   imagePreviewUrl: null,
   isRightPanelOpen: false,
+  experiments: {
+    showUsage: false,
+  },
 };
 
 const uiSlice = createSlice({
@@ -252,6 +272,7 @@ const uiSlice = createSlice({
         | 'mcp'
         | 'prompts'
         | 'agent'
+        | 'experiments'
         | 'addon'
         | 'usage'
         | 'about'
@@ -329,6 +350,15 @@ const uiSlice = createSlice({
     setRightPanelOpen: (state, action: PayloadAction<boolean>) => {
       state.isRightPanelOpen = action.payload;
     },
+    setShowUsage: (state, action: PayloadAction<boolean>) => {
+      state.experiments.showUsage = action.payload;
+      invokeCommand(TauriCommands.SAVE_APP_SETTING, {
+        key: 'showUsage',
+        value: action.payload ? 'true' : 'false',
+      }).catch((error) => {
+        console.error('Failed to save showUsage to database:', error);
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -339,6 +369,7 @@ const uiSlice = createSlice({
         state.language = action.payload.language;
         state.userMode = action.payload.userMode;
         state.theme = action.payload.theme;
+        state.experiments = action.payload.experiments;
         state.loading = false;
       })
       .addCase(loadAppSettings.rejected, (state) => {
@@ -388,5 +419,6 @@ export const {
   setImagePreviewOpen,
   toggleRightPanel,
   setRightPanelOpen,
+  setShowUsage,
 } = uiSlice.actions;
 export default uiSlice.reducer;

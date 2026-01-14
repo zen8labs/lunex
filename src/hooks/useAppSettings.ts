@@ -3,6 +3,7 @@ import {
   setLanguage,
   setUserMode,
   setTheme,
+  setShowUsage,
   loadAppSettings,
 } from '@/features/ui/state/uiSlice';
 
@@ -31,6 +32,7 @@ export function useAppSettings() {
   const userMode = useAppSelector((state) => state.ui.userMode);
   const theme = useAppSelector((state) => state.ui.theme);
   const loading = useAppSelector((state) => state.ui.loading);
+  const showUsage = useAppSelector((state) => state.ui.experiments.showUsage);
 
   const updateLanguage = (lang: 'vi' | 'en') => {
     dispatch(setLanguage(lang));
@@ -44,6 +46,10 @@ export function useAppSettings() {
     dispatch(setTheme(newTheme));
   };
 
+  const updateShowUsage = (show: boolean) => {
+    dispatch(setShowUsage(show));
+  };
+
   const reloadSettings = () => {
     dispatch(loadAppSettings());
   };
@@ -53,9 +59,11 @@ export function useAppSettings() {
     userMode,
     theme,
     loading,
+    showUsage,
     updateLanguage,
     updateUserMode,
     updateTheme,
+    updateShowUsage,
     reloadSettings,
   };
 }

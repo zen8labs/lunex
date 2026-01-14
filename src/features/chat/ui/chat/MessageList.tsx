@@ -47,6 +47,7 @@ interface MessageListProps {
 
   // Other
   userMode: 'normal' | 'developer';
+  showUsage?: boolean;
   t: (key: string) => string;
   isLoading?: boolean;
   className?: string;
@@ -77,6 +78,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       onViewAgentDetails,
       onCancelToolExecution,
       userMode,
+      showUsage = false,
       t,
       className,
       permissionTimeLeft = {},
@@ -296,6 +298,7 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                   key={`content-${message.id}`}
                   message={message}
                   userMode={userMode}
+                  showUsage={showUsage}
                   markdownEnabled={isMarkdownEnabled}
                   isCopied={copiedId === message.id}
                   isEditing={isEditing}

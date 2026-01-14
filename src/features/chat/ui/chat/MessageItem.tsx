@@ -27,6 +27,7 @@ import type { Message } from '../../types';
 export interface MessageItemProps {
   message: Message;
   userMode: 'normal' | 'developer';
+  showUsage?: boolean;
   markdownEnabled: boolean;
   isCopied: boolean;
   isEditing: boolean;
@@ -46,7 +47,7 @@ export interface MessageItemProps {
 export const MessageItem = memo(
   function MessageItem({
     message,
-    userMode,
+    showUsage = false,
     markdownEnabled,
     isCopied,
     isEditing,
@@ -482,8 +483,8 @@ export const MessageItem = memo(
                 </button>
               </div>
 
-              {/* Footer: Only show token usage for developer mode */}
-              {userMode === 'developer' &&
+              {/* Footer: Only show token usage if showUsage is enabled */}
+              {showUsage &&
                 message.role === 'assistant' &&
                 message.tokenUsage && (
                   <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 select-text mt-1 pl-2">
@@ -530,6 +531,7 @@ export const MessageItem = memo(
       prevProps.message.tokenUsage === nextProps.message.tokenUsage &&
       prevProps.message.metadata === nextProps.message.metadata && // Include metadata for agent card updates
       prevProps.userMode === nextProps.userMode &&
+      prevProps.showUsage === nextProps.showUsage &&
       prevProps.markdownEnabled === nextProps.markdownEnabled &&
       prevProps.isCopied === nextProps.isCopied &&
       prevProps.isEditing === nextProps.isEditing &&
