@@ -18,7 +18,7 @@ import {
   showError,
   showSuccess,
 } from '@/features/notifications/state/notificationSlice';
-import type { HubPrompt, ParsedPromptTemplate } from '../types';
+import type { HubPrompt, ParsedPromptTemplate } from '@/features/prompt/types';
 
 export interface InstallPromptDialogProps {
   open: boolean;

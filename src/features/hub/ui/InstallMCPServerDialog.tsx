@@ -18,7 +18,7 @@ import {
   showError,
   showSuccess,
 } from '@/features/notifications/state/notificationSlice';
-import type { HubMCPServer } from '../types';
+import type { HubMCPServer } from '@/features/mcp/types';
 
 export interface InstallMCPServerDialogProps {
   open: boolean;

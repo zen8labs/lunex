@@ -15,8 +15,8 @@ import {
   showError,
   showSuccess,
 } from '@/features/notifications/state/notificationSlice';
-import type { HubAgent } from '../types';
-import { useInstallAgentFromHubMutation } from '../state/api';
+import type { HubAgent } from '@/features/agent/types';
+import { useInstallAgentFromHubMutation } from '@/features/agent/state/api';
 // import type { InstallAgentDialogProps } from './InstallAgentDialogProps';
 // Removing the above bad import line
 
