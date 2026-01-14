@@ -171,7 +171,7 @@ export function LLMConnections() {
 
                   <div className="relative space-y-3">
                     {/* Header with icon, name, and toggle */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-3">
                       <div
                         onClick={() => handleEdit(connection)}
                         className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
@@ -182,11 +182,11 @@ export function LLMConnections() {
                             className="size-5"
                           />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 flex flex-col">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-normal truncate">
+                            <span className="font-normal truncate py-0">
                               {connection.name}
-                            </h4>
+                            </span>
                             {!connection.enabled && (
                               <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                                 Disabled
