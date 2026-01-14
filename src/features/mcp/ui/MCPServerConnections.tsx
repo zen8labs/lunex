@@ -475,6 +475,7 @@ function MCPServerConnectionDialog({
   runtimesLoading,
 }: MCPServerConnectionDialogProps) {
   const { t } = useTranslation('settings');
+  const { t: tCommon } = useTranslation('common');
   const [name, setName] = useState(connection?.name || '');
   const [url, setUrl] = useState(connection?.url || '');
   const [type, setType] = useState<'sse' | 'stdio' | 'http-streamable'>(
@@ -755,23 +756,21 @@ function MCPServerConnectionDialog({
               </div>
             </ScrollArea>
           </DialogBody>
-          <DialogFooter className="shrink-0 justify-between gap-2 border-t pt-4">
+          <DialogFooter className="shrink-0 flex flex-row gap-2 border-t pt-4">
+            <Button type="submit" className="flex-1">
+              {tCommon('save')}
+            </Button>
             {onDelete && (
-              <Button type="button" variant="destructive" onClick={onDelete}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t('delete')}
-              </Button>
-            )}
-            <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
+                variant="destructive"
+                onClick={onDelete}
+                className="flex-1"
               >
-                {t('cancel')}
+                <Trash2 className="mr-2 h-4 w-4" />
+                {tCommon('delete')}
               </Button>
-              <Button type="submit">{t('save')}</Button>
-            </div>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
