@@ -1,6 +1,7 @@
 use super::models::MCPTool;
 use crate::error::AppError;
 use crate::features::addon::models::AddonIndex;
+use crate::features::runtime::node::service::NodeRuntime;
 use crate::features::runtime::python::service::PythonRuntime;
 use rust_mcp_sdk::{
     mcp_client::{client_runtime, ClientHandler, ClientRuntime},
@@ -214,6 +215,32 @@ impl MCPClientService {
                             vars.insert("UV_PYTHON".to_string(), python_path);
                             env_vars = Some(vars);
                         }
+                    }
+                }
+            }
+
+            // Node.js auto-detection
+            if command == "node" || command == "npm" || command == "npx" {
+                let config = AddonIndex::default();
+                for full_version in config.addons.nodejs.versions.iter().rev() {
+                    if let Ok(rt) = NodeRuntime::detect(app, full_version) {
+                        if command == "node" {
+                            command = rt.node_path.to_string_lossy().to_string();
+                        } else {
+                            // npm or npx
+                            if let Some(parent) = rt.node_path.parent() {
+                                let binary_name = if cfg!(windows) {
+                                    format!("{}.cmd", command)
+                                } else {
+                                    command.clone()
+                                };
+                                let binary_path = parent.join(&binary_name);
+                                if binary_path.exists() {
+                                    command = binary_path.to_string_lossy().to_string();
+                                }
+                            }
+                        }
+                        break;
                     }
                 }
             }

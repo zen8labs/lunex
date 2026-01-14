@@ -531,10 +531,9 @@ function MCPServerConnectionDialog({
         name: name.trim(),
         url: finalUrl,
         type,
-        headers: headers?.trim() || undefined,
-        env_vars: envVars?.trim() || undefined,
-        runtime_path:
-          selectedRuntime !== 'default' ? selectedRuntime : undefined,
+        headers: headers?.trim() || '',
+        env_vars: envVars?.trim() || '',
+        runtime_path: selectedRuntime !== 'default' ? selectedRuntime : '',
       });
       onOpenChange(false);
     }
