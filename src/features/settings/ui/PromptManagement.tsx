@@ -151,7 +151,9 @@ export function PromptManagement() {
                       <FileText className="size-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-normal truncate">{prompt.name}</h4>
+                      <span className="font-normal truncate">
+                        {prompt.name}
+                      </span>
                     </div>
                   </div>
 
