@@ -120,7 +120,14 @@ function AppContent() {
   const showOnboarding = workspaces.length === 0;
 
   // Handle auto-updates
-  const { modalOpen, setModalOpen } = useAutoUpdate();
+  const {
+    modalOpen,
+    setModalOpen,
+    status,
+    update,
+    installUpdate,
+    downloadProgress,
+  } = useAutoUpdate();
 
   return (
     <>
@@ -131,7 +138,14 @@ function AppContent() {
         onOpenChange={(open) => dispatch(setWelcomeOpen(open))}
       />
       <OnboardingGuide />
-      <UpdateModal open={modalOpen} onOpenChange={setModalOpen} />
+      <UpdateModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        status={status}
+        update={update}
+        installUpdate={installUpdate}
+        downloadProgress={downloadProgress}
+      />
     </>
   );
 }

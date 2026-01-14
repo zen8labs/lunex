@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, RefreshCw, ChevronRight, Info } from 'lucide-react';
-import { useUpdate } from '../lib/useUpdate';
+import { Update } from '@tauri-apps/plugin-updater';
 import {
   Dialog,
   DialogContent,
@@ -13,15 +13,26 @@ import {
 } from '@/ui/atoms/dialog/component';
 import { Button } from '@/ui/atoms/button';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
+import { UpdateStatus } from '../lib/useUpdate';
 
 interface UpdateModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  status: UpdateStatus;
+  update: Update | null;
+  installUpdate: () => Promise<void>;
+  downloadProgress: number;
 }
 
-export function UpdateModal({ open, onOpenChange }: UpdateModalProps) {
+export function UpdateModal({
+  open,
+  onOpenChange,
+  status,
+  update,
+  installUpdate,
+  downloadProgress,
+}: UpdateModalProps) {
   const { t } = useTranslation(['common', 'settings']);
-  const { status, update, installUpdate, downloadProgress } = useUpdate();
   const [showNotes, setShowNotes] = useState(false);
 
   // If status becomes ready-to-restart, we might want to close the modal or show a message
