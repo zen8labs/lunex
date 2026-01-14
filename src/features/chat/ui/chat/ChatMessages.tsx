@@ -4,9 +4,7 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useAppSelector, useAppDispatch } from '@/app/hooks';
-import { editAndResendMessage } from '../../state/messages';
 import { removePermissionRequest } from '@/features/tools/state/toolPermissionSlice';
-import { setLoading } from '../../state/chatInputSlice';
 import { showError } from '@/features/notifications/state/notificationSlice';
 import { setAgentChatHistoryDrawerOpen } from '@/features/ui/state/uiSlice';
 import { MessageList } from './MessageList';
@@ -155,63 +153,6 @@ export function ChatMessages({
     [dispatch]
   );
 
-  const handleSaveEdit = useCallback(
-    async (messageId: string, content: string) => {
-      if (!selectedChatId) return;
-
-      if (!content.trim()) {
-        dispatch(
-          showError(t('messageCannotBeEmpty') || 'Message cannot be empty')
-        );
-        return;
-      }
-
-      const message = messages.find((m) => m.id === messageId);
-      if (!message) return;
-
-      dispatch(setLoading(true));
-      try {
-        if (message.role === 'user') {
-          // For user messages: edit and resend
-          await dispatch(
-            editAndResendMessage({
-              chatId: selectedChatId,
-              messageId,
-              newContent: content,
-            })
-          ).unwrap();
-        } else if (message.role === 'assistant') {
-          // For assistant messages: just update the content
-          await invokeCommand(TauriCommands.UPDATE_MESSAGE, {
-            id: messageId,
-            content,
-            reasoning: message.reasoning || null,
-            timestamp: null, // Keep original timestamp
-          });
-
-          // Refresh messages to show updated content
-          dispatch(
-            messagesApi.util.invalidateTags([
-              { type: 'Message', id: `LIST_${selectedChatId}` },
-            ])
-          );
-        }
-      } catch (error: unknown) {
-        console.error('Error editing message:', error);
-        dispatch(
-          showError(
-            error instanceof Error
-              ? error.message
-              : t('errorEditingMessage') || 'Error editing message'
-          )
-        );
-      } finally {
-        dispatch(setLoading(false));
-      }
-    },
-    [selectedChatId, dispatch, t, messages]
-  );
-
   // Setup auto scroll hook
   const { scrollRef, contentRef } = useStickToBottom({
     resize: 'smooth',
@@ -258,7 +199,6 @@ export function ChatMessages({
         enablePendingPermissions={true}
         streamingMessageId={streamingMessageId}
         pendingRequests={pendingRequests}
-        onSaveEdit={handleSaveEdit}
         onPermissionRespond={handlePermissionRespond}
         onViewAgentDetails={handleViewAgentDetails}
         onCancelToolExecution={onCancelToolExecution}

@@ -129,24 +129,6 @@ export function AgentChatHistoryDialog({
     loadMessages();
   }, [open, sessionId]);
 
-  const handleSaveEdit = async (messageId: string, content: string) => {
-    if (!sessionId) return;
-
-    try {
-      await invokeCommand(TauriCommands.UPDATE_MESSAGE, {
-        messageId,
-        content,
-      });
-
-      // Update local state
-      setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, content } : m))
-      );
-    } catch (error) {
-      console.error('Failed to update message:', error);
-    }
-  };
-
   // Filter out tool messages for display (tool results are shown within tool_call messages)
   // MessageList will handle this, but we filter here to match the original behavior
   const displayMessages = messages.filter((m) => m.role !== 'tool');
@@ -197,7 +179,6 @@ export function AgentChatHistoryDialog({
                     enableStreaming={false}
                     enableThinkingItem={false}
                     enablePendingPermissions={false}
-                    onSaveEdit={handleSaveEdit}
                     t={tChat}
                   />
                 </div>

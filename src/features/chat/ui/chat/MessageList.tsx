@@ -15,8 +15,6 @@ interface MessageListProps {
   // State (optional - if not provided, MessageList manages internally)
   markdownEnabled?: Record<string, boolean>;
   copiedId?: string | null;
-  editingMessageId?: string | null;
-  editingContent?: string;
   expandedToolCalls?: Record<string, boolean>;
   onMarkdownEnabledChange?: (markdownEnabled: Record<string, boolean>) => void;
   onCopiedIdChange?: (copiedId: string | null) => void;
@@ -34,7 +32,6 @@ interface MessageListProps {
   pendingRequests?: Record<string, PermissionRequest>;
 
   // Callbacks (optional - MessageList provides default implementations)
-  onSaveEdit?: (messageId: string, content: string) => void | Promise<void>;
   // Default no-op handler if not provided
   onPermissionRespond?: (
     messageId: string,
@@ -46,7 +43,6 @@ interface MessageListProps {
   onCancelToolExecution?: () => void;
 
   // Other
-
   showUsage?: boolean;
   t: (key: string) => string;
   isLoading?: boolean;
@@ -60,8 +56,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       messages,
       markdownEnabled: externalMarkdownEnabled,
       copiedId: externalCopiedId,
-      editingMessageId: externalEditingMessageId,
-      editingContent: externalEditingContent,
       expandedToolCalls: externalExpandedToolCalls,
       onMarkdownEnabledChange,
       onCopiedIdChange,
@@ -73,7 +67,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       enablePendingPermissions = true,
       streamingMessageId = null,
       pendingRequests = {},
-      onSaveEdit,
       onPermissionRespond,
       onViewAgentDetails,
       onCancelToolExecution,
@@ -98,11 +91,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
     const [internalCopiedId, setInternalCopiedId] = useState<string | null>(
       null
     );
-    const [internalEditingMessageId, setInternalEditingMessageId] = useState<
-      string | null
-    >(null);
-    const [internalEditingContent, setInternalEditingContent] =
-      useState<string>('');
     const [internalExpandedToolCalls, setInternalExpandedToolCalls] = useState<
       Record<string, boolean>
     >({});
@@ -110,9 +98,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
     // Use external state if provided, otherwise use internal state
     const markdownEnabled = externalMarkdownEnabled ?? internalMarkdownEnabled;
     const copiedId = externalCopiedId ?? internalCopiedId;
-    const editingMessageId =
-      externalEditingMessageId ?? internalEditingMessageId;
-    const editingContent = externalEditingContent ?? internalEditingContent;
     const expandedToolCalls =
       externalExpandedToolCalls ?? internalExpandedToolCalls;
 
@@ -176,55 +161,11 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       (messageId: string) => {
         const message = messages.find((m) => m.id === messageId);
         if (message) {
-          if (onEditingMessageIdChange) {
-            onEditingMessageIdChange(messageId);
-          } else {
-            setInternalEditingMessageId(messageId);
-          }
-          if (onEditingContentChange) {
-            onEditingContentChange(message.content);
-          } else {
-            setInternalEditingContent(message.content);
-          }
+          onEditingMessageIdChange?.(messageId);
+          onEditingContentChange?.(message.content);
         }
       },
       [messages, onEditingMessageIdChange, onEditingContentChange]
-    );
-
-    const handleCancelEdit = useCallback(() => {
-      if (onEditingMessageIdChange) {
-        onEditingMessageIdChange(null);
-      } else {
-        setInternalEditingMessageId(null);
-      }
-      if (onEditingContentChange) {
-        onEditingContentChange('');
-      } else {
-        setInternalEditingContent('');
-      }
-    }, [onEditingMessageIdChange, onEditingContentChange]);
-
-    const handleEditContentChange = useCallback(
-      (content: string) => {
-        if (onEditingContentChange) {
-          onEditingContentChange(content);
-        } else {
-          setInternalEditingContent(content);
-        }
-      },
-      [onEditingContentChange]
-    );
-
-    // Default save handler (no-op if not provided)
-    const handleSaveEdit = useCallback(
-      (messageId: string, content: string) => {
-        if (onSaveEdit) {
-          onSaveEdit(messageId, content);
-        }
-        // If no handler provided, just cancel editing
-        handleCancelEdit();
-      },
-      [onSaveEdit, handleCancelEdit]
     );
 
     // Memoize sorted messages - only recalculate when messages array changes
@@ -271,7 +212,6 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
 
           // Regular messages (user/assistant)
           const isMarkdownEnabled = markdownEnabled[message.id] !== false;
-          const isEditing = editingMessageId === message.id;
           const pending =
             enablePendingPermissions && message.role === 'assistant'
               ? pendingRequests[message.id]
@@ -299,14 +239,9 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                   showUsage={showUsage}
                   markdownEnabled={isMarkdownEnabled}
                   isCopied={copiedId === message.id}
-                  isEditing={isEditing}
-                  editingContent={editingContent}
                   onToggleMarkdown={toggleMarkdown}
                   onCopy={handleCopy}
                   onEdit={handleEdit}
-                  onCancelEdit={handleCancelEdit}
-                  onEditContentChange={handleEditContentChange}
-                  onSaveEdit={handleSaveEdit}
                   onViewAgentDetails={onViewAgentDetails}
                   isStreaming={
                     enableStreaming && streamingMessageId === message.id
