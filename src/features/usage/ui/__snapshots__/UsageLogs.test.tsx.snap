@@ -109,7 +109,7 @@ exports[`UsageLogs > matches snapshot 1`] = `
                   class="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-mono text-xs text-muted-foreground"
                   data-slot="table-cell"
                 >
-                  Dec 20, 18:33:20
+                  Dec 20, 11:33:20
                 </td>
                 <td
                   class="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -189,7 +189,7 @@ exports[`UsageLogs > matches snapshot 1`] = `
                   class="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-mono text-xs text-muted-foreground"
                   data-slot="table-cell"
                 >
-                  Mar 14, 12:33:20
+                  Mar 14, 04:33:20
                 </td>
                 <td
                   class="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
