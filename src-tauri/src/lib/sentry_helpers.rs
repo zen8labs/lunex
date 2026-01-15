@@ -1,7 +1,6 @@
 /// Sentry helper functions and macros for consistent tracking
 ///
 /// This module provides utilities for tracking commands, operations, and errors
-
 /// Macro to wrap Tauri commands with automatic Sentry tracking
 ///
 /// Usage:
@@ -105,9 +104,7 @@ pub fn track_llm_call<T>(
         // Add breadcrumb
         add_breadcrumb(
             "llm",
-            format!(
-                "LLM call to {provider} ({model}) - {operation} - {latency_ms}ms"
-            ),
+            format!("LLM call to {provider} ({model}) - {operation} - {latency_ms}ms"),
             if result.is_ok() {
                 sentry::Level::Info
             } else {
@@ -153,10 +150,7 @@ pub fn track_tool_execution<T>(
         );
 
         if let Err(e) = result {
-            sentry::capture_message(
-                &format!("Tool execution failed: {e}"),
-                sentry::Level::Error,
-            );
+            sentry::capture_message(&format!("Tool execution failed: {e}"), sentry::Level::Error);
         }
     }
 }
@@ -172,9 +166,7 @@ pub fn track_chat_message(
     if cfg!(not(debug_assertions)) || std::env::var("SENTRY_ENABLED").is_ok() {
         add_breadcrumb(
             "chat.message",
-            format!(
-                "Message {message_id} ({message_type}) - {action} - {chat_id}"
-            ),
+            format!("Message {message_id} ({message_type}) - {action} - {chat_id}"),
             sentry::Level::Info,
         );
     }
@@ -217,9 +209,7 @@ pub fn track_db_operation<T, E>(
             // Slow query warning
             add_breadcrumb(
                 "db",
-                format!(
-                    "SLOW QUERY: {operation} on {table} took {duration_ms}ms"
-                ),
+                format!("SLOW QUERY: {operation} on {table} took {duration_ms}ms"),
                 sentry::Level::Warning,
             );
         }

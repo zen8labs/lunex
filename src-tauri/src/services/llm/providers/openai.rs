@@ -3,7 +3,7 @@ use crate::error::AppError;
 use crate::events::{MessageEmitter, TokenUsage as EventTokenUsage, ToolEmitter};
 use crate::models::llm_types::{
     AssistantContent, ChatMessage, ContentPart, LLMChatRequest, LLMChatResponse, LLMModel,
-    TokenUsage, ToolCall, UserContent,
+    TokenUsage, ToolCall, ToolCallFunction, UserContent,
 };
 use async_trait::async_trait;
 use futures::StreamExt;
