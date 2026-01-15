@@ -9,11 +9,8 @@ import {
   addEdge,
   useReactFlow,
   ReactFlowProvider,
-  Handle,
-  Position,
   type Node,
   type Connection,
-  type NodeProps,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Plus } from 'lucide-react';
@@ -25,6 +22,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/ui/atoms/dropdown-menu';
+import {
+  StartNode,
+  EndNode,
+  ProcessNode,
+  InputNode,
+  OutputNode,
+  DecisionNode,
+  MergeNode,
+  LoopBackNode,
+} from './flow-nodes/AlgorithmNodes';
 
 import type { FlowData } from '@/features/chat/types';
 
@@ -45,72 +52,15 @@ interface FlowEditorProps {
   className?: string;
 }
 
-interface AlgorithmNodeData extends Record<string, unknown> {
-  label: string;
-  onLabelChange?: (id: string, label: string) => void;
-  readOnly?: boolean;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-/**
- * Custom node component for algorithm blocks
- */
-function AlgorithmNode({
-  data,
-  id,
-  selected,
-}: NodeProps<Node<AlgorithmNodeData>>) {
-  const onChange = useCallback(
-    (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
-      data.onLabelChange?.(id, evt.target.value);
-    },
-    [data, id]
-  );
-
-  return (
-    <div
-      className={cn(
-        'relative min-w-[120px] min-h-[40px] flex items-center justify-center p-2',
-        'transition-all duration-200',
-        selected ? 'ring-2 ring-primary ring-offset-2' : '',
-        data.className
-      )}
-      style={data.style}
-    >
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!bg-muted-foreground w-3 h-3 border-2 border-background"
-      />
-
-      <textarea
-        value={data.label}
-        onChange={onChange}
-        className={cn(
-          'nodrag nowheel w-full bg-transparent border-none outline-none resize-none overflow-hidden text-center',
-          'placeholder:text-muted-foreground/50'
-        )}
-        rows={1}
-        onInput={(e) => {
-          const target = e.target as HTMLTextAreaElement;
-          target.style.height = 'auto';
-          target.style.height = `${target.scrollHeight}px`;
-        }}
-        readOnly={data.readOnly}
-      />
-
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!bg-muted-foreground w-3 h-3 border-2 border-background"
-      />
-    </div>
-  );
-}
-
 const nodeTypes = {
-  algorithm: AlgorithmNode,
+  start: StartNode,
+  end: EndNode,
+  process: ProcessNode,
+  input: InputNode,
+  output: OutputNode,
+  decision: DecisionNode,
+  merge: MergeNode,
+  loopback: LoopBackNode,
 };
 
 // Internal component that uses ReactFlow hooks
@@ -166,10 +116,9 @@ function FlowEditorInner({
   const defaultNodeTypes: FlowNodeType[] = useMemo(
     () => [
       {
-        type: 'algorithm',
-        label: 'Default Node',
-        initialData: { label: 'New Node' },
-        className: 'rounded-md border-2 border-border bg-card',
+        type: 'process',
+        label: 'Process',
+        initialData: { label: 'New Step' },
       },
     ],
     []
