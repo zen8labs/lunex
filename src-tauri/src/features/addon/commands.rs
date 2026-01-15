@@ -7,15 +7,12 @@ use tauri::{command, State};
 pub async fn get_addon_config(
     config_service: State<'_, IndexConfigService>,
 ) -> Result<AddonIndex, AppError> {
-    Ok(config_service.get_config().await)
+    Ok(config_service.get_config())
 }
 
 #[command]
 pub async fn refresh_addon_config(
     config_service: State<'_, IndexConfigService>,
 ) -> Result<AddonIndex, AppError> {
-    config_service
-        .refresh_config()
-        .await
-        .map_err(|e| AppError::Addon(e.to_string()))
+    Ok(config_service.get_config())
 }

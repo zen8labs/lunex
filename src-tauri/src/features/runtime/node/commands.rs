@@ -16,7 +16,7 @@ pub async fn get_node_runtimes_status(
     config_service: State<'_, IndexConfigService>,
 ) -> Result<Vec<NodeRuntimeStatus>, AppError> {
     // Get configured versions from IndexConfigService
-    let config = config_service.get_config().await;
+    let config = config_service.get_config();
 
     let statuses = config
         .addons
@@ -42,7 +42,7 @@ pub async fn install_node_runtime(
     config_service: State<'_, IndexConfigService>,
 ) -> Result<(), AppError> {
     // Get config to verify version exists
-    let config = config_service.get_config().await;
+    let config = config_service.get_config();
 
     // Verify version exists in config
     if !config.addons.nodejs.versions.contains(&version) {

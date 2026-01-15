@@ -28,8 +28,8 @@ fn main() {
     };
 
     // Install Tools
-    uv.install(&out_dir, &binaries_dir);
-    fnm.install(&out_dir, &binaries_dir);
+    uv.install(out_dir.as_path(), binaries_dir.as_path());
+    fnm.install(out_dir.as_path(), binaries_dir.as_path());
 
     // Tell cargo about the binaries directory so Tauri can find it
     println!("cargo:rerun-if-changed=binaries");
@@ -49,7 +49,7 @@ fn main() {
     // This will be included in the binary during build
     if let Ok(dsn) = env::var("RUST_SENTRY_DSN") {
         if !dsn.is_empty() {
-            println!("cargo:rustc-env=RUST_SENTRY_DSN={}", dsn);
+            println!("cargo:rustc-env=RUST_SENTRY_DSN={dsn}");
             println!("cargo:warning=Sentry DSN embedded in binary");
         }
     } else {
@@ -68,7 +68,7 @@ struct SidecarTool {
 }
 
 impl SidecarTool {
-    fn install(&self, out_dir: &PathBuf, binaries_dir: &PathBuf) {
+    fn install(&self, out_dir: &std::path::Path, binaries_dir: &std::path::Path) {
         let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
         let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
 
@@ -78,23 +78,20 @@ impl SidecarTool {
 
     fn install_for_arch(
         &self,
-        out_dir: &PathBuf,
-        binaries_dir: &PathBuf,
+        out_dir: &std::path::Path,
+        binaries_dir: &std::path::Path,
         target_os: &str,
         target_arch: &str,
     ) {
-        let target_triple = format!("{}-{}", target_os, target_arch);
+        let target_triple = format!("{target_os}-{target_arch}");
 
         // Resolve URL and Binary Name using the specific architecture
-        let (url, _) = match self.get_url_for_arch(self.version, target_os, target_arch) {
-            Some(u) => u,
-            None => {
-                println!(
-                    "Skipping {} for unsupported platform: {} {}",
-                    self.name, target_os, target_arch
-                );
-                return;
-            }
+        let Some((url, _)) = self.get_url_for_arch(self.version, target_os, target_arch) else {
+            println!(
+                "Skipping {} for unsupported platform: {target_os} {target_arch}",
+                self.name
+            );
+            return;
         };
 
         // Use simple binary names (same as fnm)
@@ -108,16 +105,15 @@ impl SidecarTool {
 
         if output_path.exists() {
             println!(
-                "{} binary already exists at: {}",
-                binary_name,
+                "{binary_name} binary already exists at: {}",
                 output_path.display()
             );
             return;
         }
 
         println!(
-            "Setting up {} version {} for {}...",
-            self.name, self.version, target_triple
+            "Setting up {} version {} for {target_triple}...",
+            self.name, self.version
         );
         download_and_extract(
             self.name,
@@ -139,9 +135,9 @@ impl SidecarTool {
             // For UV, we need to adjust the URL based on architecture
             if self.name == "uv" && target_os == "macos" {
                 let arch_url = if target_arch == "aarch64" {
-                    format!("https://github.com/astral-sh/uv/releases/download/{}/uv-aarch64-apple-darwin.tar.gz", version)
+                    format!("https://github.com/astral-sh/uv/releases/download/{version}/uv-aarch64-apple-darwin.tar.gz")
                 } else if target_arch == "x86_64" {
-                    format!("https://github.com/astral-sh/uv/releases/download/{}/uv-x86_64-apple-darwin.tar.gz", version)
+                    format!("https://github.com/astral-sh/uv/releases/download/{version}/uv-x86_64-apple-darwin.tar.gz")
                 } else {
                     return None;
                 };
@@ -160,19 +156,19 @@ fn get_uv_url(version: &str, target_os: &str) -> Option<(String, String)> {
 
     match (target_os, arch.as_str()) {
         ("macos", "aarch64") => Some((
-            format!("https://github.com/astral-sh/uv/releases/download/{}/uv-aarch64-apple-darwin.tar.gz", version),
+            format!("https://github.com/astral-sh/uv/releases/download/{version}/uv-aarch64-apple-darwin.tar.gz"),
             "uv".to_string()
         )),
         ("macos", "x86_64") => Some((
-            format!("https://github.com/astral-sh/uv/releases/download/{}/uv-x86_64-apple-darwin.tar.gz", version),
+            format!("https://github.com/astral-sh/uv/releases/download/{version}/uv-x86_64-apple-darwin.tar.gz"),
             "uv".to_string()
         )),
         ("windows", _) => Some((
-            format!("https://github.com/astral-sh/uv/releases/download/{}/uv-x86_64-pc-windows-msvc.zip", version),
+            format!("https://github.com/astral-sh/uv/releases/download/{version}/uv-x86_64-pc-windows-msvc.zip"),
             "uv.exe".to_string()
         )),
         ("linux", "x86_64") => Some((
-            format!("https://github.com/astral-sh/uv/releases/download/{}/uv-x86_64-unknown-linux-gnu.tar.gz", version),
+            format!("https://github.com/astral-sh/uv/releases/download/{version}/uv-x86_64-unknown-linux-gnu.tar.gz"),
             "uv".to_string()
         )),
         _ => None,
@@ -183,24 +179,15 @@ fn get_fnm_url(version: &str, target_os: &str) -> Option<(String, String)> {
     // FNM release names are simpler
     match target_os {
         "macos" => Some((
-            format!(
-                "https://github.com/Schniz/fnm/releases/download/v{}/fnm-macos.zip",
-                version
-            ),
+            format!("https://github.com/Schniz/fnm/releases/download/v{version}/fnm-macos.zip"),
             "fnm".to_string(),
         )),
         "windows" => Some((
-            format!(
-                "https://github.com/Schniz/fnm/releases/download/v{}/fnm-windows.zip",
-                version
-            ),
+            format!("https://github.com/Schniz/fnm/releases/download/v{version}/fnm-windows.zip"),
             "fnm.exe".to_string(),
         )),
         "linux" => Some((
-            format!(
-                "https://github.com/Schniz/fnm/releases/download/v{}/fnm-linux.zip",
-                version
-            ),
+            format!("https://github.com/Schniz/fnm/releases/download/v{version}/fnm-linux.zip"),
             "fnm".to_string(),
         )),
         _ => None,
@@ -214,35 +201,39 @@ fn download_and_extract(
     url: &str,
     binary_name: &str,
     target_triple: &str,
-    out_dir: &PathBuf,
+    out_dir: &std::path::Path,
     final_output_path: &PathBuf,
 ) {
     // Use correct extension for temp file to avoid issues with extraction tools
-    let file_ext = if url.ends_with(".zip") {
+    let file_ext = if std::path::Path::new(url)
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+    {
         "zip"
     } else if url.ends_with(".tar.gz") {
         "tar.gz"
     } else {
         "tmp"
     };
-    let temp_file = out_dir.join(format!("{}-{}.{}", tool_name, target_triple, file_ext));
+    let temp_file = out_dir.join(format!("{tool_name}-{target_triple}.{file_ext}"));
 
-    println!("Downloading {} from {}", tool_name, url);
+    println!("Downloading {tool_name} from {url}");
     let status = Command::new("curl")
-        .args(&["-L", "-o", temp_file.to_str().unwrap(), url])
+        .args(["-L", "-o", temp_file.to_str().unwrap(), url])
         .status()
         .expect("Failed to execute curl");
 
-    if !status.success() {
-        panic!("Failed to download package for {}", tool_name);
-    }
+    assert!(
+        status.success(),
+        "Failed to download package for {tool_name}"
+    );
 
-    let extract_dir = out_dir.join(format!("{}-extract-{}", tool_name, target_triple));
+    let extract_dir = out_dir.join(format!("{tool_name}-extract-{target_triple}"));
     fs::create_dir_all(&extract_dir).expect("Failed to create extract dir");
 
     let extracted = if url.ends_with(".tar.gz") {
         let s = Command::new("tar")
-            .args(&[
+            .args([
                 "xzf",
                 temp_file.to_str().unwrap(),
                 "-C",
@@ -251,11 +242,14 @@ fn download_and_extract(
             .status()
             .expect("Failed to run tar");
         s.success()
-    } else if url.ends_with(".zip") {
+    } else if std::path::Path::new(url)
+        .extension()
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("zip"))
+    {
         #[cfg(target_os = "windows")]
         {
             let s = Command::new("powershell")
-                .args(&[
+                .args([
                     "-Command",
                     &format!(
                         "Expand-Archive -Path '{}' -DestinationPath '{}' -Force",
@@ -270,20 +264,20 @@ fn download_and_extract(
         #[cfg(not(target_os = "windows"))]
         {
             let s = Command::new("unzip")
-                .args(&[
+                .args([
                     "-o",
                     temp_file.to_str().unwrap(),
                     "-d",
                     extract_dir.to_str().unwrap(),
                 ])
                 .status();
-            match s {
-                Ok(status) => status.success(),
-                Err(_) => {
+            s.map_or_else(
+                |_| {
                     println!("Warning: 'unzip' not found. Ensure it is installed.");
                     false
-                }
-            }
+                },
+                |status| status.success(),
+            )
         }
     } else {
         false
@@ -296,21 +290,18 @@ fn download_and_extract(
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                if let Ok(metadata) = fs::metadata(&final_output_path) {
+                if let Ok(metadata) = fs::metadata(final_output_path) {
                     let mut perms = metadata.permissions();
                     perms.set_mode(0o755);
-                    let _ = fs::set_permissions(&final_output_path, perms);
+                    let _ = fs::set_permissions(final_output_path, perms);
                 }
             }
-            println!("Installed {} to {}", tool_name, final_output_path.display());
+            println!("Installed {tool_name} to {}", final_output_path.display());
         } else {
-            panic!(
-                "Binary '{}' not found inside extracted archive",
-                binary_name
-            );
+            panic!("Binary '{binary_name}' not found inside extracted archive");
         }
     } else {
-        panic!("Failed to extract archive for {}", tool_name);
+        panic!("Failed to extract archive for {tool_name}");
     }
     let _ = fs::remove_file(&temp_file);
 }

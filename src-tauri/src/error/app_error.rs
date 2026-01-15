@@ -40,9 +40,6 @@ pub enum AppError {
     #[error("[Zip] {0}")]
     Zip(#[from] zip::result::ZipError),
 
-    #[error("[Addon] {0}")]
-    Addon(String),
-
     #[error("[Prompt] {0}")]
     Prompt(String),
 

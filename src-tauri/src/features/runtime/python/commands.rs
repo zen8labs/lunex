@@ -16,7 +16,7 @@ pub async fn get_python_runtimes_status(
     config_service: State<'_, IndexConfigService>,
 ) -> Result<Vec<PythonRuntimeStatus>, AppError> {
     // Get configured versions from IndexConfigService
-    let config = config_service.get_config().await;
+    let config = config_service.get_config();
 
     // Fetch all installed pythons in one go
     let installed_pythons = PythonRuntime::list_installed(&app)?;
@@ -46,7 +46,7 @@ pub async fn install_python_runtime(
     config_service: State<'_, IndexConfigService>,
 ) -> Result<(), AppError> {
     // Get config to lookup uv version
-    let config = config_service.get_config().await;
+    let config = config_service.get_config();
 
     // Verify version exists in config
     if !config.addons.python.versions.contains(&version) {

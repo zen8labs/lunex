@@ -54,7 +54,3 @@ impl Default for AddonIndex {
         }
     }
 }
-
-// Remote config URL (you should host this somewhere)
-pub const REMOTE_INDEX_URL: &str =
-    "https://raw.githubusercontent.com/your-repo/nexo-addons/main/index.yaml";
