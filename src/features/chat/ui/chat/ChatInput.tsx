@@ -56,7 +56,7 @@ import { PromptPanel } from './PromptPanel';
 import { AgentMentionChips } from './AgentBadgeOverlay';
 import { AttachedFileItem } from './AttachedFileItem';
 import { FlowAttachment } from './FlowAttachment';
-import { ALGORITHM_NODES } from '@/constants/flow-nodes';
+import { FLOW_NODES } from '@/constants/flow-nodes';
 
 import {
   parsePromptVariables,
@@ -1195,7 +1195,7 @@ export function ChatInput({
       <FlowEditorDialog
         open={flowDialogOpen}
         initialFlow={attachedFlow || undefined}
-        availableNodes={ALGORITHM_NODES}
+        availableNodes={FLOW_NODES}
         onClose={() => setFlowDialogOpen(false)}
         onSave={(flow) => {
           setFlow(flow);

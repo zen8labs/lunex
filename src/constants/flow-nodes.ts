@@ -1,52 +1,29 @@
 import { type FlowNodeType } from '@/ui/molecules/FlowEditor';
 
-export const ALGORITHM_NODES: FlowNodeType[] = [
+export const FLOW_NODES: FlowNodeType[] = [
   {
-    type: 'start',
-    label: 'Bắt đầu',
-    description: 'Bắt đầu thuật toán',
-    initialData: { label: 'START' },
+    type: 'base',
+    label: 'Generic Node',
+    description: 'A basic node with title and text',
+    initialData: { label: 'Node', description: 'Enter description...' },
   },
   {
-    type: 'process',
-    label: 'Quy trình',
-    description: 'Thao tác xử lý dữ liệu',
-    initialData: { label: 'sum = a + b' },
+    type: 'database',
+    label: 'Database Table',
+    description: 'A node representing a database table schema',
+    initialData: {
+      label: 'Users',
+      schema: [
+        { name: 'id', type: 'uuid' },
+        { name: 'name', type: 'string' },
+        { name: 'email', type: 'string' },
+      ],
+    },
   },
   {
-    type: 'input',
-    label: 'Nhập dữ liệu',
-    description: 'Nhập dữ liệu từ người dùng',
-    initialData: { label: 'Input x' },
-  },
-  {
-    type: 'output',
-    label: 'Xuất dữ liệu',
-    description: 'Xuất dữ liệu ra màn hình',
-    initialData: { label: 'Output result' },
-  },
-  {
-    type: 'decision',
-    label: 'Quyết định',
-    description: 'Điều kiện rẽ nhánh',
-    initialData: { label: 'x > 0?' },
-  },
-  {
-    type: 'merge',
-    label: 'Hợp nhất',
-    description: 'Gộp các nhánh luồng',
-    initialData: { label: 'Merge' },
-  },
-  {
-    type: 'loopback',
-    label: 'Vòng lặp',
-    description: 'Quay lại điểm trước đó',
-    initialData: { label: 'Loop' },
-  },
-  {
-    type: 'end',
-    label: 'Kết thúc',
-    description: 'Kết thúc thuật toán',
-    initialData: { label: 'END' },
+    type: 'group',
+    label: 'Group',
+    description: 'A container to group multiple nodes',
+    initialData: { label: 'My Group' },
   },
 ];
