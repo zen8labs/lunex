@@ -50,11 +50,13 @@ export function createEditAndResendMessageThunk(actions: {
         messageId,
         newContent,
         files,
+        metadata,
       }: {
         chatId: string;
         messageId: string;
         newContent: string;
         files?: string[];
+        metadata?: string;
       },
       { getState, dispatch }
     ) => {
@@ -105,6 +107,7 @@ export function createEditAndResendMessageThunk(actions: {
           messageId,
           newContent,
           newFiles: files, // Map files to newFiles expected by backend
+          metadata,
           selectedModel: context.selectedModel,
           reasoningEffort: isThinkingEnabled ? reasoningEffort : undefined,
           llmConnectionId: context.llmConnection.id,

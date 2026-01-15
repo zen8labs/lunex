@@ -325,6 +325,7 @@ export function ChatArea() {
                 messageId: currentEditingId,
                 newContent: userInput,
                 files, // Pass updated files
+                metadata, // Pass updated metadata (includes flow)
               })
             ).unwrap();
           } else if (message.role === 'assistant') {
