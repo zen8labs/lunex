@@ -16,7 +16,9 @@ interface DbLLMConnection {
   updated_at: number;
 }
 
-function dbToFrontendLLMConnection(dbConn: DbLLMConnection): LLMConnection {
+export function dbToFrontendLLMConnection(
+  dbConn: DbLLMConnection
+): LLMConnection {
   let models: LLMModel[] | undefined;
   if (dbConn.models_json) {
     try {
@@ -38,7 +40,9 @@ function dbToFrontendLLMConnection(dbConn: DbLLMConnection): LLMConnection {
     dbConn.provider === 'groq' ||
     dbConn.provider === 'together' ||
     dbConn.provider === 'deepinfra' ||
-    dbConn.provider === 'google'
+    dbConn.provider === 'google' ||
+    dbConn.provider === 'anthropic' ||
+    dbConn.provider === 'deepseek'
       ? (dbConn.provider as LLMConnection['provider'])
       : 'openai';
 
