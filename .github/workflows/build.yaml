@@ -81,14 +81,15 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Nexo __VERSION__'
           releaseBody: |
-            ### Phiên bản mới v0.1.0-alpha.50 có gì mới?
+            ### Phiên bản mới v0.1.0-alpha.51 có gì mới?
 
-            🌟 **Tính năng & Cải tiến nổi bật:**
-            - **Thiết kế lại UI Setup**: Làm mới hoàn toàn giao diện cài đặt lần đầu khởi chạy (First-Run Setup) với phong cách hiện đại, cao cấp và mượt mà hơn.
-            - **Mở rộng hỗ trợ LLM Provider**: Bổ sung đầy đủ các nhà cung cấp AI phổ biến (OpenAI, Claude, Gemini, Ollama, DeepSeek...) với cấu hình URL thông minh.
-            - **Cải thiện trải nghiệm khởi đầu**: Tối ưu hóa các bước cài đặt runtime (Python, Node.js) giúp người dùng mới dễ dàng bắt đầu với Nexo.
+            🌟 **Tính năng mới: Node Group cho Flow Editor**
+            - **Nhóm Node Linh Hoạt**: Cho phép bao bọc nhiều node lại trong một khối duy nhất để tổ chức quy trình làm việc khoa học hơn.
+            - **Tùy Chỉnh Màu Sắc & Độ Trong Suốt**: Người dùng có thể chỉnh màu viền, màu nền và độ mờ Alpha cho từng nhóm, giúp phân loại thị giác rõ ràng.
+            - **Thay Đổi Kích Thước**: Tích hợp công cụ kéo giãn cực kỳ mượt mà.
+            - **Trải Nghiệm Tương Tác Cải Tiến**: Di chuyển và làm việc với các node bên trong nhóm mà không bị cản trở nhờ công nghệ xử lý lớp (layering) và pointer-events thông minh.
 
-            🚀 Hãy cập nhật ngay để trải nghiệm giao diện mới chuyên nghiệp và ổn định hơn!
+            🚀 Hãy cập nhật ngay để tổ chức các quy trình Flow của bạn một cách chuyên nghiệp hơn!
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
