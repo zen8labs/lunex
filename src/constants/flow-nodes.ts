@@ -3,11 +3,30 @@ import { type FlowNodeType } from '@/ui/molecules/FlowEditor';
 export const FLOW_NODES: FlowNodeType[] = [
   {
     type: 'simple',
-    label: 'Simple Node',
-    description: 'A basic node with title and text',
+    label: 'Simple node',
+    description: 'Simple node with custom background and text colors',
     initialData: {
       label: 'Node',
-      description: 'A simple node',
+      backgroundColor: 'var(--primary)',
+      textColor: 'var(--primary-foreground)',
+    },
+  },
+  {
+    type: 'rich',
+    label: 'Database Node',
+    description: 'Database operation node with full features',
+    initialData: {
+      label: 'Database Query',
+      description: 'Execute SQL query',
+      icon: '🗄️',
+      variant: 'default',
+      tags: ['Database'],
+      handles: {
+        target: true,
+        source: true,
+        targetLabel: 'Query',
+        sourceLabel: 'Result',
+      },
     },
   },
   {

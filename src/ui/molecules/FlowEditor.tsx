@@ -20,11 +20,19 @@ import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { Separator } from '@/ui/atoms/separator';
 import { Switch } from '@/ui/atoms/switch';
 import { Textarea } from '@/ui/atoms/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/ui/atoms/select';
 import { cn } from '@/lib/utils';
 
 import type { FlowData } from '@/features/chat/types';
 import {
   SimpleNode,
+  RichNode,
   ProcessNode,
   InputOutputNode,
   DecisionNode,
@@ -50,6 +58,7 @@ interface FlowEditorProps {
 
 const nodeTypes = {
   simple: SimpleNode,
+  rich: RichNode,
   start: StartEndNode,
   end: StartEndNode,
   process: ProcessNode,
@@ -128,6 +137,66 @@ function detectPropertyType(value: unknown): PropertyType {
   return 'unknown';
 }
 
+// --- Tags Field Component (separate to avoid conditional hook) ---
+interface TagsFieldProps {
+  label: string;
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  readOnly: boolean;
+}
+
+const TagsField = ({ label, tags, onChange, readOnly }: TagsFieldProps) => {
+  const [newTag, setNewTag] = useState('');
+
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="space-y-2">
+        {/* Display existing tags */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-muted/30">
+            {tags.map((tag, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-1 px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-xs"
+              >
+                <span>{tag}</span>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() => onChange(tags.filter((_, i) => i !== index))}
+                    className="hover:text-destructive"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add new tag */}
+        {!readOnly && (
+          <div className="flex gap-2">
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newTag.trim()) {
+                  onChange([...tags, newTag.trim()]);
+                  setNewTag('');
+                }
+              }}
+              placeholder="Add tag (press Enter)"
+              className="h-8 text-xs"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // --- Property Field Component ---
 interface PropertyFieldProps {
   propertyKey: string;
@@ -149,6 +218,217 @@ const PropertyField = ({
     .replace(/^./, (str) => str.toUpperCase())
     .trim();
 
+  // Special handling for 'backgroundColor' field
+  if (propertyKey === 'backgroundColor') {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+        <div className="flex gap-2">
+          <Input
+            id={`prop-${propertyKey}`}
+            type="color"
+            value={(value as string) || '#ffffff'}
+            onChange={(e) => onChange(propertyKey, e.target.value)}
+            disabled={readOnly}
+            className="h-9 w-20 cursor-pointer"
+          />
+          <Input
+            type="text"
+            value={(value as string) || ''}
+            onChange={(e) => onChange(propertyKey, e.target.value)}
+            disabled={readOnly}
+            placeholder="#ffffff"
+            className="flex-1 font-mono text-xs"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Special handling for 'textColor' field
+  if (propertyKey === 'textColor') {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+        <div className="flex gap-2">
+          <Input
+            id={`prop-${propertyKey}`}
+            type="color"
+            value={(value as string) || '#000000'}
+            onChange={(e) => onChange(propertyKey, e.target.value)}
+            disabled={readOnly}
+            className="h-9 w-20 cursor-pointer"
+          />
+          <Input
+            type="text"
+            value={(value as string) || ''}
+            onChange={(e) => onChange(propertyKey, e.target.value)}
+            disabled={readOnly}
+            placeholder="#000000"
+            className="flex-1 font-mono text-xs"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Special handling for 'variant' field
+  if (propertyKey === 'variant') {
+    const variants = ['default', 'primary', 'danger', 'success', 'warning'];
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+        <Select
+          value={(value as string) || 'default'}
+          onValueChange={(newValue) => onChange(propertyKey, newValue)}
+          disabled={readOnly}
+        >
+          <SelectTrigger id={`prop-${propertyKey}`} className="w-full">
+            <SelectValue placeholder="Select variant" />
+          </SelectTrigger>
+          <SelectContent>
+            {variants.map((variant) => (
+              <SelectItem key={variant} value={variant}>
+                <span className="capitalize">{variant}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
+  // Special handling for 'status' field
+  if (propertyKey === 'status') {
+    const statuses = ['idle', 'running', 'error', 'success'];
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+        <Select
+          value={(value as string) || 'idle'}
+          onValueChange={(newValue) => onChange(propertyKey, newValue)}
+          disabled={readOnly}
+        >
+          <SelectTrigger id={`prop-${propertyKey}`} className="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            {statuses.map((status) => (
+              <SelectItem key={status} value={status}>
+                <span className="capitalize">{status}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
+  // Special handling for 'handlePosition' field
+  if (propertyKey === 'handlePosition') {
+    const positions = ['horizontal', 'vertical'];
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+        <Select
+          value={(value as string) || 'horizontal'}
+          onValueChange={(newValue) => onChange(propertyKey, newValue)}
+          disabled={readOnly}
+        >
+          <SelectTrigger id={`prop-${propertyKey}`} className="w-full">
+            <SelectValue placeholder="Select position" />
+          </SelectTrigger>
+          <SelectContent>
+            {positions.map((position) => (
+              <SelectItem key={position} value={position}>
+                <span className="capitalize">{position}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
+  // Special handling for 'handles' object
+  if (propertyKey === 'handles' && type === 'object') {
+    const handles = (value as Record<string, unknown>) || {};
+    const handleKeys = ['target', 'source', 'targetLabel', 'sourceLabel'];
+
+    return (
+      <div className="space-y-3">
+        <Label>{label}</Label>
+        <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+          {handleKeys.map((key) => {
+            const handleValue = handles[key];
+            const isBooleanField = key === 'target' || key === 'source';
+
+            if (isBooleanField) {
+              return (
+                <div
+                  key={key}
+                  className="flex items-center justify-between space-x-2"
+                >
+                  <Label
+                    htmlFor={`handle-${key}`}
+                    className="text-sm cursor-pointer capitalize"
+                  >
+                    {key}
+                  </Label>
+                  <Switch
+                    id={`handle-${key}`}
+                    checked={(handleValue as boolean) ?? true}
+                    onCheckedChange={(checked) =>
+                      onChange(propertyKey, { ...handles, [key]: checked })
+                    }
+                    disabled={readOnly}
+                  />
+                </div>
+              );
+            } else {
+              return (
+                <div key={key} className="space-y-1">
+                  <Label
+                    htmlFor={`handle-${key}`}
+                    className="text-xs capitalize"
+                  >
+                    {key}
+                  </Label>
+                  <Input
+                    id={`handle-${key}`}
+                    value={(handleValue as string) || ''}
+                    onChange={(e) =>
+                      onChange(propertyKey, {
+                        ...handles,
+                        [key]: e.target.value,
+                      })
+                    }
+                    disabled={readOnly}
+                    placeholder={`Enter ${key}`}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              );
+            }
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Special handling for 'tags' array
+  if (propertyKey === 'tags' && Array.isArray(value)) {
+    return (
+      <TagsField
+        label={label}
+        tags={value as string[]}
+        onChange={(newTags) => onChange(propertyKey, newTags)}
+        readOnly={readOnly}
+      />
+    );
+  }
+
+  // Default handling based on type
   switch (type) {
     case 'string':
       return (
