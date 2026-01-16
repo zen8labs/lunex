@@ -6,7 +6,6 @@ import {
   navigateToChat,
   setKeyboardShortcutsOpen,
   setAboutOpen,
-  setWelcomeOpen,
 } from '@/features/ui/state/uiSlice';
 import { closeCurrentChat } from '@/features/chat/state/chatsSlice';
 import { clearInput } from '@/features/chat/state/chatInputSlice';
@@ -29,7 +28,6 @@ export function useKeyboardShortcuts() {
     (state) => state.ui.keyboardShortcutsOpen
   );
   const searchOpen = useAppSelector((state) => state.chatSearch.searchOpen);
-  const welcomeOpen = useAppSelector((state) => state.ui.welcomeOpen);
 
   // Use refs to store latest values without recreating listeners
   const dispatchRef = useRef(dispatch);
@@ -39,7 +37,6 @@ export function useKeyboardShortcuts() {
   const aboutOpenRef = useRef(aboutOpen);
   const keyboardShortcutsOpenRef = useRef(keyboardShortcutsOpen);
   const searchOpenRef = useRef(searchOpen);
-  const welcomeOpenRef = useRef(welcomeOpen);
 
   // Update refs when values change
   useEffect(() => {
@@ -50,7 +47,6 @@ export function useKeyboardShortcuts() {
     aboutOpenRef.current = aboutOpen;
     keyboardShortcutsOpenRef.current = keyboardShortcutsOpen;
     searchOpenRef.current = searchOpen;
-    welcomeOpenRef.current = welcomeOpen;
   }, [
     dispatch,
     selectedWorkspaceId,
@@ -59,7 +55,6 @@ export function useKeyboardShortcuts() {
     aboutOpen,
     keyboardShortcutsOpen,
     searchOpen,
-    welcomeOpen,
   ]);
 
   useEffect(() => {
@@ -104,11 +99,6 @@ export function useKeyboardShortcuts() {
           dispatchRef.current(setAboutOpen(false));
           return;
         }
-        if (welcomeOpenRef.current) {
-          e.preventDefault();
-          // Welcome dialog is handled by its own component
-          return;
-        }
 
         // If on Settings page, navigate back to Chat
         if (activePageRef.current === 'settings') {
@@ -117,16 +107,6 @@ export function useKeyboardShortcuts() {
           return;
         }
 
-        return;
-      }
-
-      // Cmd/Ctrl + Shift + H: Open welcome screen (for debug)
-      // Check this first before other shortcuts to avoid conflicts
-      // Use toLowerCase() to handle both uppercase and lowercase
-      if (modifierKey && e.shiftKey && e.key.toLowerCase() === 'h') {
-        e.preventDefault();
-        e.stopPropagation();
-        dispatchRef.current(setWelcomeOpen(true));
         return;
       }
 

@@ -122,7 +122,7 @@ export function useWorkspaces() {
       ) {
         dispatch(setSelectedWorkspace(lastWorkspaceId));
       }
-      // No fallback to first - let user choose or show onboarding if no workspaces
+      // No fallback to first - let App.tsx handle default workspace creation
     }
   }, [workspacesData, lastWorkspaceId, selectedWorkspaceId, dispatch]);
 

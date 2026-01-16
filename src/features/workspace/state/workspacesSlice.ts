@@ -123,7 +123,6 @@ const workspacesSlice = createSlice({
           state.selectedWorkspaceId = action.payload.lastWorkspaceId;
         } else {
           // No longer fallback to first workspace automatically
-          // This allows us to handle the "empty" state for onboarding
           state.selectedWorkspaceId = null;
         }
       })

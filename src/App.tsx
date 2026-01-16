@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { store } from '@/app/store';
 import { useAppSelector, useAppDispatch } from '@/app/hooks';
@@ -10,14 +11,7 @@ import { useNotificationListener } from '@/hooks/useNotificationListener';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useMenuEvents } from '@/hooks/useMenuEvents';
 import { useChatStreaming } from '@/features/chat/hooks/useChatStreaming';
-import {
-  loadAppSettings,
-  checkFirstLaunch,
-  setWelcomeOpen,
-} from '@/features/ui/state/uiSlice';
-import { WelcomeScreen } from '@/features/onboarding/ui/WelcomeScreen';
-import OnboardingGuide from '@/features/onboarding/ui/OnboardingGuide';
-import { OnboardingScreen } from '@/features/onboarding/ui/OnboardingScreen';
+import { loadAppSettings } from '@/features/ui/state/uiSlice';
 import { useWorkspaces } from '@/features/workspace';
 import i18n from '@/i18n/config';
 import { useAutoUpdate } from '@/features/updater/hooks/useAutoUpdate';
@@ -25,12 +19,12 @@ import { UpdateModal } from '@/features/updater/ui/UpdateModal';
 
 function AppContent() {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation(['common']);
   const language = useAppSelector((state) => state.ui.language);
   const theme = useAppSelector((state) => state.ui.theme);
-  const welcomeOpen = useAppSelector((state) => state.ui.welcomeOpen);
   const loading = useAppSelector((state) => state.ui.loading);
 
-  const { workspaces } = useWorkspaces();
+  const { workspaces, handleAddWorkspace } = useWorkspaces();
 
   // Listen for notification events
   useNotificationListener();
@@ -49,13 +43,14 @@ function AppContent() {
     dispatch(loadAppSettings());
   }, [dispatch]);
 
-  // Check first launch after settings are loaded (only once)
+  // Create a default workspace if none exist after settings are loaded
   useEffect(() => {
-    if (!loading) {
-      dispatch(checkFirstLaunch());
+    if (!loading && workspaces.length === 0) {
+      handleAddWorkspace(
+        t('onboarding.myFirstWorkspace', { defaultValue: 'My Workspace' })
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading]); // Only run when loading changes from true to false
+  }, [loading, workspaces.length, handleAddWorkspace, t]);
 
   // Sync Redux state with i18n when language changes
   useEffect(() => {
@@ -116,9 +111,6 @@ function AppContent() {
     }
   }, [theme]);
 
-  // Show onboarding if no workspaces exist
-  const showOnboarding = workspaces.length === 0;
-
   // Handle auto-updates
   const {
     modalOpen,
@@ -131,13 +123,8 @@ function AppContent() {
 
   return (
     <>
-      {!loading && showOnboarding ? <OnboardingScreen /> : <MainLayout />}
+      <MainLayout />
       <Toaster />
-      <WelcomeScreen
-        open={welcomeOpen}
-        onOpenChange={(open) => dispatch(setWelcomeOpen(open))}
-      />
-      <OnboardingGuide />
       <UpdateModal
         open={modalOpen}
         onOpenChange={setModalOpen}

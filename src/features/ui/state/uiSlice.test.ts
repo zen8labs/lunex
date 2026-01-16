@@ -6,7 +6,6 @@ import uiReducer, {
   setLanguage,
   setTheme,
   loadAppSettings,
-  checkFirstLaunch,
   UIState,
 } from './uiSlice';
 import { invokeCommand } from '@/lib/tauri';
@@ -24,7 +23,6 @@ describe('uiSlice', () => {
     activePage: 'chat',
     isSidebarCollapsed: false,
     titleBarText: null,
-    welcomeOpen: false,
     aboutOpen: false,
     keyboardShortcutsOpen: false,
     settingsSection: 'general',
@@ -107,17 +105,6 @@ describe('uiSlice', () => {
       expect(state.language).toBe('en');
       expect(state.theme).toBe('dark');
       expect(state.experiments.showUsage).toBe(true);
-    });
-
-    it('checkFirstLaunch.fulfilled should update welcomeOpen', async () => {
-      (invokeCommand as any).mockResolvedValue('false'); // hasSeenWelcome = false
-
-      const dispatch = vi.fn();
-      const thunk = checkFirstLaunch();
-      const result = await thunk(dispatch, () => ({}), {});
-
-      const state = uiReducer(initialState, result as any);
-      expect(state.welcomeOpen).toBe(true); // because hasSeenWelcome is not 'true'
     });
   });
 });

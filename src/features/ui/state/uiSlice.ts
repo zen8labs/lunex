@@ -7,7 +7,6 @@ export interface UIState {
   activePage: Page;
   isSidebarCollapsed: boolean;
   titleBarText: string | null;
-  welcomeOpen: boolean;
   aboutOpen: boolean;
   keyboardShortcutsOpen: boolean;
   settingsSection:
@@ -138,25 +137,6 @@ export const loadAppSettings = createAsyncThunk(
   }
 );
 
-// Check if this is the first launch
-export const checkFirstLaunch = createAsyncThunk(
-  'ui/checkFirstLaunch',
-  async () => {
-    try {
-      const hasSeenWelcome = await invokeCommand<string | null>(
-        TauriCommands.GET_APP_SETTING,
-        {
-          key: 'hasSeenWelcome',
-        }
-      );
-      return hasSeenWelcome !== 'true';
-    } catch (error) {
-      console.error('Failed to check first launch:', error);
-      return true; // Default to showing welcome if check fails
-    }
-  }
-);
-
 export const loadLanguage = createAsyncThunk('ui/loadLanguage', async () => {
   try {
     const language = await invokeCommand<string | null>(
@@ -183,7 +163,6 @@ const initialState: UIState = {
   activePage: 'chat',
   isSidebarCollapsed: false,
   titleBarText: null,
-  welcomeOpen: false,
   aboutOpen: false,
   keyboardShortcutsOpen: false,
   settingsSection: 'general',
@@ -243,9 +222,6 @@ const uiSlice = createSlice({
       >
     ) => {
       state.settingsSection = action.payload;
-    },
-    setWelcomeOpen: (state, action: PayloadAction<boolean>) => {
-      state.welcomeOpen = action.payload;
     },
     setAboutOpen: (state, action: PayloadAction<boolean>) => {
       state.aboutOpen = action.payload;
@@ -350,9 +326,6 @@ const uiSlice = createSlice({
       })
       .addCase(loadLanguage.rejected, (state) => {
         state.loading = false;
-      })
-      .addCase(checkFirstLaunch.fulfilled, (state, action) => {
-        state.welcomeOpen = action.payload;
       });
   },
 });
@@ -365,7 +338,6 @@ export const {
   toggleSidebar,
   setSidebarCollapsed,
   setSettingsSection,
-  setWelcomeOpen,
   setAboutOpen,
   setKeyboardShortcutsOpen,
   setLanguage,
