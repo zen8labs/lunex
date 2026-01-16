@@ -89,8 +89,6 @@ const RuntimeCard = ({
   isInstalling,
   onInstall,
   onUninstall,
-  onCleanup,
-  cleanupCount,
   brandClass,
   extraInfo,
 }: RuntimeCardProps) => {
@@ -214,22 +212,6 @@ const RuntimeCard = ({
             {t('uninstall')}
           </Button>
         )}
-
-        {cleanupCount && cleanupCount > 0 && onCleanup && (
-          <div className="pt-2 border-t border-border/40">
-            <Button
-              onClick={onCleanup}
-              variant="link"
-              size="sm"
-              className="w-full h-auto p-0 text-[11px] text-muted-foreground hover:text-destructive"
-            >
-              {t('cleanupOldVersions', {
-                defaultValue: 'Dọn dẹp {{count}} phiên bản cũ khác',
-                count: cleanupCount,
-              })}
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -248,38 +230,57 @@ export default function AddonSettings() {
     actions,
   } = useAddons();
 
-  const latestPython = useMemo(() => {
+  const activePython = useMemo(() => {
     if (pythonRuntimes.length === 0) return null;
+    // Prioritize installed version (pick highest installed)
+    const installed = pythonRuntimes
+      .filter((r) => r.installed)
+      .sort((a, b) =>
+        b.version.localeCompare(a.version, undefined, { numeric: true })
+      )[0];
+
+    if (installed) return installed;
+
+    // Fallback to highest available
     return [...pythonRuntimes].sort((a, b) =>
       b.version.localeCompare(a.version, undefined, { numeric: true })
     )[0];
   }, [pythonRuntimes]);
 
-  const latestNode = useMemo(() => {
+  const activeNode = useMemo(() => {
     if (nodeRuntimes.length === 0) return null;
+    // Prioritize installed version
+    const installed = nodeRuntimes
+      .filter((r) => r.installed)
+      .sort((a, b) =>
+        b.version.localeCompare(a.version, undefined, { numeric: true })
+      )[0];
+
+    if (installed) return installed;
+
     return [...nodeRuntimes].sort((a, b) =>
       b.version.localeCompare(a.version, undefined, { numeric: true })
     )[0];
   }, [nodeRuntimes]);
 
   const otherInstalledPythonCount = useMemo(() => {
-    if (!latestPython) return 0;
+    if (!activePython) return 0;
     return pythonRuntimes.filter(
-      (r) => r.installed && r.version !== latestPython.version
+      (r) => r.installed && r.version !== activePython.version
     ).length;
-  }, [pythonRuntimes, latestPython]);
+  }, [pythonRuntimes, activePython]);
 
   const otherInstalledNodeCount = useMemo(() => {
-    if (!latestNode) return 0;
+    if (!activeNode) return 0;
     return nodeRuntimes.filter(
-      (r) => r.installed && r.version !== latestNode.version
+      (r) => r.installed && r.version !== activeNode.version
     ).length;
-  }, [nodeRuntimes, latestNode]);
+  }, [nodeRuntimes, activeNode]);
 
   const handleCleanupOtherPython = async () => {
-    if (!latestPython) return;
+    if (!activePython) return;
     const others = pythonRuntimes.filter(
-      (r) => r.installed && r.version !== latestPython.version
+      (r) => r.installed && r.version !== activePython.version
     );
     for (const r of others) {
       await actions.uninstallPython(r.version);
@@ -287,9 +288,9 @@ export default function AddonSettings() {
   };
 
   const handleCleanupOtherNode = async () => {
-    if (!latestNode) return;
+    if (!activeNode) return;
     const others = nodeRuntimes.filter(
-      (r) => r.installed && r.version !== latestNode.version
+      (r) => r.installed && r.version !== activeNode.version
     );
     for (const r of others) {
       await actions.uninstallNode(r.version);
@@ -315,18 +316,18 @@ export default function AddonSettings() {
           </>
         ) : (
           <>
-            {latestPython && (
+            {activePython && (
               <RuntimeCard
                 name="Python"
-                version={latestPython.version}
+                version={activePython.version}
                 Icon={PythonIcon}
-                installed={latestPython.installed}
-                path={latestPython.path}
+                installed={activePython.installed}
+                path={activePython.path}
                 description={t('pythonRuntimeDescription')}
                 isInstalling={installingPython !== null}
-                onInstall={() => actions.installPython(latestPython.version)}
+                onInstall={() => actions.installPython(activePython.version)}
                 onUninstall={() =>
-                  actions.uninstallPython(latestPython.version)
+                  actions.uninstallPython(activePython.version)
                 }
                 onCleanup={handleCleanupOtherPython}
                 cleanupCount={otherInstalledPythonCount}
@@ -341,17 +342,17 @@ export default function AddonSettings() {
               />
             )}
 
-            {latestNode && (
+            {activeNode && (
               <RuntimeCard
                 name="Node.js"
-                version={latestNode.version}
+                version={activeNode.version}
                 Icon={NodeIcon}
-                installed={latestNode.installed}
-                path={latestNode.path}
+                installed={activeNode.installed}
+                path={activeNode.path}
                 description={t('nodeRuntimeDescription')}
                 isInstalling={installingNode !== null}
-                onInstall={() => actions.installNode(latestNode.version)}
-                onUninstall={() => actions.uninstallNode(latestNode.version)}
+                onInstall={() => actions.installNode(activeNode.version)}
+                onUninstall={() => actions.uninstallNode(activeNode.version)}
                 onCleanup={handleCleanupOtherNode}
                 cleanupCount={otherInstalledNodeCount}
                 brandClass="brand-node"

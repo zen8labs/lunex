@@ -102,7 +102,7 @@ export function useAddons() {
     }
   };
 
-  // Initial load
+  // Initial load and focus re-fetch
   useEffect(() => {
     const loadAll = async () => {
       setIsLoading(true);
@@ -113,7 +113,18 @@ export function useAddons() {
       ]);
       setIsLoading(false);
     };
+
     loadAll();
+
+    const handleFocus = () => {
+      loadPythonStatus();
+      loadNodeStatus();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [loadAddonConfig, loadPythonStatus, loadNodeStatus]);
 
   return {

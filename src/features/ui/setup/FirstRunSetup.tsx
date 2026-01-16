@@ -22,6 +22,8 @@ import {
 } from '@/ui/atoms/select';
 import { ProviderIcon } from '@/ui/atoms/provider-icon';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
+import { useCreateLLMConnectionMutation } from '@/features/llm/state/api';
+import type { LLMConnection, LLMModel } from '@/features/llm/types';
 import {
   Loader2,
   CheckCircle2,
@@ -76,13 +78,18 @@ const PROVIDER_OPTIONS = [
 
 export function FirstRunSetup({ open }: { open: boolean }) {
   const dispatch = useAppDispatch();
+  const [createLLMConnection] = useCreateLLMConnectionMutation();
   const [step, setStep] = useState<Step>('welcome');
   const [installStatus, setInstallStatus] = useState<{
     python: 'pending' | 'installing' | 'success' | 'error';
     node: 'pending' | 'installing' | 'success' | 'error';
   }>({ python: 'pending', node: 'pending' });
 
-  const [llmConfig, setLlmConfig] = useState({
+  const [llmConfig, setLlmConfig] = useState<{
+    provider: LLMConnection['provider'];
+    apiKey: string;
+    baseUrl: string;
+  }>({
     provider: 'openai',
     apiKey: '',
     baseUrl: 'https://api.openai.com/v1',
@@ -105,16 +112,37 @@ export function FirstRunSetup({ open }: { open: boolean }) {
       const pyStatuses = await invokeCommand<RuntimeStatus[]>(
         TauriCommands.GET_PYTHON_RUNTIMES_STATUS
       );
-      // Pick the first version configured
+
       if (pyStatuses.length > 0) {
-        const targetVersion = pyStatuses[0].version;
-        if (!pyStatuses[0].installed) {
+        // Sort to get latest version
+        const sorted = [...pyStatuses].sort((a, b) =>
+          b.version.localeCompare(a.version, undefined, { numeric: true })
+        );
+        const targetVersion = sorted[0].version;
+
+        if (!sorted[0].installed) {
           await invokeCommand(TauriCommands.INSTALL_PYTHON_RUNTIME, {
             version: targetVersion,
           });
+
+          // Verify installation
+          const updatedStatuses = await invokeCommand<RuntimeStatus[]>(
+            TauriCommands.GET_PYTHON_RUNTIMES_STATUS
+          );
+          const updatedStatus = updatedStatuses.find(
+            (s) => s.version === targetVersion
+          );
+
+          if (!updatedStatus?.installed) {
+            throw new Error(`Verification failed for Python ${targetVersion}`);
+          }
         }
+        setInstallStatus((prev) => ({ ...prev, python: 'success' }));
+      } else {
+        console.error('No Python runtimes available to install');
+        // Treat as error or handled? If no definition found, we can't install.
+        setInstallStatus((prev) => ({ ...prev, python: 'error' }));
       }
-      setInstallStatus((prev) => ({ ...prev, python: 'success' }));
     } catch (error) {
       console.error('Python install failed', error);
       setInstallStatus((prev) => ({ ...prev, python: 'error' }));
@@ -126,22 +154,42 @@ export function FirstRunSetup({ open }: { open: boolean }) {
       const nodeStatuses = await invokeCommand<RuntimeStatus[]>(
         TauriCommands.GET_NODE_RUNTIMES_STATUS
       );
+
       if (nodeStatuses.length > 0) {
-        const targetVersion = nodeStatuses[0].version;
-        if (!nodeStatuses[0].installed) {
+        // Sort to get latest version
+        const sorted = [...nodeStatuses].sort((a, b) =>
+          b.version.localeCompare(a.version, undefined, { numeric: true })
+        );
+        const targetVersion = sorted[0].version;
+
+        if (!sorted[0].installed) {
           await invokeCommand(TauriCommands.INSTALL_NODE_RUNTIME, {
             version: targetVersion,
           });
+
+          // Verify installation
+          const updatedStatuses = await invokeCommand<RuntimeStatus[]>(
+            TauriCommands.GET_NODE_RUNTIMES_STATUS
+          );
+          const updatedStatus = updatedStatuses.find(
+            (s) => s.version === targetVersion
+          );
+
+          if (!updatedStatus?.installed) {
+            throw new Error(`Verification failed for Node.js ${targetVersion}`);
+          }
         }
+        setInstallStatus((prev) => ({ ...prev, node: 'success' }));
+      } else {
+        console.error('No Node.js runtimes available to install');
+        setInstallStatus((prev) => ({ ...prev, node: 'error' }));
       }
-      setInstallStatus((prev) => ({ ...prev, node: 'success' }));
     } catch (error) {
       console.error('Node install failed', error);
       setInstallStatus((prev) => ({ ...prev, node: 'error' }));
     }
 
-    // Move to next step if at least one succeeded or both attempted?
-    // Requirement says "auto setup", so we proceed to LLM setup even if runtime fails (user can fix later)
+    // Move to next step
     setTimeout(() => {
       setStep('llm-setup');
     }, 1000);
@@ -150,28 +198,88 @@ export function FirstRunSetup({ open }: { open: boolean }) {
   const handleLlmSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await invokeCommand(TauriCommands.CREATE_LLM_CONNECTION, {
-        id: crypto.randomUUID(),
+      // 1. Fetch models first
+      let models: LLMModel[] = [];
+      try {
+        const fetchedModels = await invokeCommand<LLMModel[]>(
+          TauriCommands.TEST_LLM_CONNECTION,
+          {
+            baseUrl: llmConfig.baseUrl,
+            provider: llmConfig.provider,
+            apiKey: llmConfig.apiKey || null,
+          }
+        );
+        // Filter popular models like in Settings
+        models = filterPopularModels(fetchedModels, llmConfig.provider);
+      } catch (error) {
+        console.error('Failed to fetch models during setup:', error);
+        // We continue even if model fetching fails, saving an empty list
+        // which the user can fix later in settings
+      }
+
+      // 2. Create connection with models
+      await createLLMConnection({
         name: 'Default Connection',
         provider: llmConfig.provider,
-        base_url: llmConfig.baseUrl,
-        api_key: llmConfig.apiKey,
-        models_json: null,
-        default_model: null,
-      });
+        baseUrl: llmConfig.baseUrl,
+        apiKey: llmConfig.apiKey,
+        models,
+        enabled: true,
+      }).unwrap();
     } catch (error) {
       console.error('Failed to create LLM connection', error);
-      // Show error toast but still complete setup so user can configure later in Settings
       const { toast } = await import('sonner');
       toast.error(
         'Failed to create LLM connection. You can configure it later in Settings.'
       );
     } finally {
-      // Always mark setup as completed, even if LLM connection creation failed
-      // This prevents the setup dialog from showing again on next app launch
       dispatch(setSetupCompleted(true));
       setIsSubmitting(false);
     }
+  };
+
+  // Helper function to filter popular models (duplicated from LLMConnections.tsx)
+  const filterPopularModels = (
+    models: LLMModel[],
+    provider: string
+  ): LLMModel[] => {
+    if (provider === 'openai') {
+      const popularModelPatterns = [
+        'gpt-3.5-turbo',
+        'gpt-4',
+        'gpt-4o',
+        'gpt-4-turbo',
+        'gpt-5',
+        'o1',
+        'gpt-5.1',
+      ];
+      return models.filter((model) => {
+        const modelId = model.id.toLowerCase();
+        const modelName = model.name.toLowerCase();
+        return popularModelPatterns.some(
+          (pattern) => modelId === pattern || modelName === pattern
+        );
+      });
+    }
+    if (provider === 'google') {
+      const popularModelPatterns = [
+        'gemini-2.0-flash',
+        'gemini-2.5-flash',
+        'gemini-2.5-pro',
+        'gemini-3-flash-preview',
+        'gemini-3-pro-preview',
+        'gemini-2.5-flash-image',
+        'gemini-3-pro-image-preview',
+      ];
+      return models.filter((model) => {
+        const modelId = model.id.toLowerCase();
+        const modelName = model.name.toLowerCase();
+        return popularModelPatterns.some(
+          (pattern) => modelId === pattern || modelName === pattern
+        );
+      });
+    }
+    return models;
   };
 
   if (!open) return null;
@@ -259,7 +367,7 @@ export function FirstRunSetup({ open }: { open: boolean }) {
                   onValueChange={(val) =>
                     setLlmConfig((prev) => ({
                       ...prev,
-                      provider: val,
+                      provider: val as LLMConnection['provider'],
                       baseUrl:
                         (!prev.baseUrl ||
                           prev.baseUrl === DEFAULT_URLS[prev.provider]) &&
