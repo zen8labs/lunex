@@ -254,5 +254,7 @@
   "generalSetting": "General Setting",
   "experiments": "Experiments",
   "showUsage": "Show token usage",
-  "showUsageDescription": "If enabled, token usage details will be displayed below each AI response."
+  "showUsageDescription": "If enabled, token usage details will be displayed below each AI response.",
+  "enableWorkflowEditor": "Enable Workflow Editor",
+  "enableWorkflowEditorDescription": "If enabled, the workflow button will be shown in the chat input to create and attach workflows."
 }

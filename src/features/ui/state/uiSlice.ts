@@ -47,6 +47,7 @@ export interface UIState {
   isRightPanelOpen: boolean;
   experiments: {
     showUsage: boolean;
+    enableWorkflowEditor: boolean;
   };
 }
 
@@ -66,9 +67,13 @@ export const loadAppSettings = createAsyncThunk(
         invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
           key: 'showUsage',
         }),
+        invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
+          key: 'enableWorkflowEditor',
+        }),
       ]);
 
-      const [language, theme, showUsage] = settingsResults;
+      const [language, theme, showUsage, enableWorkflowEditor] =
+        settingsResults;
 
       // Validate and set language
       let finalLanguage: 'vi' | 'en' = 'vi';
@@ -116,6 +121,7 @@ export const loadAppSettings = createAsyncThunk(
         theme: finalTheme,
         experiments: {
           showUsage: showUsage === 'true' || showUsage === null, // Default to true for developer mode
+          enableWorkflowEditor: enableWorkflowEditor === 'true', // Default to false (disabled)
         },
       };
     } catch (error) {
@@ -125,6 +131,7 @@ export const loadAppSettings = createAsyncThunk(
         theme: 'light' as const,
         experiments: {
           showUsage: true,
+          enableWorkflowEditor: false, // Default to false (disabled)
         },
       };
     }
@@ -191,6 +198,7 @@ const initialState: UIState = {
   isRightPanelOpen: false,
   experiments: {
     showUsage: false,
+    enableWorkflowEditor: false,
   },
 };
 
@@ -306,6 +314,18 @@ const uiSlice = createSlice({
         console.error('Failed to save showUsage to database:', error);
       });
     },
+    setEnableWorkflowEditor: (state, action: PayloadAction<boolean>) => {
+      state.experiments.enableWorkflowEditor = action.payload;
+      invokeCommand(TauriCommands.SAVE_APP_SETTING, {
+        key: 'enableWorkflowEditor',
+        value: action.payload ? 'true' : 'false',
+      }).catch((error) => {
+        console.error(
+          'Failed to save enableWorkflowEditor to database:',
+          error
+        );
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -355,5 +375,6 @@ export const {
   toggleRightPanel,
   setRightPanelOpen,
   setShowUsage,
+  setEnableWorkflowEditor,
 } = uiSlice.actions;
 export default uiSlice.reducer;

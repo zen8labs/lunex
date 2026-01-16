@@ -3,6 +3,7 @@ import {
   setLanguage,
   setTheme,
   setShowUsage,
+  setEnableWorkflowEditor,
   loadAppSettings,
 } from '@/features/ui/state/uiSlice';
 
@@ -31,6 +32,9 @@ export function useAppSettings() {
   const theme = useAppSelector((state) => state.ui.theme);
   const loading = useAppSelector((state) => state.ui.loading);
   const showUsage = useAppSelector((state) => state.ui.experiments.showUsage);
+  const enableWorkflowEditor = useAppSelector(
+    (state) => state.ui.experiments.enableWorkflowEditor
+  );
 
   const updateLanguage = (lang: 'vi' | 'en') => {
     dispatch(setLanguage(lang));
@@ -44,6 +48,10 @@ export function useAppSettings() {
     dispatch(setShowUsage(show));
   };
 
+  const updateEnableWorkflowEditor = (enable: boolean) => {
+    dispatch(setEnableWorkflowEditor(enable));
+  };
+
   const reloadSettings = () => {
     dispatch(loadAppSettings());
   };
@@ -53,9 +61,11 @@ export function useAppSettings() {
     theme,
     loading,
     showUsage,
+    enableWorkflowEditor,
     updateLanguage,
     updateTheme,
     updateShowUsage,
+    updateEnableWorkflowEditor,
     reloadSettings,
   };
 }

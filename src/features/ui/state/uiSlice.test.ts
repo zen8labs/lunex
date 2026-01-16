@@ -39,6 +39,7 @@ describe('uiSlice', () => {
     isRightPanelOpen: false,
     experiments: {
       showUsage: false,
+      enableWorkflowEditor: false,
     },
   };
 
@@ -94,6 +95,7 @@ describe('uiSlice', () => {
         if (args.key === 'language') return Promise.resolve('en');
         if (args.key === 'theme') return Promise.resolve('dark');
         if (args.key === 'showUsage') return Promise.resolve('true');
+        if (args.key === 'enableWorkflowEditor') return Promise.resolve('true');
         return Promise.resolve(null);
       });
 

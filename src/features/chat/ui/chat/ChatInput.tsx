@@ -63,6 +63,7 @@ import {
   renderPrompt,
 } from '@/features/settings/lib/prompt-utils';
 import type { Prompt, InstalledAgent } from '@/app/types';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 interface ChatInputProps {
   selectedWorkspaceId: string | null;
@@ -145,6 +146,9 @@ export function ChatInput({
       : null
   );
   const { data: mcpConnections = [] } = useGetMCPConnectionsQuery();
+
+  // Get app settings for experimental features
+  const { enableWorkflowEditor } = useAppSettings();
 
   // Calculate active tools from workspace settings
   const activeTools = (() => {
@@ -851,19 +855,21 @@ export function ChatInput({
                   <Paperclip className="size-4" />
                 </Button>
 
-                {/* Flow Button */}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setFlowDialogOpen(true)}
-                  disabled={disabled}
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground border-0 shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Add workflow"
-                  title="Add workflow"
-                >
-                  <Workflow className="size-4" />
-                </Button>
+                {/* Flow Button - Only show if experimental feature is enabled */}
+                {enableWorkflowEditor && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setFlowDialogOpen(true)}
+                    disabled={disabled}
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground border-0 shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Add workflow"
+                    title="Add workflow"
+                  >
+                    <Workflow className="size-4" />
+                  </Button>
+                )}
 
                 {/* Tools Button with Hover Tooltip */}
                 <div className="relative group">

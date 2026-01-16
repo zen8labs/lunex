@@ -40,9 +40,11 @@ export function AppSettings() {
     language: currentLanguage,
     theme: currentTheme,
     showUsage,
+    enableWorkflowEditor,
     updateLanguage,
     updateTheme,
     updateShowUsage,
+    updateEnableWorkflowEditor,
   } = useAppSettings();
 
   const handleLanguageChange = (lang: 'vi' | 'en') => {
@@ -152,6 +154,21 @@ export function AppSettings() {
               id="show-usage-switch"
               checked={showUsage}
               onCheckedChange={updateShowUsage}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-4 p-3 border rounded-lg bg-card/50">
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium leading-none">
+                {t('enableWorkflowEditor')}
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                {t('enableWorkflowEditorDescription')}
+              </p>
+            </div>
+            <Switch
+              id="enable-workflow-editor-switch"
+              checked={enableWorkflowEditor}
+              onCheckedChange={updateEnableWorkflowEditor}
             />
           </div>
         </CollapsibleContent>

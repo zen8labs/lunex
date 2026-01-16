@@ -19,15 +19,18 @@ vi.mock('lucide-react', () => ({
 const mockUpdateLanguage = vi.fn();
 const mockUpdateTheme = vi.fn();
 const mockUpdateShowUsage = vi.fn();
+const mockUpdateEnableWorkflowEditor = vi.fn();
 
 vi.mock('@/hooks/useAppSettings', () => ({
   useAppSettings: () => ({
     language: 'en',
     theme: 'system',
     showUsage: false,
+    enableWorkflowEditor: false,
     updateLanguage: mockUpdateLanguage,
     updateTheme: mockUpdateTheme,
     updateShowUsage: mockUpdateShowUsage,
+    updateEnableWorkflowEditor: mockUpdateEnableWorkflowEditor,
   }),
 }));
 
