@@ -462,7 +462,7 @@ const PropertyField = ({
     return (
       <div className="space-y-2">
         <div className="flex justify-between">
-          <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+          <Label htmlFor={`prop-${propertyKey}`}>Background Alpha</Label>
           <span className="text-xs text-muted-foreground">
             {Math.round((value as number) * 100)}%
           </span>
@@ -693,6 +693,7 @@ function FlowEditorInner({
           id: `node-${Date.now()}`,
           type: nodeTemplate.type,
           position,
+          zIndex: nodeTemplate.type === 'group' ? 0 : 10, // Use positive values, groups at bottom
           data: {
             ...nodeTemplate.initialData,
             label: nodeTemplate.initialData?.label || nodeTemplate.label,
@@ -703,11 +704,14 @@ function FlowEditorInner({
           },
           ...(nodeTemplate.type === 'group' && {
             style: { width: 400, height: 200, ...nodeTemplate.style },
-            zIndex: -1,
           }),
         };
 
-        setNodes((nds) => nds.concat(newNode));
+        setNodes((nds) =>
+          nodeTemplate.type === 'group'
+            ? [newNode, ...nds]
+            : nds.concat(newNode)
+        );
       } catch (err) {
         console.error('Failed to add node at center', err);
       }
@@ -797,6 +801,7 @@ function FlowEditorInner({
           nodesDraggable={!readOnly}
           nodesConnectable={!readOnly}
           elementsSelectable={true}
+          elevateNodesOnSelect={false}
           style={{ width: '100%', height: '100%' }}
         >
           <Background />
