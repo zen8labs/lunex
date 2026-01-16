@@ -48,6 +48,7 @@ export interface UIState {
     showUsage: boolean;
     enableWorkflowEditor: boolean;
   };
+  setupCompleted: boolean;
 }
 
 // Load all app settings from database
@@ -69,9 +70,12 @@ export const loadAppSettings = createAsyncThunk(
         invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
           key: 'enableWorkflowEditor',
         }),
+        invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
+          key: 'setupCompleted',
+        }),
       ]);
 
-      const [language, theme, showUsage, enableWorkflowEditor] =
+      const [language, theme, showUsage, enableWorkflowEditor, setupCompleted] =
         settingsResults;
 
       // Validate and set language
@@ -122,6 +126,7 @@ export const loadAppSettings = createAsyncThunk(
           showUsage: showUsage === 'true' || showUsage === null, // Default to true for developer mode
           enableWorkflowEditor: enableWorkflowEditor === 'true', // Default to false (disabled)
         },
+        setupCompleted: setupCompleted === 'true',
       };
     } catch (error) {
       console.error('Failed to load app settings from database:', error);
@@ -132,6 +137,7 @@ export const loadAppSettings = createAsyncThunk(
           showUsage: true,
           enableWorkflowEditor: false, // Default to false (disabled)
         },
+        setupCompleted: false,
       };
     }
   }
@@ -179,6 +185,7 @@ const initialState: UIState = {
     showUsage: false,
     enableWorkflowEditor: false,
   },
+  setupCompleted: false,
 };
 
 const uiSlice = createSlice({
@@ -302,6 +309,15 @@ const uiSlice = createSlice({
         );
       });
     },
+    setSetupCompleted: (state, action: PayloadAction<boolean>) => {
+      state.setupCompleted = action.payload;
+      invokeCommand(TauriCommands.SAVE_APP_SETTING, {
+        key: 'setupCompleted',
+        value: action.payload ? 'true' : 'false',
+      }).catch((error) => {
+        console.error('Failed to save setupCompleted to database:', error);
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -312,6 +328,7 @@ const uiSlice = createSlice({
         state.language = action.payload.language;
         state.theme = action.payload.theme;
         state.experiments = action.payload.experiments;
+        state.setupCompleted = action.payload.setupCompleted;
         state.loading = false;
       })
       .addCase(loadAppSettings.rejected, (state) => {
@@ -348,5 +365,6 @@ export const {
   setRightPanelOpen,
   setShowUsage,
   setEnableWorkflowEditor,
+  setSetupCompleted,
 } = uiSlice.actions;
 export default uiSlice.reducer;

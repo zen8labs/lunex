@@ -39,6 +39,7 @@ describe('uiSlice', () => {
       showUsage: false,
       enableWorkflowEditor: false,
     },
+    setupCompleted: false,
   };
 
   beforeEach(() => {
@@ -94,6 +95,7 @@ describe('uiSlice', () => {
         if (args.key === 'theme') return Promise.resolve('dark');
         if (args.key === 'showUsage') return Promise.resolve('true');
         if (args.key === 'enableWorkflowEditor') return Promise.resolve('true');
+        if (args.key === 'setupCompleted') return Promise.resolve('true');
         return Promise.resolve(null);
       });
 
@@ -105,6 +107,7 @@ describe('uiSlice', () => {
       expect(state.language).toBe('en');
       expect(state.theme).toBe('dark');
       expect(state.experiments.showUsage).toBe(true);
+      expect(state.setupCompleted).toBe(true);
     });
   });
 });

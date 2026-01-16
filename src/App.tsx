@@ -14,10 +14,13 @@ import { loadAppSettings } from '@/features/ui/state/uiSlice';
 import i18n from '@/i18n/config';
 import { useAutoUpdate } from '@/features/updater/hooks/useAutoUpdate';
 import { UpdateModal } from '@/features/updater/ui/UpdateModal';
+import { FirstRunSetup } from '@/features/ui/setup/FirstRunSetup';
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { language } = useAppSelector((state) => state.ui);
+  const { language, loading, setupCompleted } = useAppSelector(
+    (state) => state.ui
+  );
   const { theme } = useAppSelector((state) => state.ui);
 
   // Listen for notification events
@@ -118,6 +121,7 @@ function AppContent() {
         installUpdate={installUpdate}
         downloadProgress={downloadProgress}
       />
+      <FirstRunSetup open={!loading && !setupCompleted} />
     </>
   );
 }
