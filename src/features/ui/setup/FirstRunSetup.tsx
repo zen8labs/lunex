@@ -290,10 +290,10 @@ export function FirstRunSetup({ open }: { open: boolean }) {
   return (
     <Dialog open={open}>
       <DialogContent
-        className="sm:max-w-[600px] border-border/50 shadow-2xl p-0 gap-0 overflow-hidden"
+        className="sm:max-w-[600px] h-[650px] flex flex-col border-border/50 shadow-2xl p-0 gap-0 overflow-hidden"
         showCloseButton={false}
       >
-        <DialogHeader className="items-center pb-6 pt-10 text-center bg-muted/30 border-b border-border/40">
+        <DialogHeader className="items-center justify-center shrink-0 h-[220px] pb-6 pt-10 text-center bg-muted/30 border-b border-border/40">
           {step === 'welcome' && (
             <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-background shadow-sm ring-1 ring-border/50 animate-in zoom-in-50 duration-500">
               <Sparkles className="h-10 w-10 text-primary" />
@@ -314,9 +314,9 @@ export function FirstRunSetup({ open }: { open: boolean }) {
           </DialogDescription>
         </DialogHeader>
 
-        <DialogBody className="py-8 px-8 min-h-[300px] flex flex-col justify-center">
+        <DialogBody className="flex-1 py-8 px-8 flex flex-col justify-center overflow-y-auto">
           {step === 'welcome' && (
-            <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+            <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
               <Card className="border-border/50 bg-card/50 shadow-sm">
                 <CardHeader className="pb-3 pt-5 px-5">
                   <CardTitle className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
@@ -343,7 +343,7 @@ export function FirstRunSetup({ open }: { open: boolean }) {
           )}
 
           {step === 'installing' && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-8 duration-700">
               <RuntimeInstallCard
                 icon={<Cpu className="h-5 w-5" />}
                 title="Python Runtime"
@@ -360,7 +360,7 @@ export function FirstRunSetup({ open }: { open: boolean }) {
           )}
 
           {step === 'llm-setup' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
               <div className="grid gap-2">
                 <Label className="text-sm font-medium text-foreground">
                   AI Provider
