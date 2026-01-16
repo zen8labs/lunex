@@ -71,4 +71,15 @@ export const FLOW_NODES: FlowNodeType[] = [
       label: 'Decision?',
     },
   },
+  {
+    type: 'group',
+    label: 'Node Group',
+    description: 'Group multiple nodes together with a background color',
+    initialData: {
+      label: 'Group Name',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderColor: '#3b82f6',
+      opacity: 1,
+    },
+  },
 ];

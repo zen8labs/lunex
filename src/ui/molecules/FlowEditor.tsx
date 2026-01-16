@@ -33,6 +33,7 @@ import type { FlowData } from '@/features/chat/types';
 import {
   SimpleNode,
   RichNode,
+  GroupNode,
   ProcessNode,
   InputOutputNode,
   DecisionNode,
@@ -59,6 +60,7 @@ interface FlowEditorProps {
 const nodeTypes = {
   simple: SimpleNode,
   rich: RichNode,
+  group: GroupNode,
   start: StartEndNode,
   end: StartEndNode,
   process: ProcessNode,
@@ -272,6 +274,33 @@ const PropertyField = ({
     );
   }
 
+  // Special handling for 'borderColor' field
+  if (propertyKey === 'borderColor') {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+        <div className="flex gap-2">
+          <Input
+            id={`prop-${propertyKey}`}
+            type="color"
+            value={(value as string) || '#000000'}
+            onChange={(e) => onChange(propertyKey, e.target.value)}
+            disabled={readOnly}
+            className="h-9 w-20 cursor-pointer"
+          />
+          <Input
+            type="text"
+            value={(value as string) || ''}
+            onChange={(e) => onChange(propertyKey, e.target.value)}
+            disabled={readOnly}
+            placeholder="#000000"
+            className="flex-1 font-mono text-xs"
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Special handling for 'variant' field
   if (propertyKey === 'variant') {
     const variants = ['default', 'primary', 'danger', 'success', 'warning'];
@@ -425,6 +454,31 @@ const PropertyField = ({
         onChange={(newTags) => onChange(propertyKey, newTags)}
         readOnly={readOnly}
       />
+    );
+  }
+
+  // Special handling for 'opacity' field
+  if (propertyKey === 'opacity') {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <Label htmlFor={`prop-${propertyKey}`}>{label}</Label>
+          <span className="text-xs text-muted-foreground">
+            {Math.round((value as number) * 100)}%
+          </span>
+        </div>
+        <input
+          id={`prop-${propertyKey}`}
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          value={(value as number) || 1}
+          onChange={(e) => onChange(propertyKey, parseFloat(e.target.value))}
+          disabled={readOnly}
+          className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+        />
+      </div>
     );
   }
 
@@ -647,6 +701,10 @@ function FlowEditorInner({
             }),
             ...(nodeTemplate.style && { style: nodeTemplate.style }),
           },
+          ...(nodeTemplate.type === 'group' && {
+            style: { width: 400, height: 200, ...nodeTemplate.style },
+            zIndex: -1,
+          }),
         };
 
         setNodes((nds) => nds.concat(newNode));
