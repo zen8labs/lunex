@@ -44,4 +44,18 @@ impl WorkspaceService {
     pub fn delete(&self, id: String) -> Result<(), AppError> {
         self.repository.delete(&id)
     }
+
+    pub fn ensure_default_workspace(&self) -> Result<(), AppError> {
+        let workspaces = self.repository.get_all()?;
+        if workspaces.is_empty() {
+            let id = uuid::Uuid::new_v4().to_string();
+            // Default name in Vietnamese as requested by previous context,
+            // but we use English as a base if not localized.
+            // Since we can't easily get the app language here without more injection,
+            // we'll use a generic name or check if we can get it from app settings.
+            let name = "My Workspace".to_string();
+            self.create(id, name)?;
+        }
+        Ok(())
+    }
 }

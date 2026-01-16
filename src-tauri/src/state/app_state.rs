@@ -105,6 +105,8 @@ impl AppState {
 
         // Create services
         let workspace_service = Arc::new(WorkspaceService::new(workspace_repo));
+        workspace_service.ensure_default_workspace()?;
+
         let message_service = Arc::new(MessageService::new(message_repo));
         let workspace_settings_service =
             Arc::new(WorkspaceSettingsService::new(workspace_settings_repo));

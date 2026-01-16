@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { store } from '@/app/store';
 import { useAppSelector, useAppDispatch } from '@/app/hooks';
@@ -12,19 +11,14 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useMenuEvents } from '@/hooks/useMenuEvents';
 import { useChatStreaming } from '@/features/chat/hooks/useChatStreaming';
 import { loadAppSettings } from '@/features/ui/state/uiSlice';
-import { useWorkspaces } from '@/features/workspace';
 import i18n from '@/i18n/config';
 import { useAutoUpdate } from '@/features/updater/hooks/useAutoUpdate';
 import { UpdateModal } from '@/features/updater/ui/UpdateModal';
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { t } = useTranslation(['common']);
-  const language = useAppSelector((state) => state.ui.language);
-  const theme = useAppSelector((state) => state.ui.theme);
-  const loading = useAppSelector((state) => state.ui.loading);
-
-  const { workspaces, handleAddWorkspace } = useWorkspaces();
+  const { language } = useAppSelector((state) => state.ui);
+  const { theme } = useAppSelector((state) => state.ui);
 
   // Listen for notification events
   useNotificationListener();
@@ -42,15 +36,6 @@ function AppContent() {
   useEffect(() => {
     dispatch(loadAppSettings());
   }, [dispatch]);
-
-  // Create a default workspace if none exist after settings are loaded
-  useEffect(() => {
-    if (!loading && workspaces.length === 0) {
-      handleAddWorkspace(
-        t('onboarding.myFirstWorkspace', { defaultValue: 'My Workspace' })
-      );
-    }
-  }, [loading, workspaces.length, handleAddWorkspace, t]);
 
   // Sync Redux state with i18n when language changes
   useEffect(() => {

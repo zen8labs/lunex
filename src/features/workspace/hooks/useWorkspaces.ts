@@ -55,8 +55,11 @@ export function useWorkspaces() {
 
   // RTK Query Hooks
   // 1. Fetch Workspaces
-  const { data: workspacesData, error: _workspacesError } =
-    useGetWorkspacesQuery();
+  const {
+    data: workspacesData,
+    error: _workspacesError,
+    isLoading: isWorkspacesLoading,
+  } = useGetWorkspacesQuery();
 
   // 2. Fetch Last Workspace Setting (for init)
   const { data: lastWorkspaceId } = useGetAppSettingQuery('lastWorkspaceId');
@@ -114,15 +117,16 @@ export function useWorkspaces() {
 
   // Handle Workspace Initialization (Last Selected)
   useEffect(() => {
-    // If we have workspaces, and no selected workspace, and we know the last workspace ID
     if (workspacesData && workspacesData.length > 0 && !selectedWorkspaceId) {
       if (
         lastWorkspaceId &&
         workspacesData.some((w) => w.id === lastWorkspaceId)
       ) {
         dispatch(setSelectedWorkspace(lastWorkspaceId));
+      } else {
+        // Fallback to first workspace if no last selected or last selected is invalid
+        dispatch(setSelectedWorkspace(workspacesData[0].id));
       }
-      // No fallback to first - let App.tsx handle default workspace creation
     }
   }, [workspacesData, lastWorkspaceId, selectedWorkspaceId, dispatch]);
 
@@ -262,6 +266,7 @@ export function useWorkspaces() {
     workspaces: workspacesData || workspacesFromSlice, // Prefer query data
     selectedWorkspace,
     selectedWorkspaceId,
+    isLoading: isWorkspacesLoading,
     workspaceSettings: useAppSelector(
       (state) => state.workspaceSettings.settingsByWorkspaceId
     ), // Return slice/map for compatibility
