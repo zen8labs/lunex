@@ -223,6 +223,9 @@ impl MCPClientService {
                 let config = AddonIndex::default();
                 for full_version in config.addons.nodejs.versions.iter().rev() {
                     if let Ok(rt) = NodeRuntime::detect(app, full_version) {
+                        // Get the bin directory containing node
+                        let node_bin_dir = rt.node_path.parent().map(|p| p.to_path_buf());
+
                         if command == "node" {
                             command = rt.node_path.to_string_lossy().to_string();
                         } else {
@@ -240,6 +243,26 @@ impl MCPClientService {
                                 }
                             }
                         }
+
+                        // Add node bin directory to PATH so npx/npm can find node
+                        // This is required because npx uses #!/usr/bin/env node shebang
+                        if let Some(bin_dir) = node_bin_dir {
+                            let bin_dir_str = bin_dir.to_string_lossy().to_string();
+                            let new_path = if let Ok(current_path) = std::env::var("PATH") {
+                                format!("{bin_dir_str}:{current_path}")
+                            } else {
+                                bin_dir_str
+                            };
+
+                            if let Some(vars) = &mut env_vars {
+                                vars.insert("PATH".to_string(), new_path);
+                            } else {
+                                let mut vars = HashMap::new();
+                                vars.insert("PATH".to_string(), new_path);
+                                env_vars = Some(vars);
+                            }
+                        }
+
                         break;
                     }
                 }
