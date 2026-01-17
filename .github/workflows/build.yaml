@@ -81,19 +81,50 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Nexo __VERSION__'
           releaseBody: |
-            ### Phiên bản mới v0.1.0-alpha.52 có gì mới?
+            # 🎉 Nexo v0.1.0-beta.1 - First Beta Release!
 
-            🌍 **Hỗ trợ đa ngôn ngữ (i18n)**
-            - Flow Editor giờ đây đã hỗ trợ đa ngôn ngữ (Tiếng Anh & Tiếng Việt).
-            - Các thành phần, thuộc tính node và nhãn đều được dịch đầy đủ.
+            Chào mừng đến với phiên bản Beta đầu tiên của Nexo! Sau 52 phiên bản alpha, chúng tôi tự hào giới thiệu một sản phẩm ổn định và đầy đủ tính năng, sẵn sàng cho người dùng thử nghiệm rộng rãi.
 
-            ✨ **Cải tiến Giao diện & Trải nghiệm**
-            - **Cài đặt lần đầu (First Run Setup)**: Giao diện mới mượt mà hơn, kết nối LLM trước khi cài đặt runtime để trải nghiệm tốt hơn.
-            - **Thanh bên cài đặt**: Thêm chỉ báo active giúp dễ dàng nhận biết mục đang chọn.
-            - **Quản lý Runtime**: Cơ chế cài đặt và kiểm tra runtime thông minh hơn.
+            ## ✨ Điểm nổi bật
 
-            🛠 **Sửa lỗi**
-            - Sửa lỗi hiển thị thừa ký tự trong giao diện cài đặt Addon.
+            ### 🤖 Hỗ trợ đa LLM toàn diện
+            - Kết nối với tất cả các nhà cung cấp AI hàng đầu: OpenAI, Anthropic, Google Gemini, Ollama, LM Studio, và nhiều hơn nữa
+            - Tự động cấu hình URL mặc định thông minh
+            - Quản lý nhiều kết nối đồng thời
+
+            ### 🔌 Tích hợp MCP (Model Context Protocol)
+            - Hỗ trợ đầy đủ MCP servers và tools
+            - Mở rộng khả năng của AI với các công cụ bên ngoài
+
+            ### 📝 Trình chỉnh sửa Flow mạnh mẽ
+            - Tạo workflow trực quan với drag-and-drop
+            - Node Groups với tùy chỉnh màu sắc và độ trong suốt
+            - Property panel thông minh
+
+            ### 🌐 Đa ngôn ngữ (i18n)
+            - Hỗ trợ Tiếng Việt và English
+            - Tự động phát hiện ngôn ngữ hệ thống
+
+            ### 🎨 Giao diện Premium
+            - Thiết kế hiện đại với dark mode
+            - First-run setup được làm mới hoàn toàn
+            - Animations mượt mà và responsive
+
+            ### 🔐 Bảo mật \u0026 Riêng tư
+            - Dữ liệu lưu trữ 100% local
+            - Không thu thập thông tin người dùng
+            - Mã nguồn mở, minh bạch
+
+            ## 🐛 Sửa lỗi gần đây
+            - Cải thiện hiển thị runtime trong Addon Settings
+            - Sửa lỗi chat input model list
+            - Các cải tiến UI/UX khác
+
+            ---
+
+            **Lưu ý**: Đây là phiên bản Beta, có thể còn một số lỗi chưa được phát hiện. Vui lòng báo cáo issues tại: https://github.com/Nexo-Agent/nexo/issues
+
+            Cảm ơn bạn đã sử dụng Nexo! 🙏
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
