@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import {
   ReactFlow,
   Background,
@@ -76,20 +78,28 @@ interface NodeItemProps {
 }
 
 const NodeItem = ({ node, readOnly, onDoubleClick }: NodeItemProps) => {
+  const { t } = useTranslation(['flow']);
+  const label = t(`nodes.${node.type}`, { defaultValue: node.label });
+  const description = t(`nodeDescriptions.${node.type}`, {
+    defaultValue: node.description,
+  });
+
   return (
     <div
       className={cn(
-        'p-3 border rounded-md bg-card shadow-sm transition-all select-none',
+        'p-3 border rounded-md bg-card shadow-sm transition-all select-none flex flex-col gap-1',
         readOnly
           ? 'cursor-not-allowed opacity-70'
-          : 'cursor-pointer hover:bg-accent hover:border-primary/50'
+          : 'cursor-pointer hover:bg-accent hover:ring-1 hover:ring-primary/20 hover:border-primary/50'
       )}
       onDoubleClick={onDoubleClick}
     >
-      <div className="text-sm font-medium">{node.label}</div>
-      <div className="text-xs text-muted-foreground mt-1">
-        Double-click to add
-      </div>
+      <div className="text-sm font-semibold tracking-tight">{label}</div>
+      {description && (
+        <div className="text-[11px] text-muted-foreground leading-snug line-clamp-2">
+          {description}
+        </div>
+      )}
     </div>
   );
 };
@@ -106,9 +116,12 @@ const NodePalette = ({
   readOnly,
   onNodeDoubleClick,
 }: NodePaletteProps) => {
+  const { t } = useTranslation(['flow']);
+
   return (
     <aside className="w-56 border-r bg-background flex flex-col h-full shrink-0">
-      <div className="p-4 font-semibold border-b">Components</div>
+      <div className="p-4 font-semibold border-b">{t('components')}</div>
+
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-3">
           {nodes.map((node) => (
@@ -148,6 +161,7 @@ interface TagsFieldProps {
 }
 
 const TagsField = ({ label, tags, onChange, readOnly }: TagsFieldProps) => {
+  const { t } = useTranslation(['flow']);
   const [newTag, setNewTag] = useState('');
 
   return (
@@ -189,7 +203,7 @@ const TagsField = ({ label, tags, onChange, readOnly }: TagsFieldProps) => {
                   setNewTag('');
                 }
               }}
-              placeholder="Add tag (press Enter)"
+              placeholder={t('addTagPlaceholder')}
               className="h-8 text-xs"
             />
           </div>
@@ -215,10 +229,19 @@ const PropertyField = ({
   onChange,
   readOnly,
 }: PropertyFieldProps) => {
-  const label = propertyKey
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (str) => str.toUpperCase())
-    .trim();
+  const { t } = useTranslation(['flow', 'common']);
+
+  // Try to translate the property key if it's a known one
+  const translatedLabel = t(`propertyLabels.${propertyKey}`, {
+    defaultValue: '',
+  });
+
+  const label =
+    translatedLabel ||
+    propertyKey
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase())
+      .trim();
 
   // Special handling for 'backgroundColor' field
   if (propertyKey === 'backgroundColor') {
@@ -313,8 +336,9 @@ const PropertyField = ({
           disabled={readOnly}
         >
           <SelectTrigger id={`prop-${propertyKey}`} className="w-full">
-            <SelectValue placeholder="Select variant" />
+            <SelectValue placeholder={t('selectVariant')} />
           </SelectTrigger>
+
           <SelectContent>
             {variants.map((variant) => (
               <SelectItem key={variant} value={variant}>
@@ -339,8 +363,9 @@ const PropertyField = ({
           disabled={readOnly}
         >
           <SelectTrigger id={`prop-${propertyKey}`} className="w-full">
-            <SelectValue placeholder="Select status" />
+            <SelectValue placeholder={t('selectStatus')} />
           </SelectTrigger>
+
           <SelectContent>
             {statuses.map((status) => (
               <SelectItem key={status} value={status}>
@@ -365,8 +390,9 @@ const PropertyField = ({
           disabled={readOnly}
         >
           <SelectTrigger id={`prop-${propertyKey}`} className="w-full">
-            <SelectValue placeholder="Select position" />
+            <SelectValue placeholder={t('selectPosition')} />
           </SelectTrigger>
+
           <SelectContent>
             {positions.map((position) => (
               <SelectItem key={position} value={position}>
@@ -402,8 +428,9 @@ const PropertyField = ({
                     htmlFor={`handle-${key}`}
                     className="text-sm cursor-pointer capitalize"
                   >
-                    {key}
+                    {t(`propertyLabels.${key}`, { defaultValue: key })}
                   </Label>
+
                   <Switch
                     id={`handle-${key}`}
                     checked={(handleValue as boolean) ?? true}
@@ -421,8 +448,9 @@ const PropertyField = ({
                     htmlFor={`handle-${key}`}
                     className="text-xs capitalize"
                   >
-                    {key}
+                    {t(`propertyLabels.${key}`, { defaultValue: key })}
                   </Label>
+
                   <Input
                     id={`handle-${key}`}
                     value={(handleValue as string) || ''}
@@ -433,7 +461,7 @@ const PropertyField = ({
                       })
                     }
                     disabled={readOnly}
-                    placeholder={`Enter ${key}`}
+                    placeholder={t('enterHandle', { key })}
                     className="h-8 text-xs"
                   />
                 </div>
@@ -462,7 +490,7 @@ const PropertyField = ({
     return (
       <div className="space-y-2">
         <div className="flex justify-between">
-          <Label htmlFor={`prop-${propertyKey}`}>Background Alpha</Label>
+          <Label htmlFor={`prop-${propertyKey}`}>{t('backgroundAlpha')}</Label>
           <span className="text-xs text-muted-foreground">
             {Math.round((value as number) * 100)}%
           </span>
@@ -493,7 +521,7 @@ const PropertyField = ({
             value={(value as string) || ''}
             onChange={(e) => onChange(propertyKey, e.target.value)}
             disabled={readOnly}
-            placeholder={`Enter ${label.toLowerCase()}`}
+            placeholder={label}
           />
         </div>
       );
@@ -508,7 +536,7 @@ const PropertyField = ({
             value={(value as number) || 0}
             onChange={(e) => onChange(propertyKey, parseFloat(e.target.value))}
             disabled={readOnly}
-            placeholder={`Enter ${label.toLowerCase()}`}
+            placeholder={label}
           />
         </div>
       );
@@ -544,13 +572,11 @@ const PropertyField = ({
               }
             }}
             disabled={readOnly}
-            placeholder={`JSON object for ${label.toLowerCase()}`}
+            placeholder={label}
             className="font-mono text-xs"
             rows={4}
           />
-          <p className="text-xs text-muted-foreground">
-            Edit as JSON (must be valid)
-          </p>
+          <p className="text-xs text-muted-foreground">{t('editJsonTip')}</p>
         </div>
       );
 
@@ -576,12 +602,14 @@ const PropertyPanel = ({
   onNodeUpdate: (id: string, data: Record<string, unknown>) => void;
   readOnly: boolean;
 }) => {
+  const { t } = useTranslation(['flow']);
+
   if (!selectedNode) {
     return (
       <aside className="w-72 border-l bg-background flex flex-col h-full">
-        <div className="p-4 font-semibold border-b">Properties</div>
+        <div className="p-4 font-semibold border-b">{t('properties')}</div>
         <div className="flex-1 flex items-center justify-center p-8 text-center text-muted-foreground text-sm">
-          Select a node to view or edit properties
+          {t('selectNodePrompt')}
         </div>
       </aside>
     );
@@ -605,13 +633,17 @@ const PropertyPanel = ({
 
   return (
     <aside className="w-72 border-l bg-background flex flex-col h-full">
-      <div className="p-4 font-semibold border-b">Properties</div>
+      <div className="p-4 font-semibold border-b">{t('properties')}</div>
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
           {/* Node Type - Read Only */}
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Type</Label>
-            <div className="font-medium capitalize">{selectedNode.type}</div>
+            <Label className="text-xs text-muted-foreground">{t('type')}</Label>
+            <div className="font-medium capitalize">
+              {t(`nodes.${selectedNode.type}`, {
+                defaultValue: selectedNode.type,
+              })}
+            </div>
           </div>
 
           <Separator />
@@ -630,7 +662,7 @@ const PropertyPanel = ({
             ))
           ) : (
             <div className="text-sm text-muted-foreground italic">
-              No properties to display
+              {t('noProperties')}
             </div>
           )}
         </div>
@@ -647,6 +679,8 @@ function FlowEditorInner({
   readOnly = false,
   className,
 }: FlowEditorProps) {
+  const { t } = useTranslation(['flow']);
+
   const [nodes, setNodes, onNodesChange] = useNodesState(
     initialFlow?.nodes || []
   );
@@ -662,11 +696,11 @@ function FlowEditorInner({
     () => [
       {
         type: 'simple',
-        label: 'Simple Node',
-        initialData: { label: 'Simple Node' },
+        label: t('nodes.simple'),
+        initialData: { label: t('nodes.simple') },
       },
     ],
-    []
+    [t]
   );
 
   const nodeLibrary =

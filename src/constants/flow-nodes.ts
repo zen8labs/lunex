@@ -13,10 +13,10 @@ export const FLOW_NODES: FlowNodeType[] = [
   },
   {
     type: 'rich',
-    label: 'Database Node',
-    description: 'Database operation node with full features',
+    label: 'Rich node',
+    description: 'Rich node with full features',
     initialData: {
-      label: 'Database Query',
+      label: 'Rich Node',
       description: 'Execute SQL query',
       icon: '🗄️',
       variant: 'default',

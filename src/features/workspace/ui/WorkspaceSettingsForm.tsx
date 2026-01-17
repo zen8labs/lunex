@@ -921,8 +921,8 @@ export function WorkspaceSettingsForm({
 
               {/* Danger Zone Section */}
               <div className="space-y-4 pt-4">
-                <div className="flex items-center gap-2 px-1">
-                  <div className="h-4 w-1 bg-destructive rounded-full" />
+                <div className="relative flex items-center gap-2.5 px-0.5">
+                  <div className="h-5 w-[3px] bg-destructive rounded-full" />
                   <h3 className="text-base font-semibold text-foreground">
                     {t('dangerZone', { ns: 'settings' })}
                   </h3>

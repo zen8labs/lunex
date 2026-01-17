@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+
 import {
   Dialog,
   DialogContent,
@@ -7,6 +9,7 @@ import {
   DialogFooter,
 } from '@/ui/atoms/dialog';
 import { Button } from '@/ui/atoms/button/button';
+import { Badge } from '@/ui/atoms/badge';
 import { FlowEditor, type FlowNodeType } from './FlowEditor';
 import type { FlowData } from '@/features/chat/types';
 
@@ -27,6 +30,7 @@ export function FlowEditorDialog({
   onSave,
   readOnly = false,
 }: FlowEditorDialogProps) {
+  const { t } = useTranslation(['flow', 'common']);
   const [currentFlow, setCurrentFlow] = useState<FlowData | null>(
     initialFlow || null
   );
@@ -46,7 +50,15 @@ export function FlowEditorDialog({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="!max-w-none w-[98vw] max-h-[95vh] h-[95vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Workflow Editor</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {t('workflowEditor')}
+            <Badge
+              variant="outline"
+              className="bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 text-[10px] px-1.5 py-0 font-bold uppercase tracking-wider"
+            >
+              {t('experimental')}
+            </Badge>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 min-h-0">
@@ -62,16 +74,16 @@ export function FlowEditorDialog({
         {!readOnly ? (
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="button" onClick={handleSave}>
-              OK
+              {t('common:confirm')}
             </Button>
           </DialogFooter>
         ) : (
           <DialogFooter>
             <Button type="button" onClick={onClose}>
-              Close
+              {t('common:close')}
             </Button>
           </DialogFooter>
         )}

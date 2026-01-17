@@ -5,21 +5,25 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import enCommon from './locales/en/common.json';
 import enChat from './locales/en/chat.json';
 import enSettings from './locales/en/settings.json';
+import enFlow from './locales/en/flow.json';
 
 import viCommon from './locales/vi/common.json';
 import viChat from './locales/vi/chat.json';
 import viSettings from './locales/vi/settings.json';
+import viFlow from './locales/vi/flow.json';
 
 const resources = {
   en: {
     common: enCommon,
     chat: enChat,
     settings: enSettings,
+    flow: enFlow,
   },
   vi: {
     common: viCommon,
     chat: viChat,
     settings: viSettings,
+    flow: viFlow,
   },
 };
 
