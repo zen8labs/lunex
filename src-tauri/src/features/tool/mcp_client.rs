@@ -234,7 +234,8 @@ impl MCPClientService {
                                     command.clone()
                                 };
                                 let binary_path = parent.join(&binary_name);
-                                if binary_path.exists() {
+                                // Check both exists() and symlink_metadata() to handle symlinks in production
+                                if binary_path.exists() || binary_path.symlink_metadata().is_ok() {
                                     command = binary_path.to_string_lossy().to_string();
                                 }
                             }
