@@ -112,12 +112,14 @@ export function HeadersEditor({
                   onChange={(e) => handleKeyChange(index, e.target.value)}
                   placeholder={placeholderKey || t('headerKeyPlaceholder')}
                   className="h-8 text-sm"
+                  aria-label="headerKey"
                 />
                 <Input
                   value={header.value}
                   onChange={(e) => handleValueChange(index, e.target.value)}
                   placeholder={placeholderValue || t('headerValuePlaceholder')}
                   className="h-8 text-sm"
+                  aria-label="headerValue"
                 />
               </div>
               <Button

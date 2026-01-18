@@ -32,27 +32,7 @@ vi.mock('@/ui/atoms/button/button', () => ({
 }));
 
 vi.mock('@/ui/atoms/input', () => ({
-  Input: ({
-    id,
-    value,
-    onChange,
-    placeholder,
-    className,
-  }: {
-    id?: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-    className?: string;
-  }) => (
-    <input
-      id={id}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className={className}
-    />
-  ),
+  Input: (props: any) => <input {...props} />,
 }));
 
 vi.mock('@/ui/atoms/label', () => ({
@@ -74,7 +54,10 @@ describe('HeadersEditor', () => {
 
   it('renders empty state', () => {
     render(<HeadersEditor onChange={mockOnChange} />);
-    expect(screen.getByText('noHeaders')).toBeInTheDocument();
+    expect(screen.getByText('headersOptional')).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('headerKeyPlaceholder')
+    ).not.toBeInTheDocument();
   });
 
   it('renders initial headers from value', () => {
@@ -88,7 +71,7 @@ describe('HeadersEditor', () => {
   it('adds a new header when plus button is clicked', () => {
     render(<HeadersEditor onChange={mockOnChange} />);
 
-    // Click plus button in empty state
+    // Click plus button
     const addButton = screen.getByTestId('plus-icon').closest('button');
     if (addButton) fireEvent.click(addButton);
 
@@ -104,7 +87,7 @@ describe('HeadersEditor', () => {
     if (removeButton) fireEvent.click(removeButton);
 
     expect(mockOnChange).toHaveBeenCalledWith(undefined);
-    expect(screen.getByText('noHeaders')).toBeInTheDocument();
+    expect(screen.queryByLabelText('headerKey')).not.toBeInTheDocument();
   });
 
   it('calls onChange when key or value changes', () => {
