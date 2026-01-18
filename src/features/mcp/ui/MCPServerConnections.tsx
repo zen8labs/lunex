@@ -290,7 +290,7 @@ export function MCPServerConnections() {
                 className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
               >
                 {/* Subtle gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
                 <div className="relative space-y-3">
                   {/* Header with icon and name */}
@@ -593,29 +593,34 @@ function MCPServerConnectionDialog({
           onSubmit={handleSubmit}
           className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
-          <DialogBody className="[&>div]:px-0 [&>div]:py-0 overflow-hidden">
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="space-y-4 px-4 py-2 pb-6">
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="mcp-name">{t('connectionName')}</Label>
+          <DialogBody className="[&>div]:px-0 [&>div]:py-0">
+            <div className="space-y-6 px-4 py-2 pb-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="mcp-name" className="text-sm font-medium">
+                    {t('connectionName')}
+                  </Label>
                   <Input
                     id="mcp-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('mcpConnectionNamePlaceholder')}
-                    className="w-full"
+                    className="w-full h-9"
                     required
                   />
                 </div>
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="mcp-type">{t('type')}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="mcp-type" className="text-sm font-medium">
+                    {t('type')}
+                  </Label>
                   <Select
                     value={type}
                     onValueChange={(
                       value: 'sse' | 'stdio' | 'http-streamable'
                     ) => setType(value)}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger id="mcp-type" className="w-full h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -627,18 +632,23 @@ function MCPServerConnectionDialog({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
+              {/* Runtime and Command Support */}
+              <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
                 {showRuntimeSelector &&
                   (runtimesLoading ? (
                     <RuntimeSelectorSkeleton />
                   ) : hasInstalledRuntimes ? (
                     <div className="space-y-2 w-full">
-                      <Label>{t('runtimeEnvironment')}</Label>
+                      <Label className="text-sm font-medium">
+                        {t('runtimeEnvironment')}
+                      </Label>
                       <Select
                         value={selectedRuntime}
                         onValueChange={handleRuntimeChange}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full h-9 bg-background">
                           <SelectValue placeholder={t('systemDefault')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -665,7 +675,7 @@ function MCPServerConnectionDialog({
                   ) : null)}
 
                 <div className="space-y-2 w-full">
-                  <Label htmlFor="mcp-url">
+                  <Label htmlFor="mcp-url" className="text-sm font-medium">
                     {type === 'stdio'
                       ? runtimePrefix
                         ? t('mcpArguments')
@@ -674,7 +684,7 @@ function MCPServerConnectionDialog({
                   </Label>
                   <div className="flex gap-2 items-center">
                     {type === 'stdio' && runtimePrefix && (
-                      <span className="bg-muted px-3 py-2 rounded-md text-sm font-mono border whitespace-nowrap">
+                      <span className="bg-muted px-2.5 py-1.5 rounded-md text-xs font-mono border whitespace-nowrap">
                         {runtimePrefix}
                       </span>
                     )}
@@ -689,22 +699,16 @@ function MCPServerConnectionDialog({
                             : t('stdioUrlPlaceholder')
                           : t('sseUrlPlaceholder')
                       }
-                      className="w-full"
+                      className="w-full h-9 bg-background"
                       required
                     />
                   </div>
                 </div>
-                {showHeaders && (
-                  <div className="w-full">
-                    <HeadersEditor
-                      value={headers}
-                      onChange={handleHeadersChange}
-                    />
-                  </div>
-                )}
 
                 {showEnvVars && (
-                  <div className="w-full">
+                  <div
+                    className={`w-full ${envVars ? 'border-t pt-4 mt-2' : 'mt-2'}`}
+                  >
                     <HeadersEditor
                       value={envVars}
                       onChange={handleEnvVarsChange}
@@ -713,9 +717,6 @@ function MCPServerConnectionDialog({
                       })}
                       placeholderKey="VAR_NAME"
                       placeholderValue="value"
-                      emptyText={t('noEnvVars', {
-                        defaultValue: 'No environment variables',
-                      })}
                       helperText={t('envVarsInfo', {
                         defaultValue:
                           'Passed as environment variables to the stdio process.',
@@ -724,29 +725,39 @@ function MCPServerConnectionDialog({
                   </div>
                 )}
 
-                {/* Info message */}
-                <div className="text-sm text-muted-foreground">
-                  {t('mcpAutoConnectInfo')}
-                </div>
+                {showHeaders && (
+                  <div
+                    className={`w-full ${headers ? 'border-t pt-4 mt-2' : 'mt-2'}`}
+                  >
+                    <HeadersEditor
+                      value={headers}
+                      onChange={handleHeadersChange}
+                    />
+                  </div>
+                )}
+              </div>
 
-                {/* Tools List - Show if connection exists and has tools */}
+              {/* Tools List */}
+              <ScrollArea className="space-y-4 border-t pt-4 h-full">
                 {connection?.tools && connection.tools.length > 0 && (
-                  <div className="space-y-2 w-full">
-                    <Label>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
                       {t('toolsList', { count: connection.tools.length })}
                     </Label>
-                    <div className="rounded-md border p-3 bg-muted/20">
-                      <div className="space-y-1">
+                    <div className="rounded-md border bg-muted/20 overflow-hidden">
+                      <div className="max-h-[200px] overflow-y-auto divide-y divide-border">
                         {connection.tools.map((tool, index) => (
                           <div
                             key={index}
-                            className="flex flex-col gap-1 rounded-md bg-muted/50 px-2 py-1.5 text-sm"
+                            className="px-3 py-2 text-sm hover:bg-muted/30 transition-colors"
                           >
-                            <span className="font-medium">{tool.name}</span>
+                            <div className="font-medium text-foreground">
+                              {tool.name}
+                            </div>
                             {tool.description && (
-                              <span className="text-xs text-muted-foreground wrap-break-word">
+                              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                                 {tool.description}
-                              </span>
+                              </div>
                             )}
                           </div>
                         ))}
@@ -754,8 +765,8 @@ function MCPServerConnectionDialog({
                     </div>
                   </div>
                 )}
-              </div>
-            </ScrollArea>
+              </ScrollArea>
+            </div>
           </DialogBody>
           <DialogFooter className="shrink-0 flex flex-row gap-2 border-t pt-4">
             <Button type="submit" className="flex-1">

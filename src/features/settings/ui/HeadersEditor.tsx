@@ -16,7 +16,6 @@ interface HeadersEditorProps {
   label?: string;
   placeholderKey?: string;
   placeholderValue?: string;
-  emptyText?: string;
   helperText?: string;
 }
 
@@ -39,7 +38,6 @@ export function HeadersEditor({
   label,
   placeholderKey,
   placeholderValue,
-  emptyText,
   helperText,
 }: HeadersEditorProps) {
   const { t } = useTranslation('settings');
@@ -87,86 +85,62 @@ export function HeadersEditor({
   };
 
   return (
-    <div className="space-y-3">
-      <Label>{label || t('headersOptional')}</Label>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          {label || t('headersOptional')}
+        </Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleAdd}
+          className="h-7 py-0 px-2 text-xs hover:bg-muted"
+        >
+          <Plus className="mr-1 size-3" />
+          {t('add', { defaultValue: 'Add' })}
+        </Button>
+      </div>
 
-      {headers.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-4 text-center">
-          <p className="text-sm text-muted-foreground mb-3">
-            {emptyText || t('noHeaders')}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleAdd}
-            className="h-9 w-9"
-          >
-            <Plus className="size-4" />
-          </Button>
-        </div>
-      ) : (
+      {headers.length > 0 && (
         <div className="space-y-2">
           {headers.map((header, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 rounded-lg border p-3"
-            >
-              <div className="flex-1 grid grid-cols-2 gap-2 w-full">
-                <div className="space-y-1 w-full">
-                  <Label htmlFor={`header-key-${index}`} className="text-xs">
-                    {t('headerKey')}
-                  </Label>
-                  <Input
-                    id={`header-key-${index}`}
-                    value={header.key}
-                    onChange={(e) => handleKeyChange(index, e.target.value)}
-                    placeholder={placeholderKey || t('headerKeyPlaceholder')}
-                    className="h-9 w-full"
-                  />
-                </div>
-                <div className="space-y-1 w-full">
-                  <Label htmlFor={`header-value-${index}`} className="text-xs">
-                    {t('headerValue')}
-                  </Label>
-                  <Input
-                    id={`header-value-${index}`}
-                    value={header.value}
-                    onChange={(e) => handleValueChange(index, e.target.value)}
-                    placeholder={
-                      placeholderValue || t('headerValuePlaceholder')
-                    }
-                    className="h-9 w-full"
-                  />
-                </div>
+            <div key={index} className="flex items-center gap-2 group">
+              <div className="flex-1 grid grid-cols-2 gap-2">
+                <Input
+                  value={header.key}
+                  onChange={(e) => handleKeyChange(index, e.target.value)}
+                  placeholder={placeholderKey || t('headerKeyPlaceholder')}
+                  className="h-8 text-sm"
+                />
+                <Input
+                  value={header.value}
+                  onChange={(e) => handleValueChange(index, e.target.value)}
+                  placeholder={placeholderValue || t('headerValuePlaceholder')}
+                  className="h-8 text-sm"
+                />
               </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemove(index)}
-                className="h-9 w-9 shrink-0"
+                className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
               >
-                <Trash2 className="size-4 text-destructive" />
+                <Trash2 className="size-3.5 text-destructive" />
               </Button>
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleAdd}
-            className="h-9 w-full"
-          >
-            <Plus className="size-4" />
-          </Button>
+          {helperText !== undefined ? (
+            <p className="text-[10px] text-muted-foreground italic px-1">
+              {helperText}
+            </p>
+          ) : (
+            <p className="text-[10px] text-muted-foreground italic px-1">
+              {t('headersInfo')}
+            </p>
+          )}
         </div>
-      )}
-
-      {helperText !== undefined ? (
-        <p className="text-xs text-muted-foreground">{helperText}</p>
-      ) : (
-        <p className="text-xs text-muted-foreground">{t('headersInfo')}</p>
       )}
     </div>
   );

@@ -124,23 +124,47 @@ export function InstallMCPServerDialog({
 
         <DialogBody className="overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="space-y-4 pr-4">
-              <div className="space-y-2">
-                <Label>
-                  {t('serverType', { defaultValue: 'Server Type' })}
-                </Label>
-                <p className="text-sm font-mono bg-muted px-3 py-2 rounded">
-                  {server.type.toUpperCase()}
-                </p>
+            <div className="space-y-6 pr-4 pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5 p-3 rounded-lg border bg-muted/30">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('serverType', { defaultValue: 'Server Type' })}
+                  </Label>
+                  <p className="text-sm font-mono font-medium">
+                    {server.type.toUpperCase()}
+                  </p>
+                </div>
+                <div className="space-y-1.5 p-3 rounded-lg border bg-muted/30">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('serverId', { defaultValue: 'Server ID' })}
+                  </Label>
+                  <p className="text-sm font-mono truncate">{server.id}</p>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label>
+                <Label className="text-sm font-medium">
                   {t('serverConfig', { defaultValue: 'Server Configuration' })}
                 </Label>
-                <pre className="text-xs font-mono bg-muted p-3 rounded overflow-auto max-h-[300px]">
-                  {formatConfigPreview()}
-                </pre>
+                <div className="relative group">
+                  <pre className="text-xs font-mono bg-zinc-950 text-zinc-300 p-4 rounded-lg overflow-auto max-h-[250px] border border-zinc-800">
+                    {formatConfigPreview()}
+                  </pre>
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700">
+                      JS
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-lg p-4">
+                <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
+                  {t('installNote', {
+                    defaultValue:
+                      'Note: After installation, you can configure additional environment variables and headers in the connection settings.',
+                  })}
+                </p>
               </div>
             </div>
           </ScrollArea>
