@@ -81,21 +81,16 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Nexo __VERSION__'
           releaseBody: |
-            # Nexo v0.1.0-beta.4 - MCP Server Fix
+            # Nexo v0.1.0-beta.5
 
-            Bản cập nhật quan trọng khắc phục lỗi khởi chạy MCP server trong môi trường production.
+            ## Improvements
 
-            ## 🛠️ Sửa lỗi
-
-            ### MCP Client Stability
-            - ✅ Khắc phục lỗi "env: node: No such file or directory" khi chạy các MCP server dựa trên Node.js (`npx`, `npm`).
-            - ✅ Ứng dụng giờ đây tự động thêm thư mục chứa Node.js bundled vào biến môi trường PATH, cho phép npx scripts tìm thấy node executable.
+            - Improved MCP connection form layout with better organization and styling
+            - Automated Homebrew formula updates for macOS releases
 
             ---
 
-            **Lưu ý**: Bản cập nhật này đặc biệt quan trọng cho người dùng muốn sử dụng tính năng MCP với các công cụ như Playwright, Smithery, v.v.
-
-            Báo cáo issues tại: https://github.com/Nexo-Agent/nexo/issues
+            Report issues at: https://github.com/Nexo-Agent/nexo/issues
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
