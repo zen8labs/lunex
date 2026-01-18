@@ -256,10 +256,10 @@ impl OpenAIProvider {
                     Ok(data) => {
                         // Determine event type: check "event:" line first, then "type" field in JSON
                         let type_from_data = data.get("type").and_then(|s| s.as_str());
-                        let effective_event_type = if !event_type.is_empty() {
-                            event_type.as_str()
-                        } else {
+                        let effective_event_type = if event_type.is_empty() {
                             type_from_data.unwrap_or("unknown")
+                        } else {
+                            event_type.as_str()
                         };
 
                         // Log for debugging
