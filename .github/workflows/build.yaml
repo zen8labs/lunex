@@ -99,3 +99,16 @@ jobs:
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
+
+      - name: Trigger Homebrew update
+        if: matrix.platform == 'macos-latest'
+        run: |
+          curl -X POST https://api.github.com/Nexo-Agent/homebrew-nexo/dispatches \
+            -H "Authorization: token ${{ secrets.PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{
+              "event_type": "tauri-release",
+              "client_payload": {
+                "version": "${{ github.ref_name }}"
+              }
+            }'
