@@ -178,8 +178,7 @@ impl ChatService {
                 .and_then(|v| v.as_str())
                 .unwrap_or("default");
             description.push_str(&format!(
-                "- {} (Label: {}, Type: {})\n",
-                id, label, node_type
+                "- {id} (Label: {label}, Type: {node_type})\n"
             ));
         }
 
@@ -190,7 +189,7 @@ impl ChatService {
             for edge in edges {
                 let source = edge.get("source").and_then(|v| v.as_str()).unwrap_or("?");
                 let target = edge.get("target").and_then(|v| v.as_str()).unwrap_or("?");
-                description.push_str(&format!("- {} -> {}\n", source, target));
+                description.push_str(&format!("- {source} -> {target}\n"));
             }
         }
         description.push_str("[End Flow]\n");
@@ -699,7 +698,7 @@ impl ChatService {
         )?;
 
         // 10. Determine if streaming is enabled
-        let stream_enabled = workspace_settings.stream_enabled.map_or(true, |v| v == 1); // Default to true
+        let stream_enabled = workspace_settings.stream_enabled.is_none_or(|v| v == 1); // Default to true
 
         let tool_choice: Option<ToolChoice> = None; // Use "auto" by default
 
@@ -994,7 +993,7 @@ impl ChatService {
             .or(llm_connection.default_model.clone())
             .ok_or_else(|| AppError::Validation("No model selected".to_string()))?;
 
-        let stream_enabled = workspace_settings.stream_enabled.map_or(true, |v| v == 1);
+        let stream_enabled = workspace_settings.stream_enabled.is_none_or(|v| v == 1);
 
         // Get tools
         // Get tools if not provided
@@ -1932,7 +1931,7 @@ impl ChatService {
                                             f.as_str().map(std::string::ToString::to_string)
                                         })
                                         .collect::<Vec<String>>(),
-                                )
+                                );
                             }
                             // Fallback to old format (images only)
                             else if let Some(imgs) =
@@ -1944,7 +1943,7 @@ impl ChatService {
                                             i.as_str().map(std::string::ToString::to_string)
                                         })
                                         .collect::<Vec<String>>(),
-                                )
+                                );
                             }
                         }
                     }

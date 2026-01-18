@@ -258,10 +258,8 @@ impl OpenAIProvider {
                         let type_from_data = data.get("type").and_then(|s| s.as_str());
                         let effective_event_type = if !event_type.is_empty() {
                             event_type.as_str()
-                        } else if let Some(t) = type_from_data {
-                            t
                         } else {
-                            "unknown"
+                            type_from_data.unwrap_or("unknown")
                         };
 
                         // Log for debugging
@@ -517,8 +515,7 @@ impl LLMProvider for OpenAIProvider {
         } else {
             // Fallback just in case
             return Err(AppError::Llm(format!(
-                "Unexpected response format. Expected object with 'data' field. Got: {}",
-                json
+                "Unexpected response format. Expected object with 'data' field. Got: {json}"
             )));
         };
 

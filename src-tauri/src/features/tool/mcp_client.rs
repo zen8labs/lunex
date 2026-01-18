@@ -224,7 +224,7 @@ impl MCPClientService {
                 for full_version in config.addons.nodejs.versions.iter().rev() {
                     if let Ok(rt) = NodeRuntime::detect(app, full_version) {
                         // Get the bin directory containing node
-                        let node_bin_dir = rt.node_path.parent().map(|p| p.to_path_buf());
+                        let node_bin_dir = rt.node_path.parent().map(std::path::Path::to_path_buf);
 
                         if command == "node" {
                             command = rt.node_path.to_string_lossy().to_string();

@@ -740,68 +740,65 @@ impl LLMProvider for GoogleProvider {
         );
 
         // Attempt to fetch from API
-        match self.client.get(&url).send().await {
-            Ok(response) => {
-                if response.status().is_success() {
-                    if let Ok(json) = response.json::<serde_json::Value>().await {
-                        if let Some(models) = json.get("models").and_then(|m| m.as_array()) {
-                            let mapped_models: Vec<LLMModel> = models
-                                .iter()
-                                .filter_map(|m| {
-                                    // Filter by supportedGenerationMethods
-                                    let supports_generate = m
-                                        .get("supportedGenerationMethods")
-                                        .and_then(|v| v.as_array())
-                                        .is_some_and(|methods| {
-                                            methods.iter().any(|method| {
-                                                method.as_str() == Some("generateContent")
-                                            })
-                                        }); // If field missing, assume false or check docs? Docs say it's there.
+        if let Ok(response) = self.client.get(&url).send().await {
+            if response.status().is_success() {
+                if let Ok(json) = response.json::<serde_json::Value>().await {
+                    if let Some(models) = json.get("models").and_then(|m| m.as_array()) {
+                        let mapped_models: Vec<LLMModel> = models
+                            .iter()
+                            .filter_map(|m| {
+                                // Filter by supportedGenerationMethods
+                                let supports_generate = m
+                                    .get("supportedGenerationMethods")
+                                    .and_then(|v| v.as_array())
+                                    .is_some_and(|methods| {
+                                        methods.iter().any(|method| {
+                                            method.as_str() == Some("generateContent")
+                                        })
+                                    }); // If field missing, assume false or check docs? Docs say it's there.
 
-                                    if !supports_generate {
-                                        return None;
-                                    }
+                                if !supports_generate {
+                                    return None;
+                                }
 
-                                    let id = m.get("name")?.as_str()?.to_string(); // format: "models/gemini-pro"
-                                    let name = m
-                                        .get("displayName")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or(&id)
-                                        .to_string();
+                                let id = m.get("name")?.as_str()?.to_string(); // format: "models/gemini-pro"
+                                let name = m
+                                    .get("displayName")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or(&id)
+                                    .to_string();
 
-                                    // Clean up ID (remove "models/" prefix if present)
-                                    let clean_id =
-                                        id.strip_prefix("models/").unwrap_or(&id).to_string();
+                                // Clean up ID (remove "models/" prefix if present)
+                                let clean_id =
+                                    id.strip_prefix("models/").unwrap_or(&id).to_string();
 
-                                    // Check model capabilities
-                                    let (
-                                        supports_tools,
-                                        supports_thinking,
-                                        supports_image_generation,
-                                    ) = Self::check_model_capabilities(&clean_id);
+                                // Check model capabilities
+                                let (
+                                    supports_tools,
+                                    supports_thinking,
+                                    supports_image_generation,
+                                ) = Self::check_model_capabilities(&clean_id);
 
-                                    Some(LLMModel {
-                                        id: clean_id,
-                                        name,
-                                        created: None,
-                                        owned_by: Some("Google".to_string()),
-                                        supports_tools,
-                                        supports_thinking,
-                                        supports_image_generation,
-                                    })
+                                Some(LLMModel {
+                                    id: clean_id,
+                                    name,
+                                    created: None,
+                                    owned_by: Some("Google".to_string()),
+                                    supports_tools,
+                                    supports_thinking,
+                                    supports_image_generation,
                                 })
-                                .collect();
+                            })
+                            .collect();
 
-                            if !mapped_models.is_empty() {
-                                return Ok(mapped_models);
-                            }
+                        if !mapped_models.is_empty() {
+                            return Ok(mapped_models);
                         }
                     }
                 }
             }
-            Err(_) => {
-                // Ignore error and fall back
-            }
+        } else {
+            // Ignore error and fall back
         }
 
         // Fallback

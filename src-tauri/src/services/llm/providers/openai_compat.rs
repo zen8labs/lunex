@@ -567,8 +567,7 @@ impl LLMProvider for OpenAICompatProvider {
                     "Unexpected response format"
                 );
                 return Err(AppError::Llm(format!(
-                    "Unexpected response format. Expected array or object with 'data' field. Got: {}",
-                    json
+                    "Unexpected response format. Expected array or object with 'data' field. Got: {json}"
                 )));
             }
         };
