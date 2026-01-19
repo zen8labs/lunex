@@ -7,6 +7,8 @@ import {
   Pencil,
   ChevronDown,
   ChevronUp,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { MessageImage } from './MessageImage';
 import { MessageFile } from './MessageFile';
@@ -21,6 +23,7 @@ import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { useAppDispatch } from '@/app/hooks';
 import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
 import { FLOW_NODES } from '@/constants/flow-nodes';
+import { useTTS } from '@/hooks/useTTS';
 import type { Message } from '../../types';
 
 export interface MessageItemProps {
@@ -58,6 +61,7 @@ export const MessageItem = memo(
     });
     const dispatch = useAppDispatch();
     const [isFlowDialogOpen, setIsFlowDialogOpen] = useState(false);
+    const { isPlaying, toggle } = useTTS();
     // Determine if message is long (more than 500 characters or more than 10 lines)
     const isLongMessage =
       message.content.length > 500 || message.content.split('\n').length > 10;
@@ -96,6 +100,10 @@ export const MessageItem = memo(
     const handleEdit = useCallback(() => {
       onEdit(message.id);
     }, [message.id, onEdit]);
+
+    const handleToggleTTS = useCallback(() => {
+      toggle(message.content);
+    }, [message.content, toggle]);
 
     // Check for Agent Card metadata
     let agentCardData = null;
@@ -435,6 +443,20 @@ export const MessageItem = memo(
                   <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                 ) : (
                   <Copy className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
+                )}
+              </button>
+              <button
+                className={cn(
+                  'p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn',
+                  isPlaying && 'text-primary animate-pulse'
+                )}
+                onClick={handleToggleTTS}
+                title={t('readAloud') || 'Read aloud'}
+              >
+                {isPlaying ? (
+                  <VolumeX className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
+                ) : (
+                  <Volume2 className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
                 )}
               </button>
             </div>

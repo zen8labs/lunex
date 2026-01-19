@@ -25,6 +25,7 @@
   "noModelsTestConnection": "Chưa có models. Vui lòng test connection trong settings.",
   "pleaseSelectLLMConnection": "Vui lòng chọn LLM connection trong workspace settings",
   "promptTokens": "Prompt tokens",
+  "readAloud": "Đọc tin nhắn",
   "retry": "Thử lại",
   "selectLLMConnectionFirst": "Chọn LLM connection trước",
   "selectModel": "Chọn model",

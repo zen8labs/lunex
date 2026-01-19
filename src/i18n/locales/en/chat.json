@@ -25,6 +25,7 @@
   "noModelsTestConnection": "No models available. Please test connection in settings.",
   "pleaseSelectLLMConnection": "Please select LLM connection in workspace settings",
   "promptTokens": "Prompt tokens",
+  "readAloud": "Read aloud",
   "retry": "Retry",
   "selectLLMConnectionFirst": "Select LLM connection first",
   "selectModel": "Select model",
