@@ -269,14 +269,19 @@ export function useChatStreaming() {
           );
         }
 
-        dispatch(
-          setStreamingByChatId({
-            chatId: payload.chat_id,
-            messageId: null,
-          })
-        );
-        dispatch(clearStreamingMessageId());
-        dispatch(clearStreamingStartTime(payload.chat_id));
+        // Only clear streaming if this message doesn't have tool calls
+        // If it has tool calls, the loop will continue and the next MESSAGE_STARTED will handle it
+        if (!hasToolCallsRef.current[payload.message_id]) {
+          dispatch(
+            setStreamingByChatId({
+              chatId: payload.chat_id,
+              messageId: null,
+            })
+          );
+          dispatch(clearStreamingMessageId());
+          dispatch(clearStreamingStartTime(payload.chat_id));
+        }
+
         dispatch(
           updateChatLastMessage({
             id: payload.chat_id,
@@ -325,14 +330,17 @@ export function useChatStreaming() {
           ])
         );
 
-        dispatch(
-          setStreamingByChatId({
-            chatId: payload.chat_id,
-            messageId: null,
-          })
-        );
-        dispatch(clearStreamingMessageId());
-        dispatch(clearStreamingStartTime(payload.chat_id));
+        // Only clear streaming if this message doesn't have tool calls
+        if (!hasToolCallsRef.current[payload.message_id]) {
+          dispatch(
+            setStreamingByChatId({
+              chatId: payload.chat_id,
+              messageId: null,
+            })
+          );
+          dispatch(clearStreamingMessageId());
+          dispatch(clearStreamingStartTime(payload.chat_id));
+        }
 
         // Only show success toast for agent tasks (not for image generation)
         // Agent tasks have specific metadata structure, images are just in metadata
