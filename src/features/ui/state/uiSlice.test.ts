@@ -38,6 +38,7 @@ describe('uiSlice', () => {
     experiments: {
       showUsage: false,
       enableWorkflowEditor: false,
+      enableRawText: false,
     },
     setupCompleted: false,
   };
@@ -95,6 +96,7 @@ describe('uiSlice', () => {
         if (args.key === 'theme') return Promise.resolve('dark');
         if (args.key === 'showUsage') return Promise.resolve('true');
         if (args.key === 'enableWorkflowEditor') return Promise.resolve('true');
+        if (args.key === 'enableRawText') return Promise.resolve('true');
         if (args.key === 'setupCompleted') return Promise.resolve('true');
         return Promise.resolve(null);
       });

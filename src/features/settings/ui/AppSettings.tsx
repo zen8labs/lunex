@@ -41,10 +41,12 @@ export function AppSettings() {
     theme: currentTheme,
     showUsage,
     enableWorkflowEditor,
+    enableRawText,
     updateLanguage,
     updateTheme,
     updateShowUsage,
     updateEnableWorkflowEditor,
+    updateEnableRawText,
   } = useAppSettings();
 
   const handleLanguageChange = (lang: 'vi' | 'en') => {
@@ -169,6 +171,21 @@ export function AppSettings() {
               id="enable-workflow-editor-switch"
               checked={enableWorkflowEditor}
               onCheckedChange={updateEnableWorkflowEditor}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-4 p-3 border rounded-lg bg-card/50">
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium leading-none">
+                {t('enableRawText')}
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                {t('enableRawTextDescription')}
+              </p>
+            </div>
+            <Switch
+              id="enable-raw-text-switch"
+              checked={enableRawText}
+              onCheckedChange={updateEnableRawText}
             />
           </div>
         </CollapsibleContent>

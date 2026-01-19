@@ -48,6 +48,7 @@ export interface UIState {
   experiments: {
     showUsage: boolean;
     enableWorkflowEditor: boolean;
+    enableRawText: boolean;
   };
   setupCompleted: boolean;
 }
@@ -72,12 +73,21 @@ export const loadAppSettings = createAsyncThunk(
           key: 'enableWorkflowEditor',
         }),
         invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
+          key: 'enableRawText',
+        }),
+        invokeCommand<string | null>(TauriCommands.GET_APP_SETTING, {
           key: 'setupCompleted',
         }),
       ]);
 
-      const [language, theme, showUsage, enableWorkflowEditor, setupCompleted] =
-        settingsResults;
+      const [
+        language,
+        theme,
+        showUsage,
+        enableWorkflowEditor,
+        enableRawText,
+        setupCompleted,
+      ] = settingsResults;
 
       // Validate and set language
       let finalLanguage: 'vi' | 'en' = 'vi';
@@ -126,6 +136,7 @@ export const loadAppSettings = createAsyncThunk(
         experiments: {
           showUsage: showUsage === 'true' || showUsage === null, // Default to true for developer mode
           enableWorkflowEditor: enableWorkflowEditor === 'true', // Default to false (disabled)
+          enableRawText: enableRawText === 'true', // Default to false (disabled)
         },
         setupCompleted: setupCompleted === 'true',
       };
@@ -137,6 +148,7 @@ export const loadAppSettings = createAsyncThunk(
         experiments: {
           showUsage: true,
           enableWorkflowEditor: false, // Default to false (disabled)
+          enableRawText: false, // Default to false (disabled)
         },
         setupCompleted: false,
       };
@@ -185,6 +197,7 @@ const initialState: UIState = {
   experiments: {
     showUsage: false,
     enableWorkflowEditor: false,
+    enableRawText: false,
   },
   setupCompleted: false,
 };
@@ -307,6 +320,15 @@ const uiSlice = createSlice({
         logger.error('Failed to save enableWorkflowEditor to database:', error);
       });
     },
+    setEnableRawText: (state, action: PayloadAction<boolean>) => {
+      state.experiments.enableRawText = action.payload;
+      invokeCommand(TauriCommands.SAVE_APP_SETTING, {
+        key: 'enableRawText',
+        value: action.payload ? 'true' : 'false',
+      }).catch((error) => {
+        logger.error('Failed to save enableRawText to database:', error);
+      });
+    },
     setSetupCompleted: (state, action: PayloadAction<boolean>) => {
       state.setupCompleted = action.payload;
       invokeCommand(TauriCommands.SAVE_APP_SETTING, {
@@ -363,6 +385,7 @@ export const {
   setRightPanelOpen,
   setShowUsage,
   setEnableWorkflowEditor,
+  setEnableRawText,
   setSetupCompleted,
 } = uiSlice.actions;
 export default uiSlice.reducer;

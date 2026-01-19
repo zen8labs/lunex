@@ -269,5 +269,7 @@
   "showUsageDescription": "Nếu được bật, thông số (token usage) sẽ được hiển thị ở dưới mỗi tin nhắn của AI.",
   "enableWorkflowEditor": "Bật Workflow Editor",
   "enableWorkflowEditorDescription": "Nếu được bật, nút workflow sẽ hiển thị trong khung nhập tin nhắn để tạo và đính kèm workflow.",
+  "enableRawText": "Bật tùy chọn Raw Text",
+  "enableRawTextDescription": "Nếu được bật, tùy chọn chuyển đổi giữa Markdown và Raw Text sẽ hiển thị trong mỗi tin nhắn của AI.",
   "deleteConnectionConfirm": "Bạn có chắc chắn muốn xóa kết nối này không?"
 }

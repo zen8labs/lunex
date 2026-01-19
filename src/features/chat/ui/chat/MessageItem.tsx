@@ -24,6 +24,7 @@ import { useAppDispatch } from '@/app/hooks';
 import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
 import { FLOW_NODES } from '@/constants/flow-nodes';
 import { useTTS } from '@/hooks/useTTS';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import type { Message } from '../../types';
 
 export interface MessageItemProps {
@@ -62,6 +63,7 @@ export const MessageItem = memo(
     const dispatch = useAppDispatch();
     const [isFlowDialogOpen, setIsFlowDialogOpen] = useState(false);
     const { isPlaying, toggle } = useTTS();
+    const { enableRawText } = useAppSettings();
     // Determine if message is long (more than 500 characters or more than 10 lines)
     const isLongMessage =
       message.content.length > 500 || message.content.split('\n').length > 10;
@@ -419,19 +421,21 @@ export const MessageItem = memo(
                   >
                     <Pencil className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
                   </button>
-                  <button
-                    className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn"
-                    onClick={handleToggleMarkdown}
-                    title={
-                      markdownEnabled ? t('showRawText') : t('showMarkdown')
-                    }
-                  >
-                    {markdownEnabled ? (
-                      <FileText className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                    ) : (
-                      <Code className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                    )}
-                  </button>
+                  {enableRawText && (
+                    <button
+                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn"
+                      onClick={handleToggleMarkdown}
+                      title={
+                        markdownEnabled ? t('showRawText') : t('showMarkdown')
+                      }
+                    >
+                      {markdownEnabled ? (
+                        <FileText className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
+                      ) : (
+                        <Code className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
+                      )}
+                    </button>
+                  )}
                 </>
               )}
               <button

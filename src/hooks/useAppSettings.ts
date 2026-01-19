@@ -4,6 +4,7 @@ import {
   setTheme,
   setShowUsage,
   setEnableWorkflowEditor,
+  setEnableRawText,
   loadAppSettings,
 } from '@/features/ui/state/uiSlice';
 
@@ -35,6 +36,9 @@ export function useAppSettings() {
   const enableWorkflowEditor = useAppSelector(
     (state) => state.ui.experiments.enableWorkflowEditor
   );
+  const enableRawText = useAppSelector(
+    (state) => state.ui.experiments.enableRawText
+  );
 
   const updateLanguage = (lang: 'vi' | 'en') => {
     dispatch(setLanguage(lang));
@@ -52,6 +56,10 @@ export function useAppSettings() {
     dispatch(setEnableWorkflowEditor(enable));
   };
 
+  const updateEnableRawText = (enable: boolean) => {
+    dispatch(setEnableRawText(enable));
+  };
+
   const reloadSettings = () => {
     dispatch(loadAppSettings());
   };
@@ -62,10 +70,12 @@ export function useAppSettings() {
     loading,
     showUsage,
     enableWorkflowEditor,
+    enableRawText,
     updateLanguage,
     updateTheme,
     updateShowUsage,
     updateEnableWorkflowEditor,
+    updateEnableRawText,
     reloadSettings,
   };
 }
