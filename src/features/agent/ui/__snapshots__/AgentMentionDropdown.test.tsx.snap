@@ -18,7 +18,7 @@ exports[`AgentMentionDropdown > Rendering > should match snapshot 1`] = `
         [data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}
       </style>
       <div
-        class="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+        class="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 scroll-smooth"
         data-radix-scroll-area-viewport=""
         data-slot="scroll-area-viewport"
         style="overflow-x: hidden; overflow-y: scroll;"
