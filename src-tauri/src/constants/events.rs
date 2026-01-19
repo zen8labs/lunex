@@ -42,6 +42,7 @@ impl TauriEvents {
     pub const MENU_SETTINGS: &'static str = "menu-settings";
     pub const MENU_DOCUMENTATION: &'static str = "menu-documentation";
     pub const MENU_ABOUT: &'static str = "menu-about";
+    pub const MENU_CHECK_UPDATES: &'static str = "menu-check-updates";
     pub const MENU_KEYBOARD_SHORTCUTS: &'static str = "menu-keyboard-shortcuts";
 
     // Chat events

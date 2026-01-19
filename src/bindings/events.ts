@@ -40,6 +40,7 @@ export const TauriEvents = {
   MENU_SETTINGS: 'menu-settings',
   MENU_DOCUMENTATION: 'menu-documentation',
   MENU_ABOUT: 'menu-about',
+  MENU_CHECK_UPDATES: 'menu-check-updates',
   MENU_KEYBOARD_SHORTCUTS: 'menu-keyboard-shortcuts',
 
   // Chat events

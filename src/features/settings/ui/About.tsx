@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Github, Globe, BookOpen, Heart } from 'lucide-react';
+import { getVersion } from '@tauri-apps/api/app';
 import { logger } from '@/lib/logger';
 import {
   Dialog,
@@ -16,7 +18,6 @@ interface AboutProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const APP_VERSION = '0.1.0';
 const APP_NAME = 'Nexo';
 const GITHUB_URL = 'https://github.com/Nexo-Agent/nexo';
 const WEBSITE_URL = 'https://nexo.nkthanh.dev';
@@ -24,6 +25,15 @@ const DOCS_URL = 'https://nexo-docs.nkthanh.dev';
 
 export function About({ open, onOpenChange }: AboutProps) {
   const { t } = useTranslation('common');
+  const [appVersion, setAppVersion] = useState<string>('');
+
+  useEffect(() => {
+    getVersion()
+      .then(setAppVersion)
+      .catch((err) => {
+        logger.error('Failed to get app version in About:', err);
+      });
+  }, []);
 
   const openExternalLink = async (url: string) => {
     try {
@@ -50,7 +60,9 @@ export function About({ open, onOpenChange }: AboutProps) {
               <DialogTitle className="text-xl">{APP_NAME}</DialogTitle>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {t('version')}{' '}
-                <span className="font-mono font-medium">{APP_VERSION}</span>
+                <span className="font-mono font-medium">
+                  {appVersion || '...'}
+                </span>
               </p>
             </div>
           </div>

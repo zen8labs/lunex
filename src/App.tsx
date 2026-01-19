@@ -29,9 +29,6 @@ function AppContent() {
   // Handle keyboard shortcuts
   useKeyboardShortcuts();
 
-  // Handle menu events
-  useMenuEvents();
-
   // Listen for chat streaming events from Rust core
   useChatStreaming();
 
@@ -107,7 +104,11 @@ function AppContent() {
     update,
     installUpdate,
     downloadProgress,
+    checkUpdate,
   } = useAutoUpdate();
+
+  // Handle menu events
+  useMenuEvents({ onCheckUpdate: () => checkUpdate(false) });
 
   return (
     <>

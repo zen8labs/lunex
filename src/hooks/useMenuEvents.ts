@@ -15,7 +15,8 @@ import { useTranslation } from 'react-i18next';
 /**
  * Hook to listen for Tauri menu events and dispatch Redux actions
  */
-export function useMenuEvents() {
+export function useMenuEvents(options?: { onCheckUpdate?: () => void }) {
+  const { onCheckUpdate } = options || {};
   const dispatch = useAppDispatch();
   const { selectedWorkspaceId } = useWorkspaces();
   const { t } = useTranslation(['common']);
@@ -24,13 +25,15 @@ export function useMenuEvents() {
   const selectedWorkspaceIdRef = useRef(selectedWorkspaceId);
   const dispatchRef = useRef(dispatch);
   const tRef = useRef(t);
+  const onCheckUpdateRef = useRef(onCheckUpdate);
 
   // Update refs when values change
   useEffect(() => {
     selectedWorkspaceIdRef.current = selectedWorkspaceId;
     dispatchRef.current = dispatch;
     tRef.current = t;
-  }, [selectedWorkspaceId, dispatch, t]);
+    onCheckUpdateRef.current = onCheckUpdate;
+  }, [selectedWorkspaceId, dispatch, t, onCheckUpdate]);
 
   useEffect(() => {
     let unlisteners: (() => void)[] = [];
@@ -101,8 +104,31 @@ export function useMenuEvents() {
       );
       unlisteners.push(unlisten6);
 
-      // Documentation (placeholder - can open external link)
+      // Check for updates
       const unlisten7 = await listenToEvent(
+        TauriEvents.MENU_CHECK_UPDATES,
+        async () => {
+          if (isMounted) {
+            if (onCheckUpdateRef.current) {
+              onCheckUpdateRef.current();
+            } else {
+              try {
+                const { check } = await import('@tauri-apps/plugin-updater');
+                const update = await check();
+                if (update) {
+                  await update.downloadAndInstall();
+                }
+              } catch (error) {
+                console.error('Failed to check for updates:', error);
+              }
+            }
+          }
+        }
+      );
+      unlisteners.push(unlisten7);
+
+      // Documentation (placeholder - can open external link)
+      const unlisten8 = await listenToEvent(
         TauriEvents.MENU_DOCUMENTATION,
         () => {
           if (isMounted) {
@@ -110,7 +136,7 @@ export function useMenuEvents() {
           }
         }
       );
-      unlisteners.push(unlisten7);
+      unlisteners.push(unlisten8);
     };
 
     setupListeners();
