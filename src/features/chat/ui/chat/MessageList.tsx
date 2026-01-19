@@ -154,15 +154,21 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
     );
 
     const toggleToolCall = useCallback(
-      (compositeKey: string) => {
-        const newValue = {
-          ...expandedToolCalls,
-          [compositeKey]: !expandedToolCalls[compositeKey],
-        };
+      (compositeKey: string, defaultValue: boolean) => {
         if (onExpandedToolCallsChange) {
-          onExpandedToolCallsChange(newValue);
+          const currentValue = expandedToolCalls[compositeKey] ?? defaultValue;
+          onExpandedToolCallsChange({
+            ...expandedToolCalls,
+            [compositeKey]: !currentValue,
+          });
         } else {
-          setInternalExpandedToolCalls(newValue);
+          setInternalExpandedToolCalls((prev) => {
+            const currentValue = prev[compositeKey] ?? defaultValue;
+            return {
+              ...prev,
+              [compositeKey]: !currentValue,
+            };
+          });
         }
       },
       [expandedToolCalls, onExpandedToolCallsChange]
@@ -214,8 +220,8 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
               <ToolCallItem
                 key={message.id}
                 message={message}
-                isExpanded={expandedToolCalls[toolCallKey] || false}
-                onToggle={() => toggleToolCall(toolCallKey)}
+                isExpanded={expandedToolCalls[toolCallKey] ?? false}
+                onToggle={() => toggleToolCall(toolCallKey, false)}
                 onCancel={onCancelToolExecution}
                 t={t}
               />
@@ -279,8 +285,8 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                         arguments: tc.arguments,
                         status: 'pending_permission',
                       }}
-                      isExpanded={expandedToolCalls[toolCallKey] !== false} // Default to expanded
-                      onToggle={() => toggleToolCall(toolCallKey)}
+                      isExpanded={expandedToolCalls[toolCallKey] ?? true} // Default to expanded
+                      onToggle={() => toggleToolCall(toolCallKey, true)}
                       onCancel={onCancelToolExecution}
                       timeLeft={timeLeftValue}
                       t={t}
