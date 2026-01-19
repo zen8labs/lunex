@@ -47,7 +47,12 @@ export const useTTS = () => {
       );
     };
 
-    let voice = findVoice(lang);
+    let voice: SpeechSynthesisVoice | undefined;
+    if (lang === 'vi-VN') {
+      voice = findVoice(lang);
+    } else if (lang === 'en-US') {
+      voice = voices.find((v) => v.name === 'Samantha');
+    }
 
     // Fallback if target language voice not found
     if (!voice) {
