@@ -105,48 +105,58 @@ export function ImagePreviewDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="p-0 border-none bg-transparent shadow-none overflow-hidden flex items-center justify-center">
-        <div className="relative flex items-center justify-center w-full h-full">
-          <div className="absolute top-2 right-2 z-50 flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="rounded-full bg-background/50 hover:bg-background/80 text-foreground backdrop-blur-sm"
-              title={t('saveImage') || 'Lưu hình ảnh'}
-            >
-              <Download className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              className="rounded-full bg-background/50 hover:bg-background/80 text-foreground backdrop-blur-sm"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          <img
-            src={imageUrl}
-            alt="Preview"
-            className="object-contain rounded-lg shadow-2xl"
+      <DialogContent
+        className="p-0 border-none bg-transparent shadow-none overflow-hidden flex items-center justify-center sm:max-w-none max-w-[95vw] max-h-[95vh]"
+        onClick={handleClose}
+      >
+        <div
+          className="relative flex items-center justify-center w-full h-full cursor-zoom-out"
+          onClick={handleClose}
+        >
+          <div
+            className="relative group w-fit h-fit cursor-default"
             onClick={(e) => e.stopPropagation()}
-            onContextMenu={handleContextMenu}
-          />
-          <ContextMenu
-            open={contextMenu !== null}
-            position={contextMenu || { x: 0, y: 0 }}
-            items={[
-              {
-                label: t('saveImage') || 'Lưu hình ảnh',
-                icon: <Download className="size-4" />,
-                onClick: handleDownload,
-                disabled: isDownloading,
-              },
-            ]}
-            onClose={() => setContextMenu(null)}
-          />
+          >
+            <div className="absolute top-4 right-4 z-50 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="rounded-full bg-background/50 hover:bg-background/80 text-foreground backdrop-blur-sm shadow-sm"
+                title={t('saveImage') || 'Lưu hình ảnh'}
+              >
+                <Download className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="rounded-full bg-background/50 hover:bg-background/80 text-foreground backdrop-blur-sm shadow-sm"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <img
+              src={imageUrl}
+              alt="Preview"
+              className="rounded-lg shadow-2xl max-w-full max-h-full object-contain"
+              onContextMenu={handleContextMenu}
+            />
+            <ContextMenu
+              open={contextMenu !== null}
+              position={contextMenu || { x: 0, y: 0 }}
+              items={[
+                {
+                  label: t('saveImage') || 'Lưu hình ảnh',
+                  icon: <Download className="size-4" />,
+                  onClick: handleDownload,
+                  disabled: isDownloading,
+                },
+              ]}
+              onClose={() => setContextMenu(null)}
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
