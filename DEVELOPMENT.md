@@ -47,7 +47,7 @@ sudo apt-get install libwebkit2gtk-4.1-dev \
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/magiskboy/nexo.git
+git clone https://github.com/Nexo-Agent/nexo.git
 cd nexo
 ```
 
