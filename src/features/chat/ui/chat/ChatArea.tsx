@@ -252,7 +252,14 @@ export function ChatArea() {
       return;
     }
 
-    if (userInput.length > MAX_MESSAGE_LENGTH) {
+    // Check if editing an assistant message
+    const editingMessage = editingMessageId
+      ? messages.find((m) => m.id === editingMessageId)
+      : null;
+    const isEditingAssistant = editingMessage?.role === 'assistant';
+
+    // Only validate length for user messages (new or editing)
+    if (!isEditingAssistant && userInput.length > MAX_MESSAGE_LENGTH) {
       dispatch(
         showError(
           t('messageTooLong', {
