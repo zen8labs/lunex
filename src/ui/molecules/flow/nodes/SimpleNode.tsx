@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Position, type NodeProps } from '@xyflow/react';
 import { BaseNode, BaseNodeContent } from '@/ui/atoms/xyflow/base-node';
 import { BaseHandle } from '@/ui/atoms/xyflow/base-handle';
+import { NodeResizer } from '@/ui/atoms/xyflow/node-resizer';
 import { cn } from '@/lib/utils';
 import type { NodePropertyProps } from './types';
 import { PropertyField } from './components/NodePropertyFields';
@@ -35,23 +36,32 @@ const SimpleNodeComponent = memo(({ data, selected }: NodeProps) => {
     handlePosition === 'horizontal' ? Position.Right : Position.Bottom;
 
   return (
-    <BaseNode
-      className={cn(
-        'min-w-[100px] max-w-[180px] transition-all duration-200',
-        selected && 'scale-[1.02]'
-      )}
-      style={{
-        backgroundColor: backgroundColor || undefined,
-        color: textColor || undefined,
-      }}
-    >
-      <BaseNodeContent className="text-center">{label}</BaseNodeContent>
+    <>
+      <NodeResizer isVisible={selected} minWidth={100} minHeight={40} />
+      <BaseNode
+        className={cn(
+          'min-w-[100px] h-full transition-all duration-200',
+          selected && 'scale-[1.02]'
+        )}
+        style={{
+          backgroundColor: backgroundColor || undefined,
+          color: textColor || undefined,
+        }}
+      >
+        <BaseNodeContent className="text-center h-full flex items-center justify-center">
+          {label}
+        </BaseNodeContent>
 
-      {/* Handles */}
-      {handles.target && <BaseHandle type="target" position={targetPosition} />}
+        {/* Handles */}
+        {handles.target && (
+          <BaseHandle type="target" position={targetPosition} />
+        )}
 
-      {handles.source && <BaseHandle type="source" position={sourcePosition} />}
-    </BaseNode>
+        {handles.source && (
+          <BaseHandle type="source" position={sourcePosition} />
+        )}
+      </BaseNode>
+    </>
   );
 });
 SimpleNodeComponent.displayName = 'SimpleNode';

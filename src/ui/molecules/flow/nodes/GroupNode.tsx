@@ -3,6 +3,7 @@ import { type NodeProps } from '@xyflow/react';
 import type { NodePropertyProps } from './types';
 import { PropertyField } from './components/NodePropertyFields';
 import { GroupNode as AtomGroupNode } from '@/ui/atoms/xyflow/labeled-group-node';
+import { NodeResizer } from '@/ui/atoms/xyflow/node-resizer';
 
 export interface GroupNodeData {
   label?: string;
@@ -10,13 +11,17 @@ export interface GroupNodeData {
 
 const GroupNodeComponent = memo(({ data, selected }: NodeProps) => {
   return (
-    <AtomGroupNode
-      label={data.label as string}
-      selected={selected}
-      className="h-full w-full"
-    />
+    <>
+      <NodeResizer isVisible={selected} minWidth={200} minHeight={150} />
+      <AtomGroupNode
+        label={data.label as string}
+        selected={selected}
+        className="h-full w-full"
+      />
+    </>
   );
 });
+
 GroupNodeComponent.displayName = 'GroupNode';
 
 const GroupNodeProperty = ({
