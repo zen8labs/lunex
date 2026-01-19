@@ -719,7 +719,6 @@ function DeleteConfirmDialog({
   open,
   onOpenChange,
   onConfirm,
-  connectionName,
 }: DeleteConfirmDialogProps) {
   const { t } = useTranslation(['settings', 'common']);
 
@@ -733,11 +732,7 @@ function DeleteConfirmDialog({
         <DialogHeader>
           <DialogTitle>{t('deleteConnection')}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {t('confirmDeleteConnection')}
-            {connectionName && (
-              <span className="font-semibold">{connectionName}</span>
-            )}
-            ?
+            {t('confirmDeleteConnection', { ns: 'common' })}?
           </p>
         </DialogHeader>
         <DialogFooter>

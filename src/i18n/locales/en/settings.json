@@ -268,5 +268,6 @@
   "showUsage": "Show token usage",
   "showUsageDescription": "If enabled, token usage details will be displayed below each AI response.",
   "enableWorkflowEditor": "Enable Workflow Editor",
-  "enableWorkflowEditorDescription": "If enabled, the workflow button will be shown in the chat input to create and attach workflows."
+  "enableWorkflowEditorDescription": "If enabled, the workflow button will be shown in the chat input to create and attach workflows.",
+  "deleteConnectionConfirm": "Are you sure you want to delete this connection?"
 }

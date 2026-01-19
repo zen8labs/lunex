@@ -801,7 +801,7 @@ function DeleteConfirmDialog({
   onConfirm: () => void;
   connectionName?: string;
 }) {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation(['settings', 'common']);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -814,10 +814,10 @@ function DeleteConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('cancel')}
+            {t('cancel', { ns: 'common' })}
           </Button>
           <Button variant="destructive" onClick={onConfirm}>
-            {t('delete')}
+            {t('delete', { ns: 'common' })}
           </Button>
         </DialogFooter>
       </DialogContent>

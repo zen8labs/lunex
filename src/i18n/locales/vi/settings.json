@@ -268,5 +268,6 @@
   "showUsage": "Hiển thị thông số sử dụng",
   "showUsageDescription": "Nếu được bật, thông số (token usage) sẽ được hiển thị ở dưới mỗi tin nhắn của AI.",
   "enableWorkflowEditor": "Bật Workflow Editor",
-  "enableWorkflowEditorDescription": "Nếu được bật, nút workflow sẽ hiển thị trong khung nhập tin nhắn để tạo và đính kèm workflow."
+  "enableWorkflowEditorDescription": "Nếu được bật, nút workflow sẽ hiển thị trong khung nhập tin nhắn để tạo và đính kèm workflow.",
+  "deleteConnectionConfirm": "Bạn có chắc chắn muốn xóa kết nối này không?"
 }
