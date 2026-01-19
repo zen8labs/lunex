@@ -120,76 +120,103 @@ export const SchemaField = ({
   };
 
   return (
-    <div className="space-y-3">
-      <Label>{label}</Label>
-      <div className="space-y-2 border rounded-md p-3 bg-muted/30">
-        {schema.map((entry, index) => (
-          <div
-            key={`${entry.title}-${index}`}
-            className="flex items-center gap-2 group"
-          >
-            <Input
-              value={entry.title}
-              readOnly={readOnly}
-              onChange={(e) => {
-                const newSchema = [...schema];
-                newSchema[index] = { ...entry, title: e.target.value };
-                onChange(newSchema);
-              }}
-              className="h-8 text-xs flex-1"
-            />
-            <Input
-              value={entry.type}
-              readOnly={readOnly}
-              onChange={(e) => {
-                const newSchema = [...schema];
-                newSchema[index] = { ...entry, type: e.target.value };
-                onChange(newSchema);
-              }}
-              className="h-8 text-xs w-20"
-            />
-            {!readOnly && (
-              <button
-                type="button"
-                onClick={() => onChange(schema.filter((_, i) => i !== index))}
-                className="text-muted-foreground hover:text-destructive transition-colors px-1"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        ))}
+    <div className="space-y-2">
+      <Label className="text-[13px] font-semibold text-foreground/80 ml-1">
+        {label}
+      </Label>
+      <div className="border border-border/60 rounded-lg overflow-hidden bg-background/50 shadow-sm">
+        <div className="p-3 space-y-3">
+          {schema.length > 0 && (
+            <div className="space-y-2">
+              {schema.map((entry, index) => (
+                <div
+                  key={`${entry.title}-${index}`}
+                  className="flex items-center gap-2 group animate-in fade-in slide-in-from-left-2 duration-200"
+                >
+                  <Input
+                    value={entry.title}
+                    readOnly={readOnly}
+                    onChange={(e) => {
+                      const newSchema = [...schema];
+                      newSchema[index] = { ...entry, title: e.target.value };
+                      onChange(newSchema);
+                    }}
+                    placeholder="Field name"
+                    className="h-9 text-xs flex-1 bg-background border-border/40 focus:border-primary/50 transition-all rounded-md"
+                  />
+                  <Input
+                    value={entry.type}
+                    readOnly={readOnly}
+                    onChange={(e) => {
+                      const newSchema = [...schema];
+                      newSchema[index] = { ...entry, type: e.target.value };
+                      onChange(newSchema);
+                    }}
+                    placeholder="Type"
+                    className="h-9 text-xs w-28 bg-background border-border/40 focus:border-primary/50 transition-all rounded-md"
+                  />
+                  {!readOnly && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      onClick={() =>
+                        onChange(schema.filter((_, i) => i !== index))
+                      }
+                      className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
-        {!readOnly && (
-          <div className="flex gap-2 pt-2 border-t mt-2">
-            <Input
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Title"
-              className="h-8 text-xs flex-1"
-            />
-            <Select value={newType} onValueChange={setNewType}>
-              <SelectTrigger className="h-8 text-xs w-24">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="string">String</SelectItem>
-                <SelectItem value="number">Number</SelectItem>
-                <SelectItem value="boolean">Boolean</SelectItem>
-                <SelectItem value="date">Date</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8 shrink-0"
-              onClick={handleAddEntry}
-              disabled={!newTitle.trim()}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+          {!readOnly && (
+            <>
+              {schema.length > 0 && (
+                <div className="border-t border-border/40 my-3" />
+              )}
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Title"
+                  className="h-9 text-xs flex-1 border-border/40 bg-muted/20 focus:bg-background transition-all rounded-md"
+                />
+                <Select value={newType} onValueChange={setNewType}>
+                  <SelectTrigger className="h-9 text-xs w-28 border-border/40 bg-muted/20 focus:bg-background transition-all rounded-md">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="string">String</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="boolean">Boolean</SelectItem>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="uuid">UUID</SelectItem>
+                    <SelectItem value="json">JSON</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-9 w-9 shrink-0 shadow-sm hover:shadow transition-all bg-secondary/80 hover:bg-secondary"
+                  onClick={handleAddEntry}
+                  disabled={!newTitle.trim()}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          )}
+
+          {schema.length === 0 && readOnly && (
+            <div className="text-xs text-muted-foreground text-center py-4 italic">
+              No schema defined
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

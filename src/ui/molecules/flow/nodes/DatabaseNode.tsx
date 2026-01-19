@@ -11,6 +11,7 @@ import {
 } from '@/ui/atoms/xyflow/database-schema-node';
 import type { NodePropertyProps } from './types';
 import { PropertyField, SchemaField } from './components/NodePropertyFields';
+import { Separator } from '@/ui/atoms/separator';
 
 export interface DatabaseField {
   title: string;
@@ -87,6 +88,7 @@ const DatabaseNodeProperty = ({
         }
         readOnly={readOnly}
       />
+      <Separator className="my-2" />
       <SchemaField
         label="Schema"
         schema={data.schema}

@@ -313,6 +313,19 @@ function FlowEditorInner({
     (_: React.MouseEvent, node: Node) => {
       if (readOnly) return;
 
+      // Calculate absolute position of the dragging node
+      const parentNode = node.parentId
+        ? nodes.find((p) => p.id === node.parentId)
+        : null;
+      const absX =
+        node.parentId && parentNode
+          ? node.position.x + parentNode.position.x
+          : node.position.x;
+      const absY =
+        node.parentId && parentNode
+          ? node.position.y + parentNode.position.y
+          : node.position.y;
+
       const droppedOver = nodes.find((n) => {
         if (
           n.id === node.id ||
@@ -324,10 +337,10 @@ function FlowEditorInner({
         const nHeight = n.height ?? n.measured?.height ?? 0;
 
         return (
-          node.position.x >= n.position.x &&
-          node.position.y >= n.position.y &&
-          node.position.x <= n.position.x + nWidth &&
-          node.position.y <= n.position.y + nHeight
+          absX >= n.position.x &&
+          absY >= n.position.y &&
+          absX <= n.position.x + nWidth &&
+          absY <= n.position.y + nHeight
         );
       });
 
@@ -338,10 +351,10 @@ function FlowEditorInner({
               return {
                 ...n,
                 parentId: droppedOver.id,
-                extent: 'parent',
+                extent: undefined, // Allow dragging out
                 position: {
-                  x: node.position.x - droppedOver.position.x,
-                  y: node.position.y - droppedOver.position.y,
+                  x: absX - droppedOver.position.x,
+                  y: absY - droppedOver.position.y,
                 },
               } as Node;
             }
@@ -349,25 +362,22 @@ function FlowEditorInner({
           })
         );
       } else if (!droppedOver && node.parentId) {
-        const parent = nodes.find((p) => p.id === node.parentId);
-        if (parent) {
-          setNodes((nds) =>
-            nds.map((n) => {
-              if (n.id === node.id) {
-                return {
-                  ...n,
-                  parentId: undefined,
-                  extent: undefined,
-                  position: {
-                    x: node.position.x + parent.position.x,
-                    y: node.position.y + parent.position.y,
-                  },
-                } as Node;
-              }
-              return n;
-            })
-          );
-        }
+        setNodes((nds) =>
+          nds.map((n) => {
+            if (n.id === node.id) {
+              return {
+                ...n,
+                parentId: undefined,
+                extent: undefined,
+                position: {
+                  x: absX,
+                  y: absY,
+                },
+              } as Node;
+            }
+            return n;
+          })
+        );
       }
     },
     [nodes, setNodes, readOnly]
