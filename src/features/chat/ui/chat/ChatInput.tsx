@@ -63,6 +63,7 @@ import { useChatSubmit } from '../../hooks/useChatSubmit';
 import { useChatDragDrop } from '../../hooks/useChatDragDrop';
 import { ChatAttachments } from './components/ChatAttachments';
 import { ChatDragOverlay } from './components/ChatDragOverlay';
+import { useTextareaAutoResize } from '../../hooks/useTextareaAutoResize';
 
 interface ChatInputProps {
   selectedWorkspaceId: string | null;
@@ -99,7 +100,6 @@ export function ChatInput({
   const { t } = useTranslation(['chat', 'common', 'settings']);
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const { data: llmConnections = [] } = useGetLLMConnectionsQuery();
   const { data: installedAgents = [] } = useGetInstalledAgentsQuery();
@@ -150,17 +150,17 @@ export function ChatInput({
   const { enableWorkflowEditor } = useAppSettings();
 
   // Calculate active tools from workspace settings
-  const activeTools = (() => {
-    if (!workspaceSettings?.mcpToolIds) return [];
+  const mcpToolIds = workspaceSettings?.mcpToolIds;
+  const activeTools = useMemo(() => {
+    if (!mcpToolIds) return [];
 
     const toolsList: {
       name: string;
       serverName: string;
       description?: string;
     }[] = [];
-    const toolIdMap = workspaceSettings.mcpToolIds;
 
-    Object.entries(toolIdMap).forEach(([toolName, connectionId]) => {
+    Object.entries(mcpToolIds).forEach(([toolName, connectionId]) => {
       const connection = mcpConnections.find(
         (conn) => conn.id === connectionId
       );
@@ -175,7 +175,7 @@ export function ChatInput({
     });
 
     return toolsList;
-  })();
+  }, [mcpToolIds, mcpConnections]);
 
   // Use messages hook for streaming state
   const { handleStopStreaming, isStreaming, isAgentStreaming } =
@@ -271,9 +271,21 @@ export function ChatInput({
     setPromptVariables({});
   };
 
-  const handleRemovePrompt = () => {
+  const handleRemovePrompt = useCallback(() => {
     setInsertedPrompt(null);
-  };
+  }, []);
+
+  const handleRemoveFlow = useCallback(() => {
+    setFlow(null);
+  }, [setFlow]);
+
+  const handleOpenFlowDialog = useCallback(() => {
+    setFlowDialogOpen(true);
+  }, []);
+
+  const handleRemoveAgent = useCallback((agentId: string) => {
+    setSelectedAgentIds((prev) => prev.filter((id) => id !== agentId));
+  }, []);
 
   // Custom hooks for Logic Separation
   const { handleSubmit } = useChatSubmit({
@@ -290,12 +302,16 @@ export function ChatInput({
   });
 
   // Find current connection and model name
-  const { currentConnection, currentModelName } = (() => {
+  const { currentConnection, currentModelName, currentModel } = useMemo(() => {
     if (!selectedModel) {
       const conn = selectedLLMConnectionId
         ? llmConnections.find((conn) => conn.id === selectedLLMConnectionId)
         : null;
-      return { currentConnection: conn, currentModelName: null };
+      return {
+        currentConnection: conn,
+        currentModelName: null,
+        currentModel: null,
+      };
     }
 
     let connId = selectedLLMConnectionId;
@@ -313,28 +329,11 @@ export function ChatInput({
     return {
       currentConnection: conn,
       currentModelName: model?.name || modelId,
+      currentModel: model,
     };
-  })();
+  }, [selectedModel, selectedLLMConnectionId, llmConnections]);
 
   const supportsVision = isVisionModel(currentModelName);
-
-  // Use backend capabilities as single source of truth
-  const currentModel = (() => {
-    if (!selectedModel) return null;
-
-    let connId = selectedLLMConnectionId;
-    let modelId = selectedModel;
-
-    if (selectedModel.includes('::')) {
-      const [parsedConnId, ...modelIdParts] = selectedModel.split('::');
-      connId = parsedConnId;
-      modelId = modelIdParts.join('::');
-    }
-
-    const conn = llmConnections.find((c) => c.id === connId);
-    return conn?.models?.find((m) => m.id === modelId);
-  })();
-
   const supportsToolCalling = currentModel?.supportsTools ?? false;
   const supportsThinking = currentModel?.supportsThinking ?? false;
 
@@ -360,38 +359,8 @@ export function ChatInput({
       .filter((conn) => conn.models && conn.models.length > 0);
   }, [llmConnections, modelSearchTerm]);
 
-  useEffect(() => {
-    // Note: We use JS resize + debounce instead of CSS `field-sizing: content`
-    // because `field-sizing` is not yet supported in WebKit (Safari/Tauri macOS).
-    // The CSS Grid hack approach (textarea over hidden div) doubles DOM nodes
-    // and doesn't offer better performance than this debounced JS solution.
-    const resize = () => {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        // Reset height to auto to get the correct scrollHeight
-        textarea.style.height = 'auto';
-        const scrollHeight = textarea.scrollHeight;
-        const minHeight = 40; // Min height in pixels
-        const maxHeight = 200; // Max height in pixels (about 8-10 lines)
-        const newHeight = Math.max(
-          minHeight,
-          Math.min(scrollHeight, maxHeight)
-        );
-        textarea.style.height = `${newHeight}px`;
-        textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
-      }
-    };
-
-    // Immediate resize if input is cleared
-    if (!input) {
-      resize();
-      return;
-    }
-
-    // Debounce resize to prevent lag with large input
-    const timer = setTimeout(resize, 20);
-    return () => clearTimeout(timer);
-  }, [input]);
+  // Use custom hook for textarea resize
+  const { textareaRef } = useTextareaAutoResize({ val: input });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (slashCommand.isActive) {
@@ -594,14 +563,10 @@ export function ChatInput({
               selectedAgentIds={selectedAgentIds}
               installedAgents={installedAgents}
               onRemoveFile={handleRemoveFile}
-              onRemoveFlow={() => setFlow(null)}
-              onOpenFlowDialog={() => setFlowDialogOpen(true)}
+              onRemoveFlow={handleRemoveFlow}
+              onOpenFlowDialog={handleOpenFlowDialog}
               onRemovePrompt={handleRemovePrompt}
-              onRemoveAgent={(agentId: string) => {
-                setSelectedAgentIds(
-                  selectedAgentIds.filter((id) => id !== agentId)
-                );
-              }}
+              onRemoveAgent={handleRemoveAgent}
               disabled={disabled}
             />
 

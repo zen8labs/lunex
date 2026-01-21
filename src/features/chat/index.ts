@@ -30,23 +30,23 @@ export * from './state/messages'; // Export actions from messages slice
 export * from './state/messagesApi';
 
 // Hooks
-export * from './hooks/useChats';
-export * from './hooks/useMessages';
-export * from './hooks/useChatInput';
-export * from './hooks/useExportChat';
-export * from './hooks/useChatStreaming';
-export * from './hooks/useAgentMention';
-export * from './hooks/useToolPermission';
-export * from './hooks/useChatScroll';
-export * from './hooks/useMessageListState';
-export * from './hooks/useChatSubmit';
-export * from './hooks/useChatDragDrop';
+export { useChats } from './hooks/useChats';
+export { useMessages } from './hooks/useMessages';
+export { useChatInput } from './hooks/useChatInput';
+export { useExportChat } from './hooks/useExportChat';
+export { useChatStreaming } from './hooks/useChatStreaming';
+export { useAgentMention } from './hooks/useAgentMention';
+export { useToolPermission } from './hooks/useToolPermission';
+export { useChatScroll } from './hooks/useChatScroll';
+export { useMessageListState } from './hooks/useMessageListState';
+export { useChatSubmit } from './hooks/useChatSubmit';
+export { useChatDragDrop } from './hooks/useChatDragDrop';
+export { useTextareaAutoResize } from './hooks/useTextareaAutoResize';
 
 // UI
-
-export * from './ui/chat/ChatArea';
-export * from './ui/ChatSidebar';
-export * from './ui/ChatSearchDialog';
-export * from './ui/chat/AgentCard';
-export * from './ui/ChatScreen';
-export * from './ui/ChatLayout';
+export { ChatArea } from './ui/chat/ChatArea';
+export { ChatSidebar } from './ui/ChatSidebar';
+export { ChatSearchDialog } from './ui/ChatSearchDialog';
+export { AgentCard } from './ui/chat/AgentCard';
+export { ChatScreen } from './ui/ChatScreen';
+export { ChatLayout } from './ui/ChatLayout';

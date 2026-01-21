@@ -119,7 +119,15 @@ export const MessageItem = memo(
 
     if (agentCardData) {
       return (
-        <div className="flex w-full justify-start my-2">
+        <div
+          className="flex w-full justify-start my-2"
+          style={
+            {
+              contentVisibility: 'auto',
+              containIntrinsicSize: '100px',
+            } as React.CSSProperties
+          }
+        >
           <AgentCard
             agentId={agentCardData.agent_id}
             sessionId={agentCardData.session_id}
@@ -146,6 +154,12 @@ export const MessageItem = memo(
           'group flex min-w-0 w-full animate-in fade-in slide-in-from-bottom-3 duration-500 ease-out',
           message.role === 'user' ? 'justify-end' : 'justify-start'
         )}
+        style={
+          {
+            contentVisibility: 'auto',
+            containIntrinsicSize: '100px',
+          } as React.CSSProperties
+        }
       >
         <div
           className={cn(
