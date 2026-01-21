@@ -18,10 +18,7 @@ interface AboutProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const APP_NAME = 'Nexo';
-const GITHUB_URL = 'https://github.com/Nexo-Agent/nexo';
-const WEBSITE_URL = 'https://nexo.nkthanh.dev';
-const DOCS_URL = 'https://nexo-docs.nkthanh.dev';
+import { APP_NAME, GITHUB_URL, WEBSITE_URL, DOCS_URL } from '../lib/constants';
 
 export function About({ open, onOpenChange }: AboutProps) {
   const { t } = useTranslation('common');

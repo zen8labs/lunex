@@ -135,8 +135,8 @@ export function PromptManagement() {
       ) : prompts.length === 0 ? (
         <EmptyState icon={FileText} title={t('noPrompts')} />
       ) : (
-        <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <ScrollArea className="h-full **:data-[slot='scroll-area-scrollbar']:hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 content-visibility-auto">
             {prompts.map((prompt) => (
               <div
                 key={prompt.id}
@@ -144,7 +144,7 @@ export function PromptManagement() {
                 className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200 cursor-pointer overflow-hidden"
               >
                 {/* Subtle gradient overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
                 <div className="relative space-y-3">
                   {/* Header with icon and name */}
@@ -251,7 +251,7 @@ function PromptDialog({
             </p>
           </DialogHeader>
           <DialogBody>
-            <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
+            <ScrollArea className="h-full **:data-[slot='scroll-area-scrollbar']:hidden">
               <div className="space-y-4 pr-4">
                 <div className="space-y-2 w-full">
                   <Label htmlFor="prompt-name">{t('promptName')}</Label>
