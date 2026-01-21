@@ -5,4 +5,7 @@ export * from './types';
 export { default as AddonSettings } from './ui/AddonSettings';
 
 // Hooks
-export * from './hooks/useAddons';
+// Hooks
+export { useAddonConfig } from './hooks/useAddonConfig';
+export { usePythonRuntime } from './hooks/usePythonRuntime';
+export { useNodeRuntime } from './hooks/useNodeRuntime';

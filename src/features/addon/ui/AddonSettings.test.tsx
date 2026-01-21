@@ -4,15 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import AddonSettings from './AddonSettings';
-import { useAddons } from '../hooks/useAddons';
+import { useAddonConfig, usePythonRuntime, useNodeRuntime } from '../hooks';
 import type {
   AddonConfig,
   PythonRuntimeStatus,
   NodeRuntimeStatus,
 } from '../types';
 
-// Mock the useAddons hook
-vi.mock('../hooks/useAddons');
+// Mock the hooks
+vi.mock('../hooks');
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
@@ -74,14 +74,17 @@ const mockNodeRuntimes: NodeRuntimeStatus[] = [
   },
 ];
 
-const mockActions = {
-  loadAddonConfig: vi.fn(),
-  loadPythonStatus: vi.fn(),
-  loadNodeStatus: vi.fn(),
-  installPython: vi.fn(),
-  uninstallPython: vi.fn(),
-  installNode: vi.fn(),
-  uninstallNode: vi.fn(),
+const mockPythonActions = {
+  loadStatus: vi.fn(),
+  install: vi.fn(),
+  uninstall: vi.fn(),
+  installPackages: vi.fn(),
+};
+
+const mockNodeActions = {
+  loadStatus: vi.fn(),
+  install: vi.fn(),
+  uninstall: vi.fn(),
 };
 
 describe('AddonSettings', () => {
@@ -97,17 +100,49 @@ describe('AddonSettings', () => {
     );
   };
 
+  const setupMocks = ({
+    configLoading = false,
+    pythonLoading = false,
+    nodeLoading = false,
+    config = mockAddonConfig,
+    pythonRuntimes = mockPythonRuntimes,
+    nodeRuntimes = mockNodeRuntimes,
+    installingPython = null,
+    installingNode = null,
+  }: {
+    configLoading?: boolean;
+    pythonLoading?: boolean;
+    nodeLoading?: boolean;
+    config?: AddonConfig | null;
+    pythonRuntimes?: PythonRuntimeStatus[];
+    nodeRuntimes?: NodeRuntimeStatus[];
+    installingPython?: string | null;
+    installingNode?: string | null;
+  } = {}) => {
+    (useAddonConfig as any).mockReturnValue({
+      config,
+      isLoading: configLoading,
+    });
+    (usePythonRuntime as any).mockReturnValue({
+      runtimes: pythonRuntimes,
+      isLoading: pythonLoading,
+      installingVersion: installingPython,
+      actions: mockPythonActions,
+    });
+    (useNodeRuntime as any).mockReturnValue({
+      runtimes: nodeRuntimes,
+      isLoading: nodeLoading,
+      installingVersion: installingNode,
+      actions: mockNodeActions,
+    });
+  };
+
   describe('Loading State', () => {
     it('should render skeleton loaders when loading', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: null,
-        pythonRuntimes: [],
-        nodeRuntimes: [],
-        isLoading: true,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
+      setupMocks({
+        pythonLoading: true,
+        nodeLoading: true,
+        configLoading: true,
       });
 
       const { container } = renderComponent();
@@ -120,15 +155,10 @@ describe('AddonSettings', () => {
     });
 
     it('should match snapshot for loading state', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: null,
-        pythonRuntimes: [],
-        nodeRuntimes: [],
-        isLoading: true,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
+      setupMocks({
+        pythonLoading: true,
+        nodeLoading: true,
+        configLoading: true,
       });
 
       const { container } = renderComponent();
@@ -138,16 +168,7 @@ describe('AddonSettings', () => {
 
   describe('Loaded State', () => {
     beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks();
     });
 
     it('should render runtime environment title and description', () => {
@@ -199,16 +220,7 @@ describe('AddonSettings', () => {
 
   describe('Python Runtime Actions', () => {
     beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks();
     });
 
     it('should call installPython when reinstall button is clicked', async () => {
@@ -219,7 +231,7 @@ describe('AddonSettings', () => {
       const reinstallButtons = screen.getAllByText('reinstall');
       await user.click(reinstallButtons[0]);
 
-      expect(mockActions.installPython).toHaveBeenCalledWith('3.12.0');
+      expect(mockPythonActions.install).toHaveBeenCalledWith('3.12.0');
     });
 
     it('should call uninstallPython when uninstall button is clicked', async () => {
@@ -230,20 +242,11 @@ describe('AddonSettings', () => {
       const uninstallButtons = screen.getAllByText('uninstall');
       await user.click(uninstallButtons[0]);
 
-      expect(mockActions.uninstallPython).toHaveBeenCalledWith('3.12.0');
+      expect(mockPythonActions.uninstall).toHaveBeenCalledWith('3.12.0');
     });
 
     it('should show installing state when Python is being installed', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: '3.12.0',
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ installingPython: '3.12.0' });
 
       renderComponent();
 
@@ -251,16 +254,7 @@ describe('AddonSettings', () => {
     });
 
     it('should disable buttons when Python is being installed', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: '3.12.0',
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ installingPython: '3.12.0' });
 
       renderComponent();
 
@@ -274,16 +268,7 @@ describe('AddonSettings', () => {
 
   describe('Node Runtime Actions', () => {
     beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks();
     });
 
     it('should call installNode when reinstall button is clicked', async () => {
@@ -294,7 +279,7 @@ describe('AddonSettings', () => {
       const reinstallButtons = screen.getAllByText('reinstall');
       await user.click(reinstallButtons[1]);
 
-      expect(mockActions.installNode).toHaveBeenCalledWith('20.0.0');
+      expect(mockNodeActions.install).toHaveBeenCalledWith('20.0.0');
     });
 
     it('should call uninstallNode when uninstall button is clicked', async () => {
@@ -305,20 +290,11 @@ describe('AddonSettings', () => {
       const uninstallButtons = screen.getAllByText('uninstall');
       await user.click(uninstallButtons[1]);
 
-      expect(mockActions.uninstallNode).toHaveBeenCalledWith('20.0.0');
+      expect(mockNodeActions.uninstall).toHaveBeenCalledWith('20.0.0');
     });
 
     it('should show installing state when Node is being installed', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: '20.0.0',
-        actions: mockActions,
-      });
+      setupMocks({ installingNode: '20.0.0' });
 
       renderComponent();
 
@@ -336,16 +312,7 @@ describe('AddonSettings', () => {
         },
       ];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: notInstalledPython,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ pythonRuntimes: notInstalledPython });
 
       renderComponent();
 
@@ -362,16 +329,7 @@ describe('AddonSettings', () => {
         },
       ];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: notInstalledPython,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ pythonRuntimes: notInstalledPython });
 
       const { container } = renderComponent();
 
@@ -389,16 +347,7 @@ describe('AddonSettings', () => {
         },
       ];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: notInstalledPython,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ pythonRuntimes: notInstalledPython });
 
       const { container } = renderComponent();
       expect(container).toMatchSnapshot();
@@ -417,16 +366,7 @@ describe('AddonSettings', () => {
         },
       ];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: pythonWithLongPath,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ pythonRuntimes: pythonWithLongPath });
 
       renderComponent();
 
@@ -439,16 +379,7 @@ describe('AddonSettings', () => {
 
   describe('Empty State', () => {
     it('should handle empty runtimes gracefully', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: [],
-        nodeRuntimes: [],
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ pythonRuntimes: [], nodeRuntimes: [] });
 
       renderComponent();
 
@@ -461,16 +392,7 @@ describe('AddonSettings', () => {
     });
 
     it('should match snapshot for empty state', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: [],
-        nodeRuntimes: [],
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks({ pythonRuntimes: [], nodeRuntimes: [] });
 
       const { container } = renderComponent();
       expect(container).toMatchSnapshot();
@@ -479,16 +401,7 @@ describe('AddonSettings', () => {
 
   describe('Responsive Grid Layout', () => {
     it('should render grid layout with correct classes', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (useAddons as any).mockReturnValue({
-        addonConfig: mockAddonConfig,
-        pythonRuntimes: mockPythonRuntimes,
-        nodeRuntimes: mockNodeRuntimes,
-        isLoading: false,
-        installingPython: null,
-        installingNode: null,
-        actions: mockActions,
-      });
+      setupMocks();
 
       const { container } = renderComponent();
 

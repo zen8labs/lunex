@@ -12,8 +12,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/ui/atoms/skeleton';
-import { useAddons } from '../hooks/useAddons';
+import { useAddonConfig, usePythonRuntime, useNodeRuntime } from '../hooks';
 import { PythonPackageManagerDialog } from './PythonPackageManagerDialog';
+
+// ... existing helper components (PythonIcon, NodeIcon, RuntimeCardSkeleton, RuntimeCard) ...
 
 const middleEllipsis = (str: string, maxLength: number = 50) => {
   if (str.length <= maxLength) return str;
@@ -238,15 +240,21 @@ const RuntimeCard = ({
 export default function AddonSettings() {
   const { t } = useTranslation('settings');
 
+  const { config: addonConfig } = useAddonConfig();
+
   const {
-    addonConfig,
-    pythonRuntimes,
-    nodeRuntimes,
-    isLoading,
-    installingPython,
-    installingNode,
-    actions,
-  } = useAddons();
+    runtimes: pythonRuntimes,
+    isLoading: isPythonLoading,
+    installingVersion: installingPython,
+    actions: pythonActions,
+  } = usePythonRuntime();
+
+  const {
+    runtimes: nodeRuntimes,
+    isLoading: isNodeLoading,
+    installingVersion: installingNode,
+    actions: nodeActions,
+  } = useNodeRuntime();
 
   // State for Python package manager dialog
   const [isPackageDialogOpen, setIsPackageDialogOpen] = useState(false);
@@ -304,7 +312,7 @@ export default function AddonSettings() {
       (r) => r.installed && r.version !== activePython.version
     );
     for (const r of others) {
-      await actions.uninstallPython(r.version);
+      await pythonActions.uninstall(r.version);
     }
   };
 
@@ -314,12 +322,8 @@ export default function AddonSettings() {
       (r) => r.installed && r.version !== activeNode.version
     );
     for (const r of others) {
-      await actions.uninstallNode(r.version);
+      await nodeActions.uninstall(r.version);
     }
-  };
-
-  const handleInstallPythonPackages = async (packages: string[]) => {
-    await actions.installPythonPackages(packages);
   };
 
   return (
@@ -334,57 +338,54 @@ export default function AddonSettings() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {isLoading ? (
-          <>
-            <RuntimeCardSkeleton />
-            <RuntimeCardSkeleton />
-          </>
+        {isPythonLoading ? (
+          <RuntimeCardSkeleton />
         ) : (
-          <>
-            {activePython && (
-              <RuntimeCard
-                name="Python"
-                version={activePython.version}
-                Icon={PythonIcon}
-                installed={activePython.installed}
-                path={activePython.path}
-                description={t('pythonRuntimeDescription')}
-                isInstalling={installingPython !== null}
-                onInstall={() => actions.installPython(activePython.version)}
-                onUninstall={() =>
-                  actions.uninstallPython(activePython.version)
-                }
-                onCleanup={handleCleanupOtherPython}
-                cleanupCount={otherInstalledPythonCount}
-                brandClass="brand-python"
-                onManagePackages={() => setIsPackageDialogOpen(true)}
-                extraInfo={
-                  addonConfig && (
-                    <span className="text-[10px] font-normal text-muted-foreground opacity-70">
-                      (uv {addonConfig.addons.python.uv.version})
-                    </span>
-                  )
-                }
-              />
-            )}
+          activePython && (
+            <RuntimeCard
+              name="Python"
+              version={activePython.version}
+              Icon={PythonIcon}
+              installed={activePython.installed}
+              path={activePython.path}
+              description={t('pythonRuntimeDescription')}
+              isInstalling={installingPython !== null}
+              onInstall={() => pythonActions.install(activePython.version)}
+              onUninstall={() => pythonActions.uninstall(activePython.version)}
+              onCleanup={handleCleanupOtherPython}
+              cleanupCount={otherInstalledPythonCount}
+              brandClass="brand-python"
+              onManagePackages={() => setIsPackageDialogOpen(true)}
+              extraInfo={
+                addonConfig && (
+                  <span className="text-[10px] font-normal text-muted-foreground opacity-70">
+                    (uv {addonConfig.addons.python.uv.version})
+                  </span>
+                )
+              }
+            />
+          )
+        )}
 
-            {activeNode && (
-              <RuntimeCard
-                name="Node.js"
-                version={activeNode.version}
-                Icon={NodeIcon}
-                installed={activeNode.installed}
-                path={activeNode.path}
-                description={t('nodeRuntimeDescription')}
-                isInstalling={installingNode !== null}
-                onInstall={() => actions.installNode(activeNode.version)}
-                onUninstall={() => actions.uninstallNode(activeNode.version)}
-                onCleanup={handleCleanupOtherNode}
-                cleanupCount={otherInstalledNodeCount}
-                brandClass="brand-node"
-              />
-            )}
-          </>
+        {isNodeLoading ? (
+          <RuntimeCardSkeleton />
+        ) : (
+          activeNode && (
+            <RuntimeCard
+              name="Node.js"
+              version={activeNode.version}
+              Icon={NodeIcon}
+              installed={activeNode.installed}
+              path={activeNode.path}
+              description={t('nodeRuntimeDescription')}
+              isInstalling={installingNode !== null}
+              onInstall={() => nodeActions.install(activeNode.version)}
+              onUninstall={() => nodeActions.uninstall(activeNode.version)}
+              onCleanup={handleCleanupOtherNode}
+              cleanupCount={otherInstalledNodeCount}
+              brandClass="brand-node"
+            />
+          )
         )}
       </div>
 
@@ -392,7 +393,7 @@ export default function AddonSettings() {
       <PythonPackageManagerDialog
         open={isPackageDialogOpen}
         onOpenChange={setIsPackageDialogOpen}
-        onInstall={handleInstallPythonPackages}
+        onInstall={pythonActions.installPackages}
         pythonVersion={activePython?.version}
       />
     </div>
