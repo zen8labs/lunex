@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, forwardRef, Fragment } from 'react';
+import { useMemo, useCallback, forwardRef, Fragment } from 'react';
 import type { Message } from '../../types';
 import type { PermissionRequest } from '@/features/tools/state/toolPermissionSlice';
 import { ToolCallItem } from './ToolCallItem';
@@ -7,7 +7,7 @@ import { MessageItem } from './MessageItem';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { sortMessages } from './utils/messageSorting';
 import { cn } from '@/lib/utils';
-import { logger } from '@/lib/logger';
+import { useMessageListState } from '../../hooks/useMessageListState';
 
 /**
  * Helper function to create a composite key for tool calls
@@ -95,84 +95,22 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
       threshold: 100,
     });
 
-    // Internal state management (if not controlled from parent)
-    const [internalMarkdownEnabled, setInternalMarkdownEnabled] = useState<
-      Record<string, boolean>
-    >({});
-    const [internalCopiedId, setInternalCopiedId] = useState<string | null>(
-      null
-    );
-    const [internalExpandedToolCalls, setInternalExpandedToolCalls] = useState<
-      Record<string, boolean>
-    >({});
-
-    // Use external state if provided, otherwise use internal state
-    const markdownEnabled = externalMarkdownEnabled ?? internalMarkdownEnabled;
-    const copiedId = externalCopiedId ?? internalCopiedId;
-    const expandedToolCalls =
-      externalExpandedToolCalls ?? internalExpandedToolCalls;
-
-    // Common handlers - shared logic
-    const handleCopy = useCallback(
-      async (content: string, messageId: string) => {
-        try {
-          await navigator.clipboard.writeText(content);
-          if (onCopiedIdChange) {
-            onCopiedIdChange(messageId);
-          } else {
-            setInternalCopiedId(messageId);
-          }
-          setTimeout(() => {
-            if (onCopiedIdChange) {
-              onCopiedIdChange(null);
-            } else {
-              setInternalCopiedId(null);
-            }
-          }, 2000);
-        } catch (error) {
-          logger.error('Failed to copy content:', error);
-        }
-      },
-      [onCopiedIdChange]
-    );
-
-    const toggleMarkdown = useCallback(
-      (messageId: string) => {
-        // If undefined, treat as true (markdown enabled by default)
-        const currentValue = markdownEnabled[messageId] ?? true;
-        const newValue = {
-          ...markdownEnabled,
-          [messageId]: !currentValue,
-        };
-        if (onMarkdownEnabledChange) {
-          onMarkdownEnabledChange(newValue);
-        } else {
-          setInternalMarkdownEnabled(newValue);
-        }
-      },
-      [markdownEnabled, onMarkdownEnabledChange]
-    );
-
-    const toggleToolCall = useCallback(
-      (compositeKey: string, defaultValue: boolean) => {
-        if (onExpandedToolCallsChange) {
-          const currentValue = expandedToolCalls[compositeKey] ?? defaultValue;
-          onExpandedToolCallsChange({
-            ...expandedToolCalls,
-            [compositeKey]: !currentValue,
-          });
-        } else {
-          setInternalExpandedToolCalls((prev) => {
-            const currentValue = prev[compositeKey] ?? defaultValue;
-            return {
-              ...prev,
-              [compositeKey]: !currentValue,
-            };
-          });
-        }
-      },
-      [expandedToolCalls, onExpandedToolCallsChange]
-    );
+    // Delegated state management
+    const {
+      markdownEnabled,
+      copiedId,
+      expandedToolCalls,
+      handleCopy,
+      toggleMarkdown,
+      toggleToolCall,
+    } = useMessageListState({
+      externalMarkdownEnabled,
+      externalCopiedId,
+      externalExpandedToolCalls,
+      onMarkdownEnabledChange,
+      onCopiedIdChange,
+      onExpandedToolCallsChange,
+    });
 
     const handleEdit = useCallback(
       (messageId: string) => {

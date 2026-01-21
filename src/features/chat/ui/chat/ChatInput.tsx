@@ -51,10 +51,6 @@ import { useComponentPerformance } from '@/hooks/useComponentPerformance';
 import { SlashCommandDropdown } from '@/ui/molecules/SlashCommandDropdown';
 import { AgentMentionDropdown } from '@/features/agent';
 import { VariableInputDialog } from '@/ui/molecules/VariableInputDialog';
-import { PromptPanel } from './PromptPanel';
-import { AgentMentionChips } from './AgentBadgeOverlay';
-import { AttachedFileItem } from './AttachedFileItem';
-import { FlowAttachment } from './FlowAttachment';
 import { FLOW_NODES, FlowEditorDialog } from '@/ui/molecules/flow';
 
 import {
@@ -63,7 +59,10 @@ import {
 } from '@/features/settings/lib/prompt-utils';
 import type { Prompt, InstalledAgent } from '@/app/types';
 import { useAppSettings } from '@/hooks/useAppSettings';
-import { logger } from '@/lib/logger';
+import { useChatSubmit } from '../../hooks/useChatSubmit';
+import { useChatDragDrop } from '../../hooks/useChatDragDrop';
+import { ChatAttachments } from './components/ChatAttachments';
+import { ChatDragOverlay } from './components/ChatDragOverlay';
 
 interface ChatInputProps {
   selectedWorkspaceId: string | null;
@@ -276,81 +275,19 @@ export function ChatInput({
     setInsertedPrompt(null);
   };
 
-  // Wrap onSend to combine prompt content with input
-  const handleSendWithPrompt = async () => {
-    // Construct the prefix for agents
-    const agentPrefix =
-      selectedAgentIds.length > 0
-        ? selectedAgentIds.map((id) => `@${id}`).join(' ') + ' '
-        : '';
-
-    // Construct prompt content
-    const promptContent = insertedPrompt ? insertedPrompt.content : '';
-
-    let combinedInput = '';
-
-    // 1. Add agents
-    if (agentPrefix) {
-      combinedInput += agentPrefix;
-    }
-
-    // 2. Add prompt
-    if (promptContent) {
-      combinedInput += promptContent;
-    }
-
-    // 3. Add user input
-    if (input) {
-      if (combinedInput && !combinedInput.endsWith('\n')) {
-        combinedInput += '\n\n';
-      }
-      combinedInput += input;
-    }
-
-    // Only proceed if we have something to send, attached files, or flow
-    if (combinedInput.trim() || attachedFiles.length > 0 || attachedFlow) {
-      // Process attached files
-      let images: string[] = [];
-      if (attachedFiles.length > 0) {
-        try {
-          images = await Promise.all(
-            attachedFiles.map((file) => {
-              return new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-              });
-            })
-          );
-        } catch (error) {
-          logger.error('Failed to process images', error);
-          dispatch(showError(t('failedToProcessImages', { ns: 'chat' })));
-          return;
-        }
-      }
-
-      // If we have a flow attachment, we need to add it to metadata
-      let metadata: string | undefined;
-      if (attachedFlow) {
-        metadata = JSON.stringify({
-          type: 'flow_attachment',
-          flow: attachedFlow,
-          timestamp: Date.now(),
-        });
-      }
-
-      // Clear states
-      setInsertedPrompt(null);
-      setSelectedAgentIds([]);
-      setFlow(null); // Changed from setAttachedFlow(null)
-      handleFileUpload([]); // Clear attached files
-
-      // Send the combined content directly
-      // This avoids the race condition of updating state -> re-rendering -> reading state in child
-      onSend(combinedInput, images, metadata);
-    }
-  };
+  // Custom hooks for Logic Separation
+  const { handleSubmit } = useChatSubmit({
+    onSend,
+    attachedFiles,
+    attachedFlow,
+    selectedAgentIds,
+    setInsertedPrompt,
+    setSelectedAgentIds,
+    setFlow,
+    handleFileUpload,
+    input,
+    insertedPrompt,
+  });
 
   // Find current connection and model name
   const { currentConnection, currentModelName } = (() => {
@@ -491,7 +428,7 @@ export function ChatInput({
         return;
       }
       e.preventDefault();
-      handleSendWithPrompt();
+      handleSubmit();
     }
   };
 
@@ -560,92 +497,18 @@ export function ChatInput({
     }
   }, [attachedFiles.length, handleFileUpload, supportsVision]);
 
-  // Handle paste event (images)
-  const handlePaste = (e: React.ClipboardEvent) => {
-    // Only handle if vision is supported
-    if (!supportsVision) return;
-
-    const items = e.clipboardData?.items;
-    if (!items) return;
-
-    const files: File[] = [];
-    for (const item of Array.from(items)) {
-      if (item.type.startsWith('image/')) {
-        const file = item.getAsFile();
-        if (file) {
-          // Validate size
-          if (file.size > MAX_FILE_SIZE) {
-            dispatch(
-              showError(
-                t('fileTooLarge', {
-                  size: formatFileSize(file.size),
-                  max: formatFileSize(MAX_FILE_SIZE),
-                  ns: 'chat',
-                })
-              )
-            );
-            continue;
-          }
-          files.push(file);
-        }
-      }
-    }
-
-    if (files.length > 0) {
-      // If we found images, prevent default to handle them manually
-      // Note: This might prevent text pasting if copied together (unlikely combo)
-      // e.preventDefault();
-      handleFileUpload([...attachedFiles, ...files]);
-    }
-  };
-
-  // Drag & Drop logic
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!supportsVision) return;
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    if (!supportsVision) return;
-
-    const files = Array.from(e.dataTransfer.files).filter((f) =>
-      f.type.startsWith('image/')
-    );
-
-    if (files.length > 0) {
-      const validFiles: File[] = [];
-      for (const file of files) {
-        if (file.size > MAX_FILE_SIZE) {
-          dispatch(
-            showError(
-              t('fileTooLarge', {
-                size: formatFileSize(file.size),
-                max: formatFileSize(MAX_FILE_SIZE),
-                ns: 'chat',
-              })
-            )
-          );
-          continue;
-        }
-        validFiles.push(file);
-      }
-
-      if (validFiles.length > 0) {
-        handleFileUpload([...attachedFiles, ...validFiles]);
-      }
-    }
-  };
+  // Use Drag & Drop hook
+  const {
+    isDragging,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleDisplayPaste,
+  } = useChatDragDrop({
+    attachedFiles,
+    handleFileUpload,
+    supportsVision,
+  });
 
   return (
     <>
@@ -721,66 +584,25 @@ export function ChatInput({
             onDrop={handleDrop}
           >
             {/* Drag Indicator Overlay */}
-            {isDragging && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
-                <div className="flex flex-col items-center gap-2 text-primary">
-                  <Paperclip className="h-8 w-8 animate-bounce" />
-                  <span className="font-medium">
-                    {t('dropFiles', {
-                      ns: 'chat',
-                      defaultValue: 'Drop images here',
-                    })}
-                  </span>
-                </div>
-              </div>
-            )}
+            {isDragging && <ChatDragOverlay />}
 
-            {/* Attached Files */}
-            {attachedFiles.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
-                {attachedFiles.map((file, index) => (
-                  <AttachedFileItem
-                    key={`${file.name}-${file.lastModified}-${file.size}`}
-                    file={file}
-                    index={index}
-                    onRemove={handleRemoveFile}
-                    disabled={disabled}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Attached Flow */}
-            {attachedFlow && (
-              <div className="flex gap-2 p-2 pt-0">
-                <FlowAttachment
-                  flow={attachedFlow}
-                  onClick={() => setFlowDialogOpen(true)}
-                  onRemove={() => setFlow(null)}
-                  mode="chatinput"
-                />
-              </div>
-            )}
-
-            {/* Inserted Prompt Panel */}
-            {insertedPrompt && (
-              <PromptPanel
-                promptName={insertedPrompt.name}
-                promptContent={insertedPrompt.content}
-                onRemove={handleRemovePrompt}
-              />
-            )}
-
-            {/* Agent Mention Chips */}
-            <AgentMentionChips
-              agentIds={selectedAgentIds}
-              agents={installedAgents}
-              onRemoveAgent={(agentId) => {
-                // Remove agent from selected list
+            {/* Attachments & Prompts & Agents Area */}
+            <ChatAttachments
+              attachedFiles={attachedFiles}
+              attachedFlow={attachedFlow}
+              insertedPrompt={insertedPrompt}
+              selectedAgentIds={selectedAgentIds}
+              installedAgents={installedAgents}
+              onRemoveFile={handleRemoveFile}
+              onRemoveFlow={() => setFlow(null)}
+              onOpenFlowDialog={() => setFlowDialogOpen(true)}
+              onRemovePrompt={handleRemovePrompt}
+              onRemoveAgent={(agentId: string) => {
                 setSelectedAgentIds(
                   selectedAgentIds.filter((id) => id !== agentId)
                 );
               }}
+              disabled={disabled}
             />
 
             <input
@@ -801,7 +623,7 @@ export function ChatInput({
                 value={input}
                 onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
+                onPaste={handleDisplayPaste}
                 placeholder={t('enterMessage')}
                 disabled={disabled}
                 className={cn(
@@ -1135,7 +957,7 @@ export function ChatInput({
                     input.trim() ||
                     insertedPrompt ||
                     selectedAgentIds.length > 0
-                      ? handleSendWithPrompt
+                      ? handleSubmit
                       : effectiveIsStreaming
                         ? handleStopStreaming
                         : undefined

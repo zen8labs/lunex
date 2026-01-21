@@ -36,6 +36,11 @@ export * from './hooks/useChatInput';
 export * from './hooks/useExportChat';
 export * from './hooks/useChatStreaming';
 export * from './hooks/useAgentMention';
+export * from './hooks/useToolPermission';
+export * from './hooks/useChatScroll';
+export * from './hooks/useMessageListState';
+export * from './hooks/useChatSubmit';
+export * from './hooks/useChatDragDrop';
 
 // UI
 

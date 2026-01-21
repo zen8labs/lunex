@@ -1,17 +1,6 @@
-import { useRef, useCallback, memo, useState } from 'react';
-import {
-  Copy,
-  Code,
-  FileText,
-  Check,
-  Pencil,
-  ChevronDown,
-  ChevronUp,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
-import { MessageImage } from './MessageImage';
-import { MessageFile } from './MessageFile';
+import { useRef, useCallback, memo, useState, useMemo } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+
 import { FlowAttachment } from './FlowAttachment';
 import { cn } from '@/lib/utils';
 import { MarkdownContent } from '@/ui/organisms/markdown/MarkdownContent';
@@ -20,12 +9,11 @@ import { FlowEditorDialog } from '@/ui/molecules/flow/FlowEditorDialog';
 import { MessageMentions } from './MessageMentions';
 import { parseMessageMentions } from './utils/mentionUtils';
 import { useComponentPerformance } from '@/hooks/useComponentPerformance';
-import { useAppDispatch } from '@/app/hooks';
-import { setImagePreviewOpen } from '@/features/ui/state/uiSlice';
 import { FLOW_NODES } from '@/ui/molecules/flow/constants';
-import { useTTS } from '@/hooks/useTTS';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import type { Message } from '../../types';
+import { MessageAttachments } from './components/MessageAttachments';
+import { MessageControls } from './components/MessageControls';
 
 export interface MessageItemProps {
   message: Message;
@@ -60,13 +48,18 @@ export const MessageItem = memo(
       componentName: 'MessageItem',
       threshold: 30,
     });
-    const dispatch = useAppDispatch();
+
     const [isFlowDialogOpen, setIsFlowDialogOpen] = useState(false);
-    const { isPlaying, toggle } = useTTS();
     const { enableRawText } = useAppSettings();
+
     // Determine if message is long (more than 500 characters or more than 10 lines)
-    const isLongMessage =
-      message.content.length > 500 || message.content.split('\n').length > 10;
+    // Memoize this calculation
+    const isLongMessage = useMemo(
+      () =>
+        message.content.length > 500 || message.content.split('\n').length > 10,
+      [message.content]
+    );
+
     // Disable collapse/expand for streaming messages
     const canCollapse = isLongMessage && !isStreaming;
 
@@ -103,25 +96,26 @@ export const MessageItem = memo(
       onEdit(message.id);
     }, [message.id, onEdit]);
 
-    const handleToggleTTS = useCallback(() => {
-      toggle(message.content);
-    }, [message.content, toggle]);
-
-    // Check for Agent Card metadata
-    let agentCardData = null;
-    let flowData = null;
-    if (message.metadata) {
+    // Parse metadata only once
+    const parsedMetadata = useMemo(() => {
+      if (!message.metadata) return null;
       try {
-        const parsed = JSON.parse(message.metadata);
-        if (parsed && parsed.type === 'agent_card') {
-          agentCardData = parsed;
-        } else if (parsed && parsed.type === 'flow_attachment') {
-          flowData = parsed.flow;
-        }
-      } catch (_) {
-        // Ignore JSON parse errors
+        return JSON.parse(message.metadata);
+      } catch {
+        return null;
       }
-    }
+    }, [message.metadata]);
+
+    const agentCardData =
+      parsedMetadata?.type === 'agent_card' ? parsedMetadata : null;
+    const flowData =
+      parsedMetadata?.type === 'flow_attachment' ? parsedMetadata.flow : null;
+
+    // Parse mentions once
+    const { mentions, cleanedContent } = useMemo(
+      () => parseMessageMentions(message.content),
+      [message.content]
+    );
 
     if (agentCardData) {
       return (
@@ -186,129 +180,26 @@ export const MessageItem = memo(
                       : 'max-h-[9999px]'
                   )}
                 >
-                  {/* Parse mentions */}
-                  {(() => {
-                    const { mentions } = parseMessageMentions(message.content);
+                  {/* Mentions */}
+                  {mentions.length > 0 && (
+                    <MessageMentions
+                      mentions={mentions}
+                      role={message.role}
+                      className={cn(
+                        message.role === 'user' ? 'opacity-90' : ''
+                      )}
+                    />
+                  )}
 
-                    if (mentions.length === 0) return null;
+                  {/* Attachments */}
+                  {parsedMetadata && (
+                    <MessageAttachments
+                      files={parsedMetadata.files}
+                      images={parsedMetadata.images}
+                    />
+                  )}
 
-                    return (
-                      <MessageMentions
-                        mentions={mentions}
-                        role={message.role}
-                        className={cn(
-                          message.role === 'user' ? 'opacity-90' : ''
-                        )}
-                      />
-                    );
-                  })()}
-
-                  {/* Check for Files/Images in metadata */}
-                  {message.metadata &&
-                    (() => {
-                      try {
-                        const parsed = JSON.parse(message.metadata);
-
-                        // Try new format first (files array)
-                        let fileList: Array<
-                          string | { path: string; mimeType: string }
-                        > = [];
-                        if (
-                          parsed &&
-                          Array.isArray(parsed.files) &&
-                          parsed.files.length > 0
-                        ) {
-                          fileList = parsed.files;
-                        }
-                        // Fallback to old format (images array)
-                        else if (
-                          parsed &&
-                          Array.isArray(parsed.images) &&
-                          parsed.images.length > 0
-                        ) {
-                          fileList = parsed.images;
-                        }
-
-                        if (fileList.length === 0) {
-                          return null;
-                        }
-
-                        return (
-                          <div className="mb-3 flex flex-col gap-2">
-                            {fileList.map((fileData, index) => {
-                              // Parse file data
-                              let filePath: string;
-                              let mimeType: string | undefined;
-
-                              if (typeof fileData === 'string') {
-                                filePath = fileData;
-                                // Try to guess mime type from data URL or extension
-                                if (fileData.startsWith('data:')) {
-                                  const match = fileData.match(/data:(.*?);/);
-                                  mimeType = match ? match[1] : undefined;
-                                }
-                              } else if (
-                                typeof fileData === 'object' &&
-                                fileData.path
-                              ) {
-                                filePath = fileData.path;
-                                mimeType = fileData.mimeType;
-                              } else {
-                                return null;
-                              }
-
-                              // Determine if it's an image
-                              const isImage =
-                                mimeType?.startsWith('image/') ||
-                                (!mimeType &&
-                                  (filePath.match(
-                                    /\.(jpg|jpeg|png|gif|webp)$/i
-                                  ) ||
-                                    (filePath.startsWith('data:') &&
-                                      filePath.includes('image/'))));
-
-                              if (isImage) {
-                                // Render image with preview
-                                return (
-                                  <div
-                                    key={index}
-                                    className="relative w-fit max-w-[400px] overflow-hidden rounded-lg border border-border/50 bg-background/50 cursor-pointer hover:opacity-90 transition-opacity"
-                                  >
-                                    <MessageImage
-                                      src={filePath}
-                                      alt={`Attached image ${index + 1}`}
-                                      className="max-h-[300px] w-auto h-auto object-contain"
-                                      onClick={(url) =>
-                                        dispatch(
-                                          setImagePreviewOpen({
-                                            open: true,
-                                            url,
-                                          })
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                );
-                              } else {
-                                // Render file card
-                                return (
-                                  <MessageFile
-                                    key={index}
-                                    src={filePath}
-                                    mimeType={mimeType}
-                                    className="max-w-[400px]"
-                                  />
-                                );
-                              }
-                            })}
-                          </div>
-                        );
-                      } catch (_) {
-                        return null;
-                      }
-                    })()}
-
-                  {/* Flow Attachment from metadata */}
+                  {/* Flow Attachment */}
                   {flowData && (
                     <div className="mb-2">
                       <FlowAttachment
@@ -326,30 +217,17 @@ export const MessageItem = memo(
                     </div>
                   )}
 
-                  {(() => {
-                    const { cleanedContent } = parseMessageMentions(
-                      message.content
-                    );
-
-                    return message.role === 'assistant' ? (
-                      <>
-                        {markdownEnabled ? (
-                          <MarkdownContent
-                            content={cleanedContent}
-                            messageId={message.id}
-                          />
-                        ) : (
-                          <div className="whitespace-pre-wrap wrap-break-words">
-                            {cleanedContent}
-                          </div>
-                        )}
-                      </>
+                  {/* Content */}
+                  <div className="whitespace-pre-wrap wrap-break-words">
+                    {message.role === 'assistant' && markdownEnabled ? (
+                      <MarkdownContent
+                        content={cleanedContent}
+                        messageId={message.id}
+                      />
                     ) : (
-                      <div className="whitespace-pre-wrap wrap-break-words">
-                        {cleanedContent}
-                      </div>
-                    );
-                  })()}
+                      cleanedContent
+                    )}
+                  </div>
                 </div>
 
                 {/* Gradient fade overlay when collapsed */}
@@ -393,77 +271,18 @@ export const MessageItem = memo(
               )}
             </div>
 
-            {/* Control buttons - positioned at bottom right corner, overlapping 50% into message */}
-            <div
-              className={cn(
-                'absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2',
-                'flex items-center gap-0.5',
-                'rounded-md backdrop-blur-md',
-                'bg-background/95 border border-border shadow-lg',
-                'opacity-0 group-hover:opacity-100 transition-opacity duration-150'
-              )}
-            >
-              {message.role === 'user' && (
-                <button
-                  className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn"
-                  onClick={handleEdit}
-                  title={t('edit') || 'Edit'}
-                >
-                  <Pencil className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                </button>
-              )}
-              {message.role === 'assistant' && (
-                <>
-                  <button
-                    className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn"
-                    onClick={handleEdit}
-                    title={t('edit') || 'Edit'}
-                  >
-                    <Pencil className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                  </button>
-                  {enableRawText && (
-                    <button
-                      className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn"
-                      onClick={handleToggleMarkdown}
-                      title={
-                        markdownEnabled ? t('showRawText') : t('showMarkdown')
-                      }
-                    >
-                      {markdownEnabled ? (
-                        <FileText className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                      ) : (
-                        <Code className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                      )}
-                    </button>
-                  )}
-                </>
-              )}
-              <button
-                className="p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn"
-                onClick={handleCopy}
-                title={t('copy')}
-              >
-                {isCopied ? (
-                  <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                )}
-              </button>
-              <button
-                className={cn(
-                  'p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors group/btn',
-                  isPlaying && 'text-primary animate-pulse'
-                )}
-                onClick={handleToggleTTS}
-                title={t('readAloud') || 'Read aloud'}
-              >
-                {isPlaying ? (
-                  <VolumeX className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                ) : (
-                  <Volume2 className="h-3.5 w-3.5 opacity-70 group-hover/btn:opacity-100 transition-opacity" />
-                )}
-              </button>
-            </div>
+            {/* Controls */}
+            <MessageControls
+              role={message.role}
+              content={message.content}
+              isCopied={isCopied}
+              markdownEnabled={markdownEnabled}
+              enableRawText={enableRawText}
+              onEdit={handleEdit}
+              onCopy={handleCopy}
+              onToggleMarkdown={handleToggleMarkdown}
+              t={t}
+            />
 
             {/* Footer: Only show token usage if showUsage is enabled */}
             {showUsage &&
@@ -503,7 +322,6 @@ export const MessageItem = memo(
   },
   (prevProps, nextProps) => {
     // Only re-render if relevant props change
-    // Note: onToggleMarkdown and onCopy are stable callbacks from useCallback, so we don't need to compare them
     return (
       prevProps.message.id === nextProps.message.id &&
       prevProps.message.content === nextProps.message.content &&
