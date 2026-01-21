@@ -1,26 +1,22 @@
-import { useState, useEffect } from 'react';
-import { Download, Loader2, Server, RefreshCw, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Loader2, RefreshCw, Search, Server } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
 import { Button } from '@/ui/atoms/button/button';
 import { Input } from '@/ui/atoms/input';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/ui/atoms/card';
 import { EmptyState } from '@/ui/atoms/empty-state';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
-import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppDispatch } from '@/app/hooks';
 import {
   showError,
   showSuccess,
 } from '@/features/notifications/state/notificationSlice';
+import {
+  useGetHubMCPServersQuery,
+  useRefreshHubIndexMutation,
+} from '../state/api';
 import type { HubMCPServer } from '../types';
+import { MCPServerCard } from './MCPServerCard';
 
 interface CommunityMCPServersSectionProps {
   installedServerIds: string[];
@@ -33,49 +29,24 @@ export function CommunityMCPServersSection({
 }: CommunityMCPServersSectionProps) {
   const { t } = useTranslation('settings');
   const dispatch = useAppDispatch();
-  const [servers, setServers] = useState<HubMCPServer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadServers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const {
+    data: servers = [],
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useGetHubMCPServersQuery();
 
-  const loadServers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await invokeCommand<HubMCPServer[]>(
-        TauriCommands.FETCH_HUB_MCP_SERVERS
-      );
-      setServers(data);
-    } catch (err) {
-      logger.error('Error loading hub MCP servers:', err);
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Failed to load MCP servers from hub';
-      setError(errorMessage);
-      dispatch(showError(errorMessage));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInstall = (server: HubMCPServer) => {
-    onInstall(server);
-  };
+  const [refreshHub, { isLoading: isRefreshing }] =
+    useRefreshHubIndexMutation();
 
   const handleRefresh = async () => {
     try {
-      setRefreshing(true);
-      // Refresh hub index first
-      await invokeCommand(TauriCommands.REFRESH_HUB_INDEX);
-      // Then reload servers
-      await loadServers();
+      await refreshHub().unwrap();
+      // Tag invalidation handles the refetch, but we can verify
+      await refetch();
       dispatch(
         showSuccess(
           t('hubIndexRefreshed', {
@@ -88,18 +59,20 @@ export function CommunityMCPServersSection({
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to refresh hub index';
       dispatch(showError(errorMessage));
-    } finally {
-      setRefreshing(false);
     }
   };
 
-  const filteredServers = servers.filter(
-    (server) =>
-      server.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      server.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredServers = useMemo(
+    () =>
+      servers.filter(
+        (server) =>
+          server.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          server.description.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [servers, searchQuery]
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="mr-2 size-4 animate-spin" />
@@ -113,10 +86,14 @@ export function CommunityMCPServersSection({
   }
 
   if (error) {
+    const errorMessage =
+      typeof error === 'object' && error !== null && 'message' in error
+        ? (error as { message: string }).message
+        : 'Failed to load MCP servers';
     return (
       <div className="text-center py-12 border rounded-lg bg-muted/10">
-        <p className="text-sm text-destructive mb-4">{error}</p>
-        <Button onClick={loadServers} size="sm" variant="outline">
+        <p className="text-sm text-destructive mb-4">{errorMessage}</p>
+        <Button onClick={() => refetch()} size="sm" variant="outline">
           {t('retry', { ns: 'common', defaultValue: 'Retry' })}
         </Button>
       </div>
@@ -153,12 +130,12 @@ export function CommunityMCPServersSection({
         </div>
         <Button
           onClick={handleRefresh}
-          disabled={refreshing || loading}
+          disabled={isRefreshing || isLoading || isFetching}
           size="sm"
           variant="outline"
         >
           <RefreshCw
-            className={`mr-2 size-4 ${refreshing ? 'animate-spin' : ''}`}
+            className={`mr-2 size-4 ${isRefreshing || isFetching ? 'animate-spin' : ''}`}
           />
           {t('refresh', { defaultValue: 'Refresh' })}
         </Button>
@@ -174,72 +151,18 @@ export function CommunityMCPServersSection({
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-            {filteredServers.map((server) => {
-              const isInstalled = installedServerIds.includes(server.id);
-              return (
-                <Card
-                  key={server.id}
-                  className="flex flex-col h-full hover:bg-accent/50 transition-colors"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start gap-3">
-                      {server.icon ? (
-                        <img
-                          src={server.icon}
-                          alt={server.name}
-                          className="size-10 rounded-md object-cover bg-muted/20 p-1"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="rounded-lg bg-primary/10 p-2.5">
-                          <Server className="size-5 text-primary" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base truncate">
-                          {server.name}
-                        </CardTitle>
-                        <CardDescription className="text-xs mt-1 truncate">
-                          {server.id}
-                        </CardDescription>
-                      </div>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary shrink-0 uppercase">
-                        {server.type}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {server.description}
-                    </p>
-                  </CardContent>
-                  <CardFooter className="pt-0">
-                    <Button
-                      onClick={() => handleInstall(server)}
-                      disabled={isInstalled}
-                      className="w-full"
-                      size="sm"
-                      variant={isInstalled ? 'outline' : 'default'}
-                    >
-                      {isInstalled ? (
-                        <>
-                          <Server className="mr-2 size-4" />
-                          {t('installed', { defaultValue: 'Installed' })}
-                        </>
-                      ) : (
-                        <>
-                          <Download className="mr-2 size-4" />
-                          {t('install', { defaultValue: 'Install' })}
-                        </>
-                      )}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              );
-            })}
+          <div
+            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6"
+            style={{ contentVisibility: 'auto' }}
+          >
+            {filteredServers.map((server) => (
+              <MCPServerCard
+                key={server.id}
+                server={server}
+                isInstalled={installedServerIds.includes(server.id)}
+                onInstall={onInstall}
+              />
+            ))}
           </div>
         )}
       </ScrollArea>

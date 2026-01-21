@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/atoms/tabs';
 import { useGetInstalledAgentsQuery } from '@/features/agent/state/api';
-import { useGetMCPConnectionsQuery } from '@/features/mcp/hooks/useMCPConnections';
+import { useGetMCPConnectionsQuery } from '@/features/mcp';
 import { CommunityAgentsSection } from './CommunityAgentsSection';
 import { CommunityMCPServersSection } from './CommunityMCPServersSection';
 import { CommunityPromptsSection } from './CommunityPromptsSection';

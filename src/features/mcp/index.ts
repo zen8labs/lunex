@@ -1,5 +1,14 @@
 export * from './types';
-export * from './hooks/useMCPConnections';
+export {
+  useGetMCPConnectionsQuery,
+  useCreateMCPConnectionMutation,
+  useConnectMCPConnectionMutation,
+  useDisconnectMCPConnectionMutation,
+  useUpdateMCPConnectionMutation,
+  useRemoveMCPConnectionMutation,
+  useGetHubMCPServersQuery,
+  useRefreshHubIndexMutation,
+} from './state/api';
 export { mcpConnectionsApi } from './state/api';
 export { default as mcpConnectionsReducer } from './state/slice';
 export { MCPServerConnections } from './ui/MCPServerConnections';

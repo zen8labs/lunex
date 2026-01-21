@@ -89,7 +89,7 @@ vi.mock('@/features/agent/state/api', () => ({
   })),
 }));
 
-vi.mock('@/features/mcp/hooks/useMCPConnections', () => ({
+vi.mock('@/features/mcp', () => ({
   useGetMCPConnectionsQuery: vi.fn(() => ({
     data: [],
     refetch: vi.fn(),

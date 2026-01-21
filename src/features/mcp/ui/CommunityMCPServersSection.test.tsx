@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CommunityMCPServersSection } from './CommunityMCPServersSection';
-import { invokeCommand } from '@/lib/tauri';
+
 import { useAppDispatch } from '@/app/hooks';
 
 // Mock dependencies
@@ -62,6 +62,17 @@ vi.mock('@/ui/atoms/scroll-area', () => ({
   ),
 }));
 
+// Mock RTK Query hooks
+vi.mock('../state/api', () => ({
+  useGetHubMCPServersQuery: vi.fn(),
+  useRefreshHubIndexMutation: vi.fn(),
+}));
+
+import {
+  useGetHubMCPServersQuery,
+  useRefreshHubIndexMutation,
+} from '../state/api';
+
 describe('CommunityMCPServersSection', () => {
   const mockDispatch = vi.fn();
   const mockOnInstall = vi.fn();
@@ -71,22 +82,42 @@ describe('CommunityMCPServersSection', () => {
       id: 'mcp-server-1',
       name: 'Test Hub Server',
       description: 'A test server from hub',
+      icon: '',
       type: 'sse',
       config: { url: 'http://test.com' },
     },
   ];
 
+  const mockRefetch = vi.fn();
+  const mockRefreshHub = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
     (useAppDispatch as unknown as Mock).mockReturnValue(mockDispatch);
-    (invokeCommand as Mock).mockResolvedValue(mockServers);
+
+    // Default mock implementation
+    (useGetHubMCPServersQuery as Mock).mockReturnValue({
+      data: mockServers,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: mockRefetch,
+    });
+
+    (useRefreshHubIndexMutation as Mock).mockReturnValue([
+      mockRefreshHub.mockReturnValue({ unwrap: vi.fn().mockResolvedValue({}) }),
+      { isLoading: false },
+    ]);
   });
 
-  it('renders loading state initially', async () => {
-    // delay resolve to catch loading state
-    (invokeCommand as Mock).mockReturnValue(
-      new Promise((resolve) => setTimeout(() => resolve(mockServers), 100))
-    );
+  it('renders loading state initially', () => {
+    (useGetHubMCPServersQuery as Mock).mockReturnValue({
+      data: [],
+      isLoading: true,
+      isFetching: false,
+      error: null,
+      refetch: mockRefetch,
+    });
 
     render(
       <CommunityMCPServersSection
@@ -114,16 +145,22 @@ describe('CommunityMCPServersSection', () => {
 
   it('filters servers by search query', async () => {
     const user = userEvent.setup();
-    (invokeCommand as Mock).mockResolvedValue([
-      ...mockServers,
-      {
-        id: 'mcp-server-2',
-        name: 'Another Server',
-        description: 'Different description',
-        type: 'stdio',
-        config: { command: 'node' },
-      },
-    ]);
+    (useGetHubMCPServersQuery as Mock).mockReturnValue({
+      data: [
+        ...mockServers,
+        {
+          id: 'mcp-server-2',
+          name: 'Another Server',
+          description: 'Different description',
+          type: 'stdio',
+          config: { command: 'node' },
+        },
+      ],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: mockRefetch,
+    });
 
     render(
       <CommunityMCPServersSection
@@ -193,7 +230,7 @@ describe('CommunityMCPServersSection', () => {
     const refreshButton = screen.getByText('refresh');
     await user.click(refreshButton);
 
-    expect(invokeCommand).toHaveBeenCalledWith('refresh_hub_index');
-    expect(invokeCommand).toHaveBeenCalledWith('fetch_hub_mcp_servers');
+    expect(mockRefreshHub).toHaveBeenCalled();
+    expect(mockRefetch).toHaveBeenCalled();
   });
 });
