@@ -1,6 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { HubScreen } from './HubScreen';
+import { useGetInstalledPromptsQuery } from '../state/api';
 
 // Mock dependencies
 vi.mock('@/ui/atoms/tabs', () => {
@@ -57,7 +58,30 @@ vi.mock('@/hooks/useLogger', () => ({
     setContext: vi.fn(),
   }),
 }));
+// Mock RTK Query hooks
+vi.mock('../state/api', () => ({
+  useGetHubAgentsQuery: vi.fn(() => ({
+    data: [],
+    refetch: vi.fn(),
+  })),
+  useGetHubPromptsQuery: vi.fn(() => ({
+    data: [],
+    refetch: vi.fn(),
+  })),
+  useGetInstalledPromptsQuery: vi.fn(() => ({
+    data: [],
+    refetch: vi.fn(),
+  })),
+}));
 
+vi.mock('@/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
 
 vi.mock('@/features/agent/state/api', () => ({
   useGetInstalledAgentsQuery: vi.fn(() => ({
@@ -70,13 +94,6 @@ vi.mock('@/features/mcp/hooks/useMCPConnections', () => ({
     data: [],
     refetch: vi.fn(),
   })),
-}));
-
-vi.mock('@/lib/tauri', () => ({
-  invokeCommand: vi.fn(() => Promise.resolve([])),
-  TauriCommands: {
-    GET_PROMPTS: 'get_prompts',
-  },
 }));
 
 vi.mock('./CommunityAgentsSection', () => ({
@@ -140,12 +157,8 @@ describe('HubScreen', () => {
     expect(screen.getByTestId('tab-content-prompt')).toBeInTheDocument();
   });
 
-  it('fetches prompts on mount', async () => {
-    const { invokeCommand } = await import('@/lib/tauri');
+  it('fetches initial data using RTK Query', () => {
     render(<HubScreen />);
-
-    await waitFor(() => {
-      expect(invokeCommand).toHaveBeenCalledWith('get_prompts');
-    });
+    expect(useGetInstalledPromptsQuery).toHaveBeenCalled();
   });
 });
