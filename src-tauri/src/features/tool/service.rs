@@ -1,3 +1,4 @@
+use super::internal::InternalToolService;
 use super::mcp_client::MCPClientService;
 use crate::error::AppError;
 use crate::features::mcp_connection::MCPConnectionService;
@@ -68,6 +69,12 @@ impl ToolService {
 
         // Read tools from cached tools_json instead of fetching from MCP server
         let mut all_tools = Vec::new();
+
+        // Add internal tools if enabled
+        if workspace_settings.internal_tools_enabled == Some(1) {
+            all_tools.extend(Self::get_builtin_tools());
+        }
+
         for connection in workspace_connections {
             // Parse cached tools from tools_json column
             let mcp_tools: Vec<MCPTool> = if let Some(tools_json) = &connection.tools_json {
@@ -125,6 +132,18 @@ impl ToolService {
         );
 
         let start_time = std::time::Instant::now();
+
+        if connection_id == "builtin" {
+            return match tool_name {
+                "read_file" => InternalToolService::read_file(arguments).await,
+                "write_file" => InternalToolService::write_file(arguments).await,
+                "list_dir" => InternalToolService::list_dir(arguments).await,
+                "run_command" => InternalToolService::run_command(arguments).await,
+                _ => Err(AppError::Validation(format!(
+                    "Unknown internal tool: {tool_name}"
+                ))),
+            };
+        }
 
         // Get MCP connection
         let connection = self
@@ -189,15 +208,97 @@ impl ToolService {
             .ok_or_else(|| AppError::Validation("Workspace settings not found".to_string()))?;
 
         // Parse MCP tool IDs from JSON object string: { "tool_name": "connection_id", ... }
-        let mcp_tool_map: std::collections::HashMap<String, String> = if let Some(ids_json) =
+        let mut mcp_tool_map: std::collections::HashMap<String, String> = if let Some(ids_json) =
             &workspace_settings.mcp_tool_ids
         {
             serde_json::from_str(ids_json)
                 .map_err(|e| AppError::Validation(format!("Failed to parse MCP tool IDs: {e}")))?
         } else {
-            return Ok(std::collections::HashMap::new());
+            std::collections::HashMap::new()
         };
 
+        // Add internal tools to map if enabled
+        if workspace_settings.internal_tools_enabled == Some(1) {
+            mcp_tool_map.insert("read_file".to_string(), "builtin".to_string());
+            mcp_tool_map.insert("write_file".to_string(), "builtin".to_string());
+            mcp_tool_map.insert("list_dir".to_string(), "builtin".to_string());
+            mcp_tool_map.insert("run_command".to_string(), "builtin".to_string());
+        }
+
         Ok(mcp_tool_map)
+    }
+
+    fn get_builtin_tools() -> Vec<ChatCompletionTool> {
+        vec![
+            ChatCompletionTool {
+                r#type: "function".to_string(),
+                function: crate::models::llm_types::ChatCompletionToolFunction {
+                    name: "read_file".to_string(),
+                    description: Some(
+                        "Đọc nội dung của một tệp tin (Yêu cầu đường dẫn tuyệt đối)".to_string(),
+                    ),
+                    parameters: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": {
+                            "path": { "type": "string", "description": "Đường dẫn tuyệt đối đến file" }
+                        },
+                        "required": ["path"]
+                    })),
+                },
+            },
+            ChatCompletionTool {
+                r#type: "function".to_string(),
+                function: crate::models::llm_types::ChatCompletionToolFunction {
+                    name: "write_file".to_string(),
+                    description: Some(
+                        "Ghi nội dung vào một tệp tin (Yêu cầu đường dẫn tuyệt đối)".to_string(),
+                    ),
+                    parameters: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": {
+                            "path": { "type": "string", "description": "Đường dẫn tuyệt đối đến file" },
+                            "content": { "type": "string", "description": "Nội dung cần ghi" }
+                        },
+                        "required": ["path", "content"]
+                    })),
+                },
+            },
+            ChatCompletionTool {
+                r#type: "function".to_string(),
+                function: crate::models::llm_types::ChatCompletionToolFunction {
+                    name: "list_dir".to_string(),
+                    description: Some(
+                        "Liệt kê nội dung của một thư mục (Yêu cầu đường dẫn tuyệt đối)"
+                            .to_string(),
+                    ),
+                    parameters: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": {
+                            "path": { "type": "string", "description": "Đường dẫn tuyệt đối đến thư mục" }
+                        },
+                        "required": ["path"]
+                    })),
+                },
+            },
+            ChatCompletionTool {
+                r#type: "function".to_string(),
+                function: crate::models::llm_types::ChatCompletionToolFunction {
+                    name: "run_command".to_string(),
+                    description: Some(
+                        "Chạy một lệnh shell (Yêu cầu đường dẫn tuyệt đối cho cwd nếu có)"
+                            .to_string(),
+                    ),
+                    parameters: Some(serde_json::json!({
+                        "type": "object",
+                        "properties": {
+                            "command": { "type": "string", "description": "Lệnh cần chạy" },
+                            "args": { "type": "array", "items": { "type": "string" }, "description": "Các đối số của lệnh" },
+                            "cwd": { "type": "string", "description": "Thư mục làm việc (đường dẫn tuyệt đối)" }
+                        },
+                        "required": ["command"]
+                    })),
+                },
+            },
+        ]
     }
 }

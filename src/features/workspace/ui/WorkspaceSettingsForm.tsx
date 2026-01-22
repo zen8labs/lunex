@@ -67,6 +67,9 @@ export function WorkspaceSettingsForm({
   const [maxAgentIterations, setMaxAgentIterations] = useState<number>(
     initialSettings?.maxAgentIterations ?? 25
   );
+  const [internalToolsEnabled, setInternalToolsEnabled] = useState<boolean>(
+    initialSettings?.internalToolsEnabled ?? false
+  );
 
   const [toolPermissionConfig, setToolPermissionConfig] = useState<
     Record<string, 'require' | 'auto'>
@@ -94,6 +97,7 @@ export function WorkspaceSettingsForm({
             ? toolPermissionConfig
             : undefined,
         maxAgentIterations,
+        internalToolsEnabled,
       };
       await onSave(newSettings);
       onOpenChange(false);
@@ -164,6 +168,8 @@ export function WorkspaceSettingsForm({
                 onStreamEnabledChange={setStreamEnabled}
                 maxAgentIterations={maxAgentIterations}
                 onMaxAgentIterationsChange={setMaxAgentIterations}
+                internalToolsEnabled={internalToolsEnabled}
+                onInternalToolsEnabledChange={setInternalToolsEnabled}
               />
 
               <Separator />

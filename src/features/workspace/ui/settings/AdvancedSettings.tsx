@@ -10,6 +10,8 @@ interface AdvancedSettingsProps {
   onStreamEnabledChange: (checked: boolean) => void;
   maxAgentIterations: number;
   onMaxAgentIterationsChange: (value: number) => void;
+  internalToolsEnabled: boolean;
+  onInternalToolsEnabledChange: (checked: boolean) => void;
 }
 
 export function AdvancedSettings({
@@ -17,11 +19,41 @@ export function AdvancedSettings({
   onStreamEnabledChange,
   maxAgentIterations,
   onMaxAgentIterationsChange,
+  internalToolsEnabled,
+  onInternalToolsEnabledChange,
 }: AdvancedSettingsProps) {
   const { t } = useTranslation(['settings', 'common', 'chat']);
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between py-1">
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-1.5">
+            <Label htmlFor="internal-tools-enabled" className="text-sm">
+              {'Internal Tools (Experimental)'}
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="size-3.5 text-muted-foreground/70 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                {
+                  'Cho phép LLM sử dụng các công cụ hệ thống (read_file, write_file, list_dir, run_command).'
+                }
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-[11px] text-muted-foreground/80">
+            {'Lưu ý: Mọi công cụ đều yêu cầu đường dẫn tuyệt đối.'}
+          </p>
+        </div>
+        <Switch
+          id="internal-tools-enabled"
+          checked={internalToolsEnabled}
+          onCheckedChange={onInternalToolsEnabledChange}
+        />
+      </div>
+
       <div className="flex items-center justify-between py-1">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-1.5">

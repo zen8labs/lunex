@@ -111,6 +111,13 @@ pub fn run_migrations(conn: &Connection) -> Result<()> {
     )
     .ok(); // Ignore error if column already exists
 
+    // Add internal_tools_enabled column if it doesn't exist
+    conn.execute(
+        "ALTER TABLE workspace_settings ADD COLUMN internal_tools_enabled INTEGER DEFAULT 0",
+        [],
+    )
+    .ok(); // Ignore error if column already exists
+
     // Migrate mcp_connection_ids to mcp_tool_ids (column rename)
     // First check if old column exists and new column doesn't
     let has_old_column = conn
