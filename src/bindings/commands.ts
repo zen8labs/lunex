@@ -82,6 +82,7 @@ export const TauriCommands = {
   GET_MCP_CLIENT: 'get_mcp_client',
   CALL_MCP_TOOL: 'call_mcp_tool',
   DISCONNECT_MCP_CLIENT: 'disconnect_mcp_client',
+  GET_ACTIVE_TOOLS_FOR_WORKSPACE: 'get_active_tools_for_workspace',
 
   // Python commands
   GET_PYTHON_RUNTIMES_STATUS: 'get_python_runtimes_status',

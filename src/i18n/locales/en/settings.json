@@ -274,5 +274,13 @@
   "deleteConnectionConfirm": "Are you sure you want to delete this connection?",
   "internalTools": "Internal Tools (Experimental)",
   "internalToolsDescription": "Allow LLM to use system tools (read_file, write_file, list_dir, run_command).",
-  "internalToolsNote": "Note: All tools require absolute paths."
+  "internalToolsNote": "Note: All tools require absolute paths.",
+  "readFile": "read_file",
+  "readFileDesc": "Read the content of a file",
+  "writeFile": "write_file",
+  "writeFileDesc": "Write content to a file",
+  "listDir": "list_dir",
+  "listDirDesc": "List contents of a directory",
+  "runCommand": "run_command",
+  "runCommandDesc": "Execute a shell command"
 }

@@ -274,5 +274,13 @@
   "deleteConnectionConfirm": "Bạn có chắc chắn muốn xóa kết nối này không?",
   "internalTools": "Công cụ hệ thống (Thử nghiệm)",
   "internalToolsDescription": "Cho phép LLM sử dụng các công cụ hệ thống (read_file, write_file, list_dir, run_command).",
-  "internalToolsNote": "Lưu ý: Mọi công cụ đều yêu cầu đường dẫn tuyệt đối."
+  "internalToolsNote": "Lưu ý: Mọi công cụ đều yêu cầu đường dẫn tuyệt đối.",
+  "readFile": "đọc_file",
+  "readFileDesc": "Đọc nội dung của một tệp tin",
+  "writeFile": "ghi_file",
+  "writeFileDesc": "Ghi nội dung vào một tệp tin",
+  "listDir": "liệt_kê_thư_mục",
+  "listDirDesc": "Liệt kê nội dung của thư mục",
+  "runCommand": "chạy_lệnh",
+  "runCommandDesc": "Thực thi một lệnh shell"
 }

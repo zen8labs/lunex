@@ -72,6 +72,7 @@ impl TauriCommands {
     pub const GET_MCP_CLIENT: &'static str = "get_mcp_client";
     pub const CALL_MCP_TOOL: &'static str = "call_mcp_tool";
     pub const DISCONNECT_MCP_CLIENT: &'static str = "disconnect_mcp_client";
+    pub const GET_ACTIVE_TOOLS_FOR_WORKSPACE: &'static str = "get_active_tools_for_workspace";
 
     // Python commands
     pub const GET_PYTHON_RUNTIMES_STATUS: &'static str = "get_python_runtimes_status";

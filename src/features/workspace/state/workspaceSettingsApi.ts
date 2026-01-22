@@ -139,6 +139,7 @@ export const workspaceSettingsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: (_result, _error, { workspaceId }) => [
         { type: 'WorkspaceSettings', id: workspaceId },
+        { type: 'WorkspaceActiveTool', id: workspaceId },
       ],
     }),
   }),

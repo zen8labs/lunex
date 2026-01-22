@@ -36,9 +36,9 @@ import {
   DropdownMenuRadioItem,
 } from '@/ui/atoms/dropdown-menu';
 import { useGetLLMConnectionsQuery } from '@/features/llm';
-import { useGetMCPConnectionsQuery } from '@/features/mcp';
 import { useGetInstalledAgentsQuery } from '@/features/agent';
-import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { useGetActiveToolsForWorkspaceQuery } from '@/features/tools/state/toolsApi';
+import { useAppDispatch } from '@/app/hooks';
 import type { LLMConnection } from '@/features/llm/types';
 import { cn, formatFileSize } from '@/lib/utils';
 import { showError } from '@/features/notifications/state/notificationSlice';
@@ -138,44 +138,14 @@ export function ChatInput({
     handleReasoningEffortChange,
   } = useChatInput(selectedWorkspaceId);
 
-  // Get workspace settings and MCP connections for tools
-  const workspaceSettings = useAppSelector((state) =>
-    selectedWorkspaceId
-      ? state.workspaceSettings.settingsByWorkspaceId[selectedWorkspaceId]
-      : null
-  );
-  const { data: mcpConnections = [] } = useGetMCPConnectionsQuery();
-
   // Get app settings for experimental features
   const { enableWorkflowEditor } = useAppSettings();
 
-  // Calculate active tools from workspace settings
-  const mcpToolIds = workspaceSettings?.mcpToolIds;
-  const activeTools = useMemo(() => {
-    if (!mcpToolIds) return [];
-
-    const toolsList: {
-      name: string;
-      serverName: string;
-      description?: string;
-    }[] = [];
-
-    Object.entries(mcpToolIds).forEach(([toolName, connectionId]) => {
-      const connection = mcpConnections.find(
-        (conn) => conn.id === connectionId
-      );
-      if (connection && connection.status === 'connected') {
-        const tool = connection.tools?.find((t) => t.name === toolName);
-        toolsList.push({
-          name: toolName,
-          serverName: connection.name,
-          description: tool?.description,
-        });
-      }
-    });
-
-    return toolsList;
-  }, [mcpToolIds, mcpConnections]);
+  // Calculate active tools from workspace settings - fetching from backend for unified source of truth
+  const { data: activeTools = [] } = useGetActiveToolsForWorkspaceQuery(
+    selectedWorkspaceId || '',
+    { skip: !selectedWorkspaceId }
+  );
 
   // Use messages hook for streaming state
   const { handleStopStreaming, isStreaming, isAgentStreaming } =

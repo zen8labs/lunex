@@ -2,7 +2,7 @@ use super::internal::InternalToolService;
 use super::mcp_client::MCPClientService;
 use crate::error::AppError;
 use crate::features::mcp_connection::MCPConnectionService;
-use crate::features::tool::models::MCPTool;
+use crate::features::tool::models::{MCPTool, UnifiedToolInfo};
 use crate::features::workspace::settings::WorkspaceSettingsService;
 use crate::models::llm_types::ChatCompletionTool;
 use serde_json;
@@ -47,12 +47,8 @@ impl ToolService {
             serde_json::from_str(ids_json)
                 .map_err(|e| AppError::Validation(format!("Failed to parse MCP tool IDs: {e}")))?
         } else {
-            return Ok(Vec::new()); // No MCP tools configured
+            std::collections::HashMap::new()
         };
-
-        if mcp_tool_map.is_empty() {
-            return Ok(Vec::new());
-        }
 
         // Get unique connection IDs from the tool map
         let connection_ids: std::collections::HashSet<String> =
@@ -226,6 +222,88 @@ impl ToolService {
         }
 
         Ok(mcp_tool_map)
+    }
+
+    pub fn get_active_tools_info_for_workspace(
+        &self,
+        workspace_id: &str,
+    ) -> Result<Vec<UnifiedToolInfo>, AppError> {
+        let workspace_settings = self
+            .workspace_settings_service
+            .get_by_workspace_id(workspace_id)?
+            .ok_or_else(|| AppError::Validation("Workspace settings not found".to_string()))?;
+
+        let mut tools_info = Vec::new();
+
+        // Add internal tools if enabled
+        if workspace_settings.internal_tools_enabled == Some(1) {
+            tools_info.push(UnifiedToolInfo {
+                name: "read_file".to_string(),
+                server_name: "System".to_string(),
+                description: Some(
+                    "Read the content of a file (Absolute path required)".to_string(),
+                ),
+            });
+            tools_info.push(UnifiedToolInfo {
+                name: "write_file".to_string(),
+                server_name: "System".to_string(),
+                description: Some("Write content to a file (Absolute path required)".to_string()),
+            });
+            tools_info.push(UnifiedToolInfo {
+                name: "list_dir".to_string(),
+                server_name: "System".to_string(),
+                description: Some(
+                    "List the contents of a directory (Absolute path required)".to_string(),
+                ),
+            });
+            tools_info.push(UnifiedToolInfo {
+                name: "run_command".to_string(),
+                server_name: "System".to_string(),
+                description: Some(
+                    "Run a shell command (Absolute path for cwd if provided)".to_string(),
+                ),
+            });
+        }
+
+        // Parse MCP tool IDs
+        let mcp_tool_map: std::collections::HashMap<String, String> =
+            if let Some(ids_json) = &workspace_settings.mcp_tool_ids {
+                serde_json::from_str(ids_json).unwrap_or_default()
+            } else {
+                std::collections::HashMap::new()
+            };
+
+        if !mcp_tool_map.is_empty() {
+            let connection_ids: std::collections::HashSet<String> =
+                mcp_tool_map.values().cloned().collect();
+            let all_connections = self.mcp_connection_service.get_all()?;
+            let workspace_connections: Vec<_> = all_connections
+                .into_iter()
+                .filter(|conn| connection_ids.contains(&conn.id) && conn.status == "connected")
+                .collect();
+
+            for connection in workspace_connections {
+                let mcp_tools: Vec<MCPTool> = if let Some(tools_json) = &connection.tools_json {
+                    serde_json::from_str(tools_json).unwrap_or_default()
+                } else {
+                    continue;
+                };
+
+                for mcp_tool in mcp_tools {
+                    if let Some(selected_connection_id) = mcp_tool_map.get(&mcp_tool.name) {
+                        if selected_connection_id == &connection.id {
+                            tools_info.push(UnifiedToolInfo {
+                                name: mcp_tool.name,
+                                server_name: connection.name.clone(),
+                                description: mcp_tool.description,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(tools_info)
     }
 
     fn get_builtin_tools() -> Vec<ChatCompletionTool> {

@@ -217,6 +217,7 @@ pub fn run() {
             features::tool::commands::get_mcp_client,
             features::tool::commands::call_mcp_tool,
             features::tool::commands::disconnect_mcp_client,
+            features::tool::commands::get_active_tools_for_workspace,
             // Python commands
             features::runtime::python::commands::get_python_runtimes_status,
             features::runtime::python::commands::install_python_runtime,

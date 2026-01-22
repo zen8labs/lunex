@@ -118,3 +118,13 @@ pub async fn disconnect_mcp_client(
 
     Ok(())
 }
+#[tauri::command]
+pub fn get_active_tools_for_workspace(
+    workspace_id: String,
+    state: State<'_, crate::state::AppState>,
+) -> Result<Vec<crate::features::tool::models::UnifiedToolInfo>, AppError> {
+    state
+        .tool_service
+        .get_active_tools_info_for_workspace(&workspace_id)
+        .map_err(|e| AppError::Generic(e.to_string()))
+}

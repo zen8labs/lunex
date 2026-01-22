@@ -12,6 +12,8 @@ interface DbWorkspaceSettings {
   stream_enabled: number | null; // 1 for true, 0 for false, null for default
   default_model: string | null;
   tool_permission_config: string | null; // JSON string
+  max_agent_iterations: number | null;
+  internal_tools_enabled: number | null;
   created_at: number;
   updated_at: number;
 }
@@ -88,6 +90,11 @@ export const fetchWorkspaceSettings = createAsyncThunk(
         streamEnabled,
         defaultModel: dbSettings.default_model || undefined,
         toolPermissionConfig,
+        maxAgentIterations: dbSettings.max_agent_iterations || undefined,
+        internalToolsEnabled:
+          dbSettings.internal_tools_enabled !== null
+            ? dbSettings.internal_tools_enabled === 1
+            : undefined,
       },
     };
   }
@@ -119,6 +126,11 @@ export const saveWorkspaceSettings = createAsyncThunk(
       streamEnabled, // Send as boolean, not number
       defaultModel: settings.defaultModel || null,
       toolPermissionConfig: toolPermissionConfigJson,
+      maxAgentIterations: settings.maxAgentIterations || null,
+      internalToolsEnabled:
+        settings.internalToolsEnabled !== undefined
+          ? settings.internalToolsEnabled
+          : null,
     });
     return { workspaceId, settings };
   }
