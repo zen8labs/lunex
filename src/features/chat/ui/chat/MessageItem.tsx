@@ -285,18 +285,20 @@ export const MessageItem = memo(
               )}
             </div>
 
-            {/* Controls */}
-            <MessageControls
-              role={message.role}
-              content={message.content}
-              isCopied={isCopied}
-              markdownEnabled={markdownEnabled}
-              enableRawText={enableRawText}
-              onEdit={handleEdit}
-              onCopy={handleCopy}
-              onToggleMarkdown={handleToggleMarkdown}
-              t={t}
-            />
+            {/* Controls - positioned below message bubble */}
+            <div className="flex justify-end m-0 p-0">
+              <MessageControls
+                role={message.role}
+                content={message.content}
+                isCopied={isCopied}
+                markdownEnabled={markdownEnabled}
+                enableRawText={enableRawText}
+                onEdit={handleEdit}
+                onCopy={handleCopy}
+                onToggleMarkdown={handleToggleMarkdown}
+                t={t}
+              />
+            </div>
 
             {/* Footer: Only show token usage if showUsage is enabled */}
             {showUsage &&

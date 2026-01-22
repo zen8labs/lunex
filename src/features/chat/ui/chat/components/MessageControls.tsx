@@ -21,6 +21,7 @@ interface MessageControlsProps {
   onCopy: () => void;
   onToggleMarkdown: () => void;
   t: (key: string) => string;
+  className?: string;
 }
 
 export const MessageControls = memo(function MessageControls({
@@ -33,6 +34,7 @@ export const MessageControls = memo(function MessageControls({
   onCopy,
   onToggleMarkdown,
   t,
+  className,
 }: MessageControlsProps) {
   const { isPlaying, toggle } = useTTS();
 
@@ -43,11 +45,11 @@ export const MessageControls = memo(function MessageControls({
   return (
     <div
       className={cn(
-        'absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2',
         'flex items-center gap-0.5',
         'rounded-md backdrop-blur-md',
         'bg-background/95 border border-border shadow-lg',
-        'opacity-0 group-hover:opacity-100 transition-opacity duration-150'
+        'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
+        className
       )}
     >
       {role === 'user' && (
