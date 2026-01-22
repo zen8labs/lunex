@@ -28,7 +28,7 @@ impl MessageService {
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_secs() as i64
+                .as_millis() as i64
         });
 
         let message = Message {

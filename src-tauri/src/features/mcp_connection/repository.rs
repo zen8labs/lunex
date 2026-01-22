@@ -120,7 +120,7 @@ impl MCPConnectionRepository for SqliteMCPConnectionRepository {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         if let Some(name) = name {
             conn.execute(
@@ -178,7 +178,7 @@ impl MCPConnectionRepository for SqliteMCPConnectionRepository {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         conn.execute(
             "UPDATE mcp_server_connections SET status = ?1, tools_json = ?2, error_message = ?3, updated_at = ?4 WHERE id = ?5",

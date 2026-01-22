@@ -285,7 +285,7 @@ impl ChatService {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         let chat = Chat {
             id,
@@ -461,7 +461,7 @@ impl ChatService {
         let user_timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
         let user_message_id = uuid::Uuid::new_v4().to_string();
 
         // Merge incoming metadata with processed files
@@ -512,7 +512,7 @@ impl ChatService {
                 )?;
 
                 // 2. Create Assistant Message (Agent Card Placeholder)
-                let assistant_timestamp = user_timestamp + 1;
+                let assistant_timestamp = user_timestamp;
                 let assistant_message_id = uuid::Uuid::new_v4().to_string();
 
                 // Metadata for Card
@@ -608,7 +608,7 @@ impl ChatService {
         }
 
         // 7. Create assistant message placeholder
-        let assistant_timestamp = user_timestamp + 1;
+        let assistant_timestamp = user_timestamp;
         let assistant_message_id = uuid::Uuid::new_v4().to_string();
 
         self.message_service.create(
@@ -1062,7 +1062,7 @@ impl ChatService {
                 let timestamp = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap()
-                    .as_secs() as i64;
+                    .as_millis() as i64;
                 let new_assistant_message_id = uuid::Uuid::new_v4().to_string();
 
                 self.message_service.create(
@@ -1473,7 +1473,7 @@ impl ChatService {
             let tool_call_timestamp = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_secs() as i64;
+                .as_millis() as i64;
 
             let tool_call_data = serde_json::json!({
                 "name": tool_call.function.name,
@@ -1752,7 +1752,7 @@ impl ChatService {
 
             // Create tool result message
             let tool_result_message_id = format!("tool_result_{}", tool_call.id);
-            let tool_result_timestamp = tool_call_timestamp + 1;
+            let tool_result_timestamp = tool_call_timestamp;
 
             self.message_service.create(
                 tool_result_message_id,

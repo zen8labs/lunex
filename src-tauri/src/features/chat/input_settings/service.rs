@@ -21,7 +21,7 @@ impl ChatInputSettingsService {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         let stream_enabled_i64: i64 = i64::from(stream_enabled);
 

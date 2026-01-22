@@ -67,7 +67,7 @@ pub async fn install_prompt_from_hub(
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs() as i64;
+        .as_millis() as i64;
 
     let prompt = Prompt {
         id: payload.prompt_id,
@@ -122,7 +122,7 @@ pub async fn install_mcp_server_from_hub(
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs() as i64;
+        .as_millis() as i64;
 
     let connection = MCPServerConnection {
         id: payload.server_id,

@@ -78,7 +78,7 @@ impl AgentManager {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         let info = InstallInfo {
             source: AgentSource::Local {
@@ -134,7 +134,7 @@ impl AgentManager {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         let installed_at = existing_info.map_or(now, |i| i.installed_at);
 

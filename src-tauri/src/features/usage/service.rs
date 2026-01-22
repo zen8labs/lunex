@@ -78,7 +78,7 @@ impl UsageService {
             total_tokens,
             latency_ms,
             cost,
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: chrono::Utc::now().timestamp_millis(),
             is_stream,
             status,
             request_type: "chat".to_string(),

@@ -27,7 +27,7 @@ impl WorkspaceSettingsService {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         let stream_enabled_i64: Option<i64> = stream_enabled.map(i64::from);
         let internal_tools_enabled_i64 = internal_tools_enabled.map(i64::from);

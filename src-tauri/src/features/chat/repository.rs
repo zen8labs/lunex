@@ -133,7 +133,7 @@ impl ChatRepository for SqliteChatRepository {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as i64;
+            .as_millis() as i64;
 
         if let Some(title) = title {
             conn.execute(
