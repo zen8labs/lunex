@@ -33,7 +33,7 @@ Follow these steps to release a new version of Nexo:
    `cd src-tauri && cargo check`
 
 4. **Update Release Note in GitHub Workflow**
-   Summarize the changes from `changelogs/<version>.md` into a human-readable format and update the `releaseBody` field in `.github/workflows/build.yaml`.
+   Summarize the changes into a human-readable format and update the `releaseBody` field in `.github/workflows/build.yaml`.
 
    **IMPORTANT**: Only include user-facing changes:
    - ✅ New features
@@ -67,7 +67,7 @@ Follow these steps to release a new version of Nexo:
 
 5. **Commit changes**
    // turbo
-   `git add src-tauri/Cargo.toml src-tauri/Cargo.lock package.json src-tauri/tauri.conf.json changelogs/ .github/workflows/build.yaml`
+   `git add src-tauri/Cargo.toml src-tauri/Cargo.lock package.json src-tauri/tauri.conf.json .github/workflows/build.yaml`
    // turbo
    `git commit -m "chore(release): <version>"`
 
