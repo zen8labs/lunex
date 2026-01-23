@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SettingsScreen } from './SettingsScreen';
-import {
-  setSettingsSection,
-  navigateToChat,
-} from '@/features/ui/state/uiSlice';
+import { setSettingsSection } from '@/features/ui/state/uiSlice';
 
 // Mock dependencies
 const mockDispatch = vi.fn();
