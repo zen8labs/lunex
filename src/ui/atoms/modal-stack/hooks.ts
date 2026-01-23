@@ -9,6 +9,7 @@ export function useModalStack() {
       registerModal: () => {},
       unregisterModal: () => {},
       isTopModal: () => true,
+      hasModals: () => false,
     };
   }
   return context;

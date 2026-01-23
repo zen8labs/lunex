@@ -29,12 +29,15 @@ export function ModalStackProvider({
     [modalStack]
   );
 
+  const hasModals = useCallback(() => modalStack.length > 0, [modalStack]);
+
   return (
     <ModalStackContext.Provider
       value={{
         registerModal,
         unregisterModal,
         isTopModal,
+        hasModals,
       }}
     >
       {children}

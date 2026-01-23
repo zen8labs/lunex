@@ -146,12 +146,4 @@ describe('SettingsScreen', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(setSettingsSection('llm'));
   });
-
-  it('navigates back to chat when Escape key is pressed', () => {
-    render(<SettingsScreen />);
-
-    fireEvent.keyDown(document, { key: 'Escape' });
-
-    expect(mockDispatch).toHaveBeenCalledWith(navigateToChat());
-  });
 });

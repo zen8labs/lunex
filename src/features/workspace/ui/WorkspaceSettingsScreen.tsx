@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -35,18 +34,6 @@ export function WorkspaceSettingsScreen() {
     handleSaveWorkspaceSettings,
     handleDeleteWorkspace,
   } = useWorkspaces();
-
-  // Handle ESC key to navigate back to chat
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        dispatch(navigateToChat());
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [dispatch]);
 
   const { data: llmConnections = [] } = useGetLLMConnectionsQuery();
   const { data: allMcpConnections = [] } = useGetMCPConnectionsQuery();

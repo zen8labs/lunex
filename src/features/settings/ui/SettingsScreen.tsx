@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import {
   Network,
   Server,
@@ -11,8 +11,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/lib/logger';
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { navigateToChat } from '@/features/ui/state/uiSlice';
+import { useAppSelector } from '@/app/hooks';
 import { Separator } from '@/ui/atoms/separator';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 
@@ -73,20 +72,7 @@ const SectionLoader = () => (
 
 export function SettingsScreen() {
   const { t } = useTranslation(['settings', 'common']);
-  const dispatch = useAppDispatch();
   const selectedSection = useAppSelector((state) => state.ui.settingsSection);
-
-  // Handle ESC key to navigate back to chat
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        dispatch(navigateToChat());
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [dispatch]);
 
   const renderContent = () => {
     switch (selectedSection) {

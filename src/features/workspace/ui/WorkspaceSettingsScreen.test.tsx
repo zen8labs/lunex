@@ -110,12 +110,6 @@ describe('WorkspaceSettingsScreen', () => {
     expect(screen.getByTestId('workspace-settings-form')).toBeInTheDocument();
   });
 
-  it('calls navigateToChat when ESC is pressed', () => {
-    render(<WorkspaceSettingsScreen />);
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(mockDispatch).toHaveBeenCalledWith(navigateToChat());
-  });
-
   it('handles save settings', async () => {
     mockHandleSaveWorkspaceSettings.mockResolvedValueOnce(undefined);
     render(<WorkspaceSettingsScreen />);

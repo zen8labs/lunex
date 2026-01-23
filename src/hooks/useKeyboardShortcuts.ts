@@ -12,6 +12,7 @@ import { clearInput } from '@/features/chat/state/chatInputSlice';
 import { createChat } from '@/features/chat/state/chatsSlice';
 import { useWorkspaces } from '@/features/workspace';
 import { useTranslation } from 'react-i18next';
+import { useModalStack } from '@/ui/atoms/modal-stack';
 
 /**
  * Hook to handle global keyboard shortcuts
@@ -28,6 +29,7 @@ export function useKeyboardShortcuts() {
     (state) => state.ui.keyboardShortcutsOpen
   );
   const searchOpen = useAppSelector((state) => state.chatSearch.searchOpen);
+  const { hasModals } = useModalStack();
 
   // Use refs to store latest values without recreating listeners
   const dispatchRef = useRef(dispatch);
@@ -37,6 +39,7 @@ export function useKeyboardShortcuts() {
   const aboutOpenRef = useRef(aboutOpen);
   const keyboardShortcutsOpenRef = useRef(keyboardShortcutsOpen);
   const searchOpenRef = useRef(searchOpen);
+  const hasModalsRef = useRef(hasModals);
 
   // Update refs when values change
   useEffect(() => {
@@ -47,6 +50,7 @@ export function useKeyboardShortcuts() {
     aboutOpenRef.current = aboutOpen;
     keyboardShortcutsOpenRef.current = keyboardShortcutsOpen;
     searchOpenRef.current = searchOpen;
+    hasModalsRef.current = hasModals;
   }, [
     dispatch,
     selectedWorkspaceId,
@@ -55,6 +59,7 @@ export function useKeyboardShortcuts() {
     aboutOpen,
     keyboardShortcutsOpen,
     searchOpen,
+    hasModals,
   ]);
 
   useEffect(() => {
@@ -74,11 +79,7 @@ export function useKeyboardShortcuts() {
 
       // Handle Esc key - always works, even in input fields
       if (e.key === 'Escape') {
-        // Check if there are any Radix UI dialogs open (they handle Escape themselves)
-        const openDialogs = document.querySelectorAll(
-          '[data-slot="dialog-content"][data-state="open"]'
-        );
-        if (openDialogs.length > 0) {
+        if (hasModalsRef.current()) {
           // Let Dialog components handle Escape via onEscapeKeyDown
           // Don't prevent default here, let the modal stack logic handle it
           return;
@@ -101,8 +102,11 @@ export function useKeyboardShortcuts() {
           return;
         }
 
-        // If on Settings page, navigate back to Chat
-        if (activePageRef.current === 'settings') {
+        // If on Settings or Workspace Settings page, navigate back to Chat
+        if (
+          activePageRef.current === 'settings' ||
+          activePageRef.current === 'workspaceSettings'
+        ) {
           e.preventDefault();
           dispatchRef.current(navigateToChat());
           return;
