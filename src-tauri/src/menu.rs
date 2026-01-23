@@ -44,7 +44,8 @@ pub fn create_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wr
         .build(app)?;
 
     let file_submenu = {
-        let builder = SubmenuBuilder::new(app, "File").item(&new_chat);
+        #[allow(unused_mut)]
+        let mut builder = SubmenuBuilder::new(app, "File").item(&new_chat);
 
         #[cfg(not(target_os = "macos"))]
         {
@@ -87,7 +88,8 @@ pub fn create_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wr
 
     // Help menu (Windows/Linux also get About/Settings here)
     let help_submenu = {
-        let builder = SubmenuBuilder::new(app, "Help")
+        #[allow(unused_mut)]
+        let mut builder = SubmenuBuilder::new(app, "Help")
             .item(&documentation)
             .item(&keyboard_shortcuts);
 
