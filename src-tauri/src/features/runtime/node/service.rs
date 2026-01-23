@@ -183,24 +183,14 @@ impl NodeRuntime {
         Ok(())
     }
 
-    /// Get the PATH environment variable with bundled Node.js bin directory prepended
-    pub fn get_node_path_env(app: &AppHandle) -> Option<String> {
+    /// Get the path to the bundled Node.js bin directory
+    pub fn get_node_bin_path(app: &AppHandle) -> Option<PathBuf> {
         let config = crate::features::addon::models::AddonIndex::default();
         for full_version in config.addons.nodejs.versions.iter().rev() {
             if let Ok(rt) = Self::detect(app, full_version) {
                 // Get the bin directory containing node
-                let node_bin_dir = rt.node_path.parent();
-
-                if let Some(bin_dir) = node_bin_dir {
-                    let bin_dir_str = bin_dir.to_string_lossy();
-                    let current_path = std::env::var("PATH").unwrap_or_default();
-                    let separator = if cfg!(windows) { ";" } else { ":" };
-
-                    if current_path.is_empty() {
-                        return Some(bin_dir_str.to_string());
-                    } else {
-                        return Some(format!("{}{}{}", bin_dir_str, separator, current_path));
-                    }
+                if let Some(bin_dir) = rt.node_path.parent() {
+                    return Some(bin_dir.to_path_buf());
                 }
             }
         }

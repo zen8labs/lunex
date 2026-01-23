@@ -110,7 +110,16 @@ impl InternalToolService {
         cmd.args(&args);
 
         // Add bundled Node.js bin directory to PATH if available
-        if let Some(new_path) = NodeRuntime::get_node_path_env(app) {
+        if let Some(bin_dir) = NodeRuntime::get_node_bin_path(app) {
+            let bin_dir_str = bin_dir.to_string_lossy();
+            let current_path = std::env::var("PATH").unwrap_or_default();
+            let separator = if cfg!(windows) { ";" } else { ":" };
+
+            let new_path = if current_path.is_empty() {
+                bin_dir_str.to_string()
+            } else {
+                format!("{}{}{}", bin_dir_str, separator, current_path)
+            };
             cmd.env("PATH", new_path);
         }
 
