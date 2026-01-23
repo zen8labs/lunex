@@ -61,6 +61,11 @@ impl NodeRuntime {
         Ok(Self { node_path })
     }
 
+    /// Get the directory containing the node binary
+    pub fn bin_dir(&self) -> Option<PathBuf> {
+        self.node_path.parent().map(|p| p.to_path_buf())
+    }
+
     /// Get path to installed Node executable
     fn get_installed_node(app: &AppHandle, full_version: &str) -> Result<PathBuf, AppError> {
         let app_data = app.path().app_data_dir().map_err(AppError::Tauri)?;
@@ -191,8 +196,8 @@ impl NodeRuntime {
         for full_version in config.addons.nodejs.versions.iter().rev() {
             if let Ok(rt) = Self::detect(app, full_version) {
                 // Get the bin directory containing node
-                if let Some(bin_dir) = rt.node_path.parent() {
-                    return Some(bin_dir.to_path_buf());
+                if let Some(bin_dir) = rt.bin_dir() {
+                    return Some(bin_dir);
                 }
             }
         }
@@ -204,29 +209,28 @@ impl NodeRuntime {
         version: &str,
         packages: &[String],
     ) -> Result<(), AppError> {
-        if let Ok(rt) = Self::detect(app, version) {
-            if let Some(bin_dir) = rt.node_path.parent() {
-                let npm_path = if cfg!(windows) {
-                    bin_dir.join("npm.cmd")
-                } else {
-                    bin_dir.join("npm")
-                };
+        let rt = Self::detect(app, version)?;
+        if let Some(bin_dir) = rt.bin_dir() {
+            let npm_path = if cfg!(windows) {
+                bin_dir.join("npm.cmd")
+            } else {
+                bin_dir.join("npm")
+            };
 
-                let mut command = Command::new(npm_path);
-                command.arg("install").arg("-g").args(packages);
+            let mut command = Command::new(npm_path);
+            command.arg("install").arg("-g").args(packages);
 
-                let current_path = std::env::var("PATH").unwrap_or_default();
-                let separator = if cfg!(windows) { ";" } else { ":" };
-                command.env(
-                    "PATH",
-                    format!("{}{}{}", bin_dir.display(), separator, current_path),
-                );
-                let output = command.output()?;
-                if !output.status.success() {
-                    return Err(AppError::Node(
-                        String::from_utf8_lossy(&output.stderr).to_string(),
-                    ));
-                }
+            let current_path = std::env::var("PATH").unwrap_or_default();
+            let separator = if cfg!(windows) { ";" } else { ":" };
+            command.env(
+                "PATH",
+                format!("{}{}{}", bin_dir.display(), separator, current_path),
+            );
+            let output = command.output()?;
+            if !output.status.success() {
+                return Err(AppError::Node(
+                    String::from_utf8_lossy(&output.stderr).to_string(),
+                ));
             }
         }
         Ok(())
@@ -237,32 +241,31 @@ impl NodeRuntime {
         Self::install_packages(app, version, &packages)?;
 
         // Now run "agent-browser install" to download Chromium
-        if let Ok(rt) = Self::detect(app, version) {
-            if let Some(bin_dir) = rt.node_path.parent() {
-                let agent_browser_bin = if cfg!(windows) {
-                    bin_dir.join("agent-browser.cmd")
-                } else {
-                    bin_dir.join("agent-browser")
-                };
+        let rt = Self::detect(app, version)?;
+        if let Some(bin_dir) = rt.bin_dir() {
+            let agent_browser_bin = if cfg!(windows) {
+                bin_dir.join("agent-browser.cmd")
+            } else {
+                bin_dir.join("agent-browser")
+            };
 
-                let mut command = Command::new(agent_browser_bin);
-                command.arg("install");
+            let mut command = Command::new(agent_browser_bin);
+            command.arg("install");
 
-                // Ensure node is in PATH so the agent-browser script can run
-                let current_path = std::env::var("PATH").unwrap_or_default();
-                let separator = if cfg!(windows) { ";" } else { ":" };
-                command.env(
-                    "PATH",
-                    format!("{}{}{}", bin_dir.display(), separator, current_path),
-                );
+            // Ensure node is in PATH so the agent-browser script can run
+            let current_path = std::env::var("PATH").unwrap_or_default();
+            let separator = if cfg!(windows) { ";" } else { ":" };
+            command.env(
+                "PATH",
+                format!("{}{}{}", bin_dir.display(), separator, current_path),
+            );
 
-                let output = command.output()?;
-                if !output.status.success() {
-                    return Err(AppError::Node(format!(
-                        "Failed to download Chromium for agent-browser: {}",
-                        String::from_utf8_lossy(&output.stderr)
-                    )));
-                }
+            let output = command.output()?;
+            if !output.status.success() {
+                return Err(AppError::Node(format!(
+                    "Failed to download Chromium for agent-browser: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                )));
             }
         }
 
