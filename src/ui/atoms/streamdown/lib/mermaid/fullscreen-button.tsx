@@ -1,27 +1,10 @@
-// @ts-nocheck
-import { Maximize2Icon, XIcon } from 'lucide-react';
+import { Maximize2Icon } from 'lucide-react';
 import type { MermaidConfig } from 'mermaid';
 import { type ComponentProps, useContext, useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/ui/atoms/dialog';
 import { StreamdownContext } from '../context';
 import { cn } from '../utils';
 import { Mermaid } from '.';
-
-// Track the number of active fullscreen modals to manage body scroll lock correctly
-let activeFullscreenCount = 0;
-
-const lockBodyScroll = () => {
-  activeFullscreenCount += 1;
-  if (activeFullscreenCount === 1) {
-    document.body.style.overflow = 'hidden';
-  }
-};
-
-const unlockBodyScroll = () => {
-  activeFullscreenCount = Math.max(0, activeFullscreenCount - 1);
-  if (activeFullscreenCount === 0) {
-    document.body.style.overflow = '';
-  }
-};
 
 type MermaidFullscreenButtonProps = ComponentProps<'button'> & {
   chart: string;
@@ -59,25 +42,6 @@ export const MermaidFullscreenButton = ({
     setIsFullscreen(!isFullscreen);
   };
 
-  // Manage scroll lock and keyboard events
-  useEffect(() => {
-    if (isFullscreen) {
-      lockBodyScroll();
-
-      const handleEsc = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          setIsFullscreen(false);
-        }
-      };
-
-      document.addEventListener('keydown', handleEsc);
-      return () => {
-        document.removeEventListener('keydown', handleEsc);
-        unlockBodyScroll();
-      };
-    }
-  }, [isFullscreen]);
-
   // Handle callbacks separately to avoid scroll lock flickering
   useEffect(() => {
     if (isFullscreen) {
@@ -103,44 +67,23 @@ export const MermaidFullscreenButton = ({
         <Maximize2Icon size={14} />
       </button>
 
-      {isFullscreen ? (
-        // biome-ignore lint/a11y/useSemanticElements: "div is used as a backdrop overlay, not a button"
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm"
-          onClick={handleToggle}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              handleToggle();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-        >
-          <button
-            className="absolute top-4 right-4 z-10 rounded-md p-2 text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-            onClick={handleToggle}
-            title="Exit fullscreen"
-            type="button"
-          >
-            <XIcon size={20} />
-          </button>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: "div with role=presentation is used for event propagation control" */}
-          <div
-            className="flex size-full items-center justify-center p-4"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            role="presentation"
-          >
+      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+        <DialogContent className="max-w-none! w-[98vw] max-h-[95vh] h-[95vh] p-0 border-none bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center">
+          <DialogTitle className="sr-only">Mermaid Chart Fullscreen</DialogTitle>
+          <DialogDescription className="sr-only">
+            Viewing mermaid chart in fullscreen mode
+          </DialogDescription>
+          <div className="flex-1 w-full h-full flex items-center justify-center p-4 min-h-0">
             <Mermaid
               chart={chart}
-              className="size-full [&_svg]:h-auto [&_svg]:w-auto"
+              className="size-full"
               config={config}
               fullscreen={true}
               showControls={showPanZoomControls}
             />
           </div>
-        </div>
-      ) : null}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
