@@ -134,7 +134,7 @@ impl ToolService {
                 "read_file" => InternalToolService::read_file(arguments).await,
                 "write_file" => InternalToolService::write_file(arguments).await,
                 "list_dir" => InternalToolService::list_dir(arguments).await,
-                "run_command" => InternalToolService::run_command(arguments).await,
+                "run_command" => InternalToolService::run_command(arguments, &self.app).await,
                 _ => Err(AppError::Validation(format!(
                     "Unknown internal tool: {tool_name}"
                 ))),

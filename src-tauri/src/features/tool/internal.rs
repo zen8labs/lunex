@@ -4,6 +4,9 @@ use std::path::PathBuf;
 use tokio::fs;
 use tokio::process::Command;
 
+use crate::features::runtime::node::service::NodeRuntime;
+use tauri::AppHandle;
+
 pub struct InternalToolService;
 
 impl InternalToolService {
@@ -89,7 +92,7 @@ impl InternalToolService {
         Ok(json!({ "entries": entries }))
     }
 
-    pub async fn run_command(arguments: Value) -> Result<Value, AppError> {
+    pub async fn run_command(arguments: Value, app: &AppHandle) -> Result<Value, AppError> {
         let command = arguments["command"]
             .as_str()
             .ok_or_else(|| AppError::Validation("Missing 'command' parameter".to_string()))?;
@@ -105,6 +108,11 @@ impl InternalToolService {
 
         let mut cmd = Command::new(command);
         cmd.args(&args);
+
+        // Add bundled Node.js bin directory to PATH if available
+        if let Some(new_path) = NodeRuntime::get_node_path_env(app) {
+            cmd.env("PATH", new_path);
+        }
 
         // Set CWD to provided value or system temp dir
         let cwd = match cwd_str {
