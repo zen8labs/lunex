@@ -106,10 +106,15 @@ impl InternalToolService {
         let mut cmd = Command::new(command);
         cmd.args(&args);
 
-        if let Some(cwd) = cwd_str {
-            let abs_cwd = Self::ensure_absolute(cwd)?;
-            cmd.current_dir(abs_cwd);
-        }
+        // Set CWD to provided value or system temp dir
+        let cwd = match cwd_str {
+            Some(path) => Self::ensure_absolute(path)?,
+            None => std::env::temp_dir(),
+        };
+        cmd.current_dir(cwd);
+
+        // Command inherits the environment variables of the current process by default,
+        // which satisfies the requirement "env nên là env mặc định của app process".
 
         // Set timeout to prevent hanging
         let output = tokio::time::timeout(tokio::time::Duration::from_secs(30), cmd.output())

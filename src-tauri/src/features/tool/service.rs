@@ -260,7 +260,7 @@ impl ToolService {
                 name: "run_command".to_string(),
                 server_name: "System".to_string(),
                 description: Some(
-                    "Run a shell command (Absolute path for cwd if provided)".to_string(),
+                    "Run a shell command. Uses the app process environment. Default cwd is the system temp directory.".to_string(),
                 ),
             });
         }
@@ -362,14 +362,14 @@ impl ToolService {
                 function: crate::models::llm_types::ChatCompletionToolFunction {
                     name: "run_command".to_string(),
                     description: Some(
-                        "Run a shell command (Absolute path for cwd if provided)".to_string(),
+                        "Run a shell command. Uses the app process environment. Default cwd is the system temp directory.".to_string(),
                     ),
                     parameters: Some(serde_json::json!({
                         "type": "object",
                         "properties": {
                             "command": { "type": "string", "description": "Command to run" },
                             "args": { "type": "array", "items": { "type": "string" }, "description": "Arguments for the command" },
-                            "cwd": { "type": "string", "description": "Working directory (absolute path)" }
+                            "cwd": { "type": "string", "description": "Working directory (absolute path). Defaults to system temp directory." }
                         },
                         "required": ["command"]
                     })),
