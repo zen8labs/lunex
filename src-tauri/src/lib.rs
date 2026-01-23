@@ -231,6 +231,7 @@ pub fn run() {
             features::runtime::node::commands::get_node_runtimes_status,
             features::runtime::node::commands::install_node_runtime,
             features::runtime::node::commands::uninstall_node_runtime,
+            features::runtime::node::commands::install_node_packages,
             // Usage commands
             features::usage::commands::get_usage_summary,
             features::usage::commands::get_usage_chart,

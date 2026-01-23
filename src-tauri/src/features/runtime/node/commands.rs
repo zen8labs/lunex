@@ -58,3 +58,12 @@ pub async fn install_node_runtime(
 pub fn uninstall_node_runtime(app: AppHandle, version: String) -> Result<(), AppError> {
     NodeRuntime::uninstall(&app, &version)
 }
+
+#[command]
+pub async fn install_node_packages(
+    app: AppHandle,
+    packages: Vec<String>,
+    version: String,
+) -> Result<(), AppError> {
+    NodeRuntime::install_packages(&app, &version, &packages)
+}
