@@ -77,9 +77,9 @@ export function KeyboardShortcutsDialog() {
             {t('keyboardShortcuts', { ns: 'common' })}
           </DialogTitle>
         </DialogHeader>
-        <DialogBody>
-          <ScrollArea className="h-full [&_[data-slot='scroll-area-scrollbar']]:hidden">
-            <div className="space-y-6 pr-4">
+        <DialogBody className="w-full">
+          <ScrollArea className="h-full **:data-[slot='scroll-area-scrollbar']:hidden">
+            <div className="space-y-6">
               {shortcuts.map((category, categoryIndex) => (
                 <div key={categoryIndex} className="space-y-3">
                   <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">

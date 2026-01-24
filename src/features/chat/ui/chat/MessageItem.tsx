@@ -286,7 +286,7 @@ export const MessageItem = memo(
             </div>
 
             {/* Controls - positioned below message bubble */}
-            <div className="flex justify-end m-0 p-0">
+            <div className="flex justify-end m-0 p-0 -translate-y-[12px]">
               <MessageControls
                 role={message.role}
                 content={message.content}
