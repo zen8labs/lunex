@@ -1,6 +1,5 @@
 import { useMemo, useCallback, memo, type MouseEvent } from 'react';
 import {
-  ChevronDown,
   Wrench,
   AlertCircle,
   Loader2,
@@ -12,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/ui/atoms/button/button';
 import { logger } from '@/lib/logger';
 import type { Message } from '../../types';
+import { ExpandableMessageItem } from './ExpandableMessageItem';
 
 export interface ToolCallData {
   id: string;
@@ -126,58 +126,48 @@ export const ToolCallItem = memo(
     const isPending = toolCallData.status === 'pending_permission';
 
     return (
-      <div className="mb-2 last:mb-0">
-        <div className="flex items-center justify-between group/tool">
-          <button
-            type="button"
-            className="flex items-center gap-2 text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors text-xs font-medium py-1 outline-none cursor-pointer"
-            onClick={handleToggle}
-          >
-            <ChevronDown
-              className={cn(
-                'h-3.5 w-3.5 transition-transform duration-200',
-                !isExpanded && '-rotate-90'
-              )}
-            />
-            <div className="flex items-center gap-1.5">
-              {isExecuting ? (
-                <Loader2 className="h-3 w-3 animate-spin text-primary/60" />
-              ) : (
-                <Wrench className="h-3 w-3" />
-              )}
-              <span className="truncate max-w-[200px]">
-                {toolCallData.name}
-              </span>
+      <ExpandableMessageItem
+        isExpanded={isExpanded}
+        onToggle={handleToggle}
+        header={
+          <>
+            {isExecuting ? (
+              <Loader2 className="h-3 w-3 animate-spin text-primary/60" />
+            ) : (
+              <Wrench className="h-3 w-3" />
+            )}
+            <span className="truncate max-w-[200px]">{toolCallData.name}</span>
 
-              {isPending && (
-                <div className="flex items-center gap-1.5 ml-1">
-                  <span className="text-[10px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                    {t('permissionRequired', 'Required')}
+            {isPending && (
+              <div className="flex items-center gap-1.5 ml-1">
+                <span className="text-[10px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                  {t('permissionRequired', 'Required')}
+                </span>
+                {timeLeft !== undefined && timeLeft > 0 && (
+                  <span
+                    className={cn(
+                      'text-[10px] font-mono',
+                      timeLeft <= 10
+                        ? 'text-destructive font-bold'
+                        : 'text-muted-foreground'
+                    )}
+                  >
+                    ({timeLeft}s)
                   </span>
-                  {timeLeft !== undefined && timeLeft > 0 && (
-                    <span
-                      className={cn(
-                        'text-[10px] font-mono',
-                        timeLeft <= 10
-                          ? 'text-destructive font-bold'
-                          : 'text-muted-foreground'
-                      )}
-                    >
-                      ({timeLeft}s)
-                    </span>
-                  )}
-                </div>
-              )}
-              {isError && (
-                <AlertCircle className="h-3 w-3 shrink-0 text-destructive" />
-              )}
-              {isCompleted && !isError && (
-                <Check className="h-3 w-3 text-emerald-500" />
-              )}
-            </div>
-          </button>
-
-          <div className="flex items-center gap-1 opacity-0 group-hover/tool:opacity-100 transition-opacity">
+                )}
+              </div>
+            )}
+            {isError && (
+              <AlertCircle className="h-3 w-3 shrink-0 text-destructive" />
+            )}
+            {isCompleted && !isError && (
+              <Check className="h-3 w-3 text-emerald-500" />
+            )}
+          </>
+        }
+        actionsClassName={isPending ? 'opacity-100' : undefined}
+        actions={
+          <>
             {isPending && onRespond && (
               <div className="flex items-center gap-0.5">
                 <Button
@@ -216,68 +206,52 @@ export const ToolCallItem = memo(
                 <StopCircle className="h-3.5 w-3.5" />
               </Button>
             )}
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500/20" />
+              {t('toolCallInput')}
+            </div>
+            <pre className="text-xs font-mono leading-relaxed bg-muted/30 p-2.5 rounded-md overflow-x-auto border border-muted/20">
+              {formatJSONSafety(toolCallData.arguments)}
+            </pre>
           </div>
-        </div>
 
-        <div
-          className={cn(
-            'grid transition-[grid-template-rows] duration-300 ease-in-out',
-            isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          )}
-        >
-          <div className="overflow-hidden">
-            <div
-              className={cn(
-                'mt-1 ml-1.5 pl-4 border-l-2 border-muted/30 transition-all duration-300 select-text',
-                isExpanded ? 'opacity-100 py-2' : 'opacity-0'
-              )}
-            >
-              <div className="space-y-3">
-                <div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500/20" />
-                    {t('toolCallInput')}
-                  </div>
-                  <pre className="text-xs font-mono leading-relaxed bg-muted/30 p-2.5 rounded-md overflow-x-auto border border-muted/20">
-                    {formatJSONSafety(toolCallData.arguments)}
-                  </pre>
-                </div>
-
-                {isExecuting && !isPending ? (
-                  <div className="flex items-center gap-2 text-muted-foreground/60 text-xs italic pl-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>{t('toolCallExecuting')}</span>
-                  </div>
-                ) : isPending ? (
-                  <div className="text-xs text-amber-600/80 bg-amber-500/5 p-2 rounded border border-amber-500/10 italic">
-                    {t('waitingForApproval', 'Waiting for approval...')}
-                  </div>
-                ) : isError ? (
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-destructive/40 mb-1.5 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-destructive/20" />
-                      {t('toolCallError')}
-                    </div>
-                    <div className="text-xs text-destructive/80 bg-destructive/5 p-2.5 rounded border border-destructive/10 font-mono">
-                      {toolCallData.error}
-                    </div>
-                  </div>
-                ) : toolCallData.result !== undefined ? (
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/20" />
-                      {t('toolCallOutput')}
-                    </div>
-                    <pre className="text-xs font-mono leading-relaxed bg-muted/30 p-2.5 rounded-md overflow-x-auto border border-muted/20">
-                      {formatJSONSafety(toolCallData.result)}
-                    </pre>
-                  </div>
-                ) : null}
+          {isExecuting && !isPending ? (
+            <div className="flex items-center gap-2 text-muted-foreground/60 text-xs italic pl-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              <span>{t('toolCallExecuting')}</span>
+            </div>
+          ) : isPending ? (
+            <div className="text-xs text-amber-600/80 bg-amber-500/5 p-2 rounded border border-amber-500/10 italic">
+              {t('waitingForApproval', 'Waiting for approval...')}
+            </div>
+          ) : isError ? (
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-destructive/40 mb-1.5 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-destructive/20" />
+                {t('toolCallError')}
+              </div>
+              <div className="text-xs text-destructive/80 bg-destructive/5 p-2.5 rounded border border-destructive/10 font-mono">
+                {toolCallData.error}
               </div>
             </div>
-          </div>
+          ) : toolCallData.result !== undefined ? (
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 mb-1.5 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/20" />
+                {t('toolCallOutput')}
+              </div>
+              <pre className="text-xs font-mono leading-relaxed bg-muted/30 p-2.5 rounded-md overflow-x-auto border border-muted/20">
+                {formatJSONSafety(toolCallData.result)}
+              </pre>
+            </div>
+          ) : null}
         </div>
-      </div>
+      </ExpandableMessageItem>
     );
   },
   (prevProps, nextProps) => {
