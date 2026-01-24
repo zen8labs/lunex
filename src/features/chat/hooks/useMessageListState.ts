@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { logger } from '@/lib/logger';
+import { copyMarkdownToClipboard } from '@/lib/clipboard';
 
 export interface UseMessageListStateProps {
   externalMarkdownEnabled?: Record<string, boolean>;
@@ -38,7 +39,7 @@ export function useMessageListState({
   const handleCopy = useCallback(
     async (content: string, messageId: string) => {
       try {
-        await navigator.clipboard.writeText(content);
+        await copyMarkdownToClipboard(content);
         if (onCopiedIdChange) {
           onCopiedIdChange(messageId);
         } else {
