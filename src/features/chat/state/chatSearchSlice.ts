@@ -1,16 +1,23 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { ChatItem } from '../types';
+
+export interface SearchResult {
+  id: string;
+  type: 'chat' | 'note';
+  title: string;
+  content: string;
+  timestamp?: number;
+}
 
 interface ChatSearchState {
   searchOpen: boolean;
   searchQuery: string;
-  filteredChats: ChatItem[];
+  filteredResults: SearchResult[];
 }
 
 const initialState: ChatSearchState = {
   searchOpen: false,
   searchQuery: '',
-  filteredChats: [],
+  filteredResults: [],
 };
 
 const chatSearchSlice = createSlice({
@@ -22,18 +29,18 @@ const chatSearchSlice = createSlice({
       if (!action.payload) {
         // Reset search when closing
         state.searchQuery = '';
-        state.filteredChats = [];
+        state.filteredResults = [];
       }
     },
     setSearchQuery: (state, action: PayloadAction<string>) => {
       state.searchQuery = action.payload;
     },
-    setFilteredChats: (state, action: PayloadAction<ChatItem[]>) => {
-      state.filteredChats = action.payload;
+    setFilteredResults: (state, action: PayloadAction<SearchResult[]>) => {
+      state.filteredResults = action.payload;
     },
   },
 });
 
-export const { setSearchOpen, setSearchQuery, setFilteredChats } =
+export const { setSearchOpen, setSearchQuery, setFilteredResults } =
   chatSearchSlice.actions;
 export default chatSearchSlice.reducer;

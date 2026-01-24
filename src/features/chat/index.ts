@@ -21,7 +21,7 @@ export {
   default as chatSearchReducer,
   setSearchOpen,
   setSearchQuery,
-  setFilteredChats,
+  setFilteredResults,
 } from './state/chatSearchSlice';
 export { default as messagesReducer } from './state/messages';
 export * from './state/messages'; // Export actions from messages slice

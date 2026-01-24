@@ -1,15 +1,19 @@
-import { useState } from 'react';
-import { FileText, Layout } from 'lucide-react';
+import { FileText, Layout, Info, Code2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NotesPanel } from '@/features/notes/ui/NotesPanel';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/ui/atoms/tooltip';
-
-type PanelTab = 'notes';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { setRightPanelTab } from '@/features/ui/state/uiSlice';
 
 export function ChatRightPanel() {
-  const [activeTab, setActiveTab] = useState<PanelTab>('notes');
+  const dispatch = useAppDispatch();
+  const activeTab = useAppSelector((state) => state.ui.rightPanelTab);
 
-  const tabs = [{ id: 'notes' as const, icon: FileText, label: 'Notes' }];
+  const tabs = [
+    { id: 'notes' as const, icon: FileText, label: 'Notes' },
+    { id: 'skills' as const, icon: Code2, label: 'Skills' },
+    { id: 'info' as const, icon: Info, label: 'Chat Info' },
+  ];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -42,7 +46,7 @@ export function ChatRightPanel() {
             <Tooltip key={tab.id}>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => dispatch(setRightPanelTab(tab.id))}
                   className={cn(
                     'relative flex size-9 items-center justify-center rounded-md transition-all duration-200',
                     activeTab === tab.id

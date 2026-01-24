@@ -48,6 +48,7 @@ export interface UIState {
   imagePreviewOpen: boolean;
   imagePreviewUrl: string | null;
   isRightPanelOpen: boolean;
+  rightPanelTab: 'notes' | 'skills' | 'info';
   experiments: {
     showUsage: boolean;
     enableWorkflowEditor: boolean;
@@ -204,6 +205,7 @@ const initialState: UIState = {
   imagePreviewOpen: false,
   imagePreviewUrl: null,
   isRightPanelOpen: false,
+  rightPanelTab: 'notes',
   experiments: {
     showUsage: false,
     enableWorkflowEditor: false,
@@ -299,6 +301,12 @@ const uiSlice = createSlice({
     setRightPanelOpen: (state, action: PayloadAction<boolean>) => {
       state.isRightPanelOpen = action.payload;
     },
+    setRightPanelTab: (
+      state,
+      action: PayloadAction<UIState['rightPanelTab']>
+    ) => {
+      state.rightPanelTab = action.payload;
+    },
     setShowUsage: (state, action: PayloadAction<boolean>) => {
       state.experiments.showUsage = action.payload;
       invokeCommand(TauriCommands.SAVE_APP_SETTING, {
@@ -389,6 +397,7 @@ export const {
   setImagePreviewOpen,
   toggleRightPanel,
   setRightPanelOpen,
+  setRightPanelTab,
   setShowUsage,
   setEnableWorkflowEditor,
   setEnableRawText,

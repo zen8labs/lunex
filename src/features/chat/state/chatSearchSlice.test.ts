@@ -2,14 +2,14 @@ import { describe, it, expect } from 'vitest';
 import chatSearchReducer, {
   setSearchOpen,
   setSearchQuery,
-  setFilteredChats,
+  setFilteredResults,
 } from './chatSearchSlice';
 
 describe('chatSearchSlice', () => {
   const initialState = {
     searchOpen: false,
     searchQuery: '',
-    filteredChats: [],
+    filteredResults: [],
   };
 
   it('should handle setSearchOpen', () => {
@@ -22,6 +22,7 @@ describe('chatSearchSlice', () => {
     );
     expect(stateClosed.searchOpen).toBe(false);
     expect(stateClosed.searchQuery).toBe('');
+    expect(stateClosed.filteredResults).toEqual([]);
   });
 
   it('should handle setSearchQuery', () => {
@@ -29,9 +30,20 @@ describe('chatSearchSlice', () => {
     expect(state.searchQuery).toBe('prompt');
   });
 
-  it('should handle setFilteredChats', () => {
-    const chats = [{ id: '1', title: 'Result', timestamp: 123 }];
-    const state = chatSearchReducer(initialState, setFilteredChats(chats));
-    expect(state.filteredChats).toEqual(chats);
+  it('should handle setFilteredResults', () => {
+    const results = [
+      {
+        id: '1',
+        type: 'chat',
+        title: 'Result',
+        content: 'msg',
+        timestamp: 123,
+      },
+    ] as const;
+    const state = chatSearchReducer(
+      initialState,
+      setFilteredResults([...results])
+    );
+    expect(state.filteredResults).toEqual(results);
   });
 });
