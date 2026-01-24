@@ -35,6 +35,7 @@ describe('uiSlice', () => {
     imagePreviewOpen: false,
     imagePreviewUrl: null,
     isRightPanelOpen: false,
+    rightPanelTab: 'notes',
     experiments: {
       showUsage: false,
       enableWorkflowEditor: false,

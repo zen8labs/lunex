@@ -152,7 +152,7 @@ export function ChatSearchDialog() {
       <DialogContent
         showCloseButton={false}
         className={cn(
-          'sm:max-w-2xl overflow-hidden p-0 border-none shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] bg-background/70 backdrop-blur-3xl ring-1 ring-white/10 rounded-2xl',
+          'sm:max-w-2xl overflow-hidden p-0 border border-border/50 shadow-2xl bg-background/80 backdrop-blur-2xl rounded-2xl',
           'top-[15%] translate-y-0' // Fixed top position to prevent input box from moving (no layout shift)
         )}
       >
@@ -175,7 +175,7 @@ export function ChatSearchDialog() {
         </div>
 
         {searchQuery.trim() && (
-          <DialogBody className="p-0 border-t border-white/5 w-full">
+          <DialogBody className="p-0 border-t border-border/40 w-full">
             <ScrollArea className="h-[450px]">
               <div ref={scrollAreaRef} className="p-2 space-y-0.5">
                 {filteredResults.length > 0 ? (
@@ -187,8 +187,8 @@ export function ChatSearchDialog() {
                       className={cn(
                         'group flex items-center gap-4 rounded-xl px-4 py-3 cursor-pointer transition-all duration-150 w-full',
                         index === selectedIndex
-                          ? 'bg-primary/15 shadow-sm ring-1 ring-primary/20'
-                          : 'hover:bg-white/1' // Subtler hover
+                          ? 'bg-primary/10 shadow-sm ring-1 ring-primary/20'
+                          : 'hover:bg-muted/30' // Subtler hover
                       )}
                     >
                       <div
@@ -196,7 +196,7 @@ export function ChatSearchDialog() {
                           'size-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200',
                           index === selectedIndex
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted/50 text-muted-foreground'
+                            : 'bg-muted/40 text-muted-foreground'
                         )}
                       >
                         {result.type === 'chat' ? (
@@ -211,8 +211,8 @@ export function ChatSearchDialog() {
                             className={cn(
                               'flex items-center gap-2 text-base font-medium truncate',
                               index === selectedIndex
-                                ? 'text-foreground'
-                                : 'text-foreground/80'
+                                ? 'text-text-primary'
+                                : 'text-text-secondary'
                             )}
                           >
                             <span>{result.title || 'Untitled'}</span>
@@ -225,7 +225,7 @@ export function ChatSearchDialog() {
                           <div className="mt-1 max-h-24 overflow-hidden pointer-events-none opacity-60 group-hover:opacity-80 transition-opacity">
                             <MarkdownContent
                               content={result.content}
-                              className="text-sm prose-p:my-0 prose-pre:my-1 prose-pre:bg-transparent prose-pre:p-0 prose-code:text-xs prose-headings:text-sm prose-img:hidden prose-video:hidden"
+                              className="text-sm prose-p:my-0 prose-pre:my-1 prose-pre:bg-transparent prose-pre:p-0 prose-code:text-xs prose-headings:text-sm prose-img:hidden prose-video:hidden text-text-muted"
                             />
                           </div>
                         )}
