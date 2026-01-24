@@ -173,38 +173,52 @@ export const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
               ? pendingRequests[message.id]
               : null;
 
+          const showThinking = Boolean(
+            enableThinkingItem &&
+            message.role === 'assistant' &&
+            (message.reasoning ||
+              (enableStreaming &&
+                streamingMessageId === message.id &&
+                !message.content))
+          );
+          const showMessage = Boolean(
+            message.role !== 'assistant' || message.content
+          );
+
           return (
             <Fragment key={message.id}>
-              {enableThinkingItem &&
-                message.role === 'assistant' &&
-                message.reasoning && (
-                  <ThinkingItem
-                    key={`thinking-${message.id}`}
-                    content={message.reasoning}
-                    isStreaming={
-                      enableStreaming &&
-                      streamingMessageId === message.id &&
-                      !message.content
-                    }
-                  />
-                )}
-              {(message.role !== 'assistant' || message.content) && (
-                <MessageItem
-                  key={`content-${message.id}`}
-                  message={message}
-                  showUsage={showUsage}
-                  markdownEnabled={isMarkdownEnabled}
-                  isCopied={copiedId === message.id}
-                  onToggleMarkdown={toggleMarkdown}
-                  onCopy={handleCopy}
-                  onEdit={handleEdit}
-                  onViewAgentDetails={onViewAgentDetails}
-                  isStreaming={
-                    enableStreaming && streamingMessageId === message.id
-                  }
-                  isLastMessage={message.id === lastRenderableMessageId}
-                  t={t}
-                />
+              {(showThinking || showMessage) && (
+                <div className="flex flex-col gap-1">
+                  {showThinking && (
+                    <ThinkingItem
+                      key={`thinking-${message.id}`}
+                      content={message.reasoning || ''}
+                      isStreaming={
+                        enableStreaming &&
+                        streamingMessageId === message.id &&
+                        !message.content
+                      }
+                    />
+                  )}
+                  {showMessage && (
+                    <MessageItem
+                      key={`content-${message.id}`}
+                      message={message}
+                      showUsage={showUsage}
+                      markdownEnabled={isMarkdownEnabled}
+                      isCopied={copiedId === message.id}
+                      onToggleMarkdown={toggleMarkdown}
+                      onCopy={handleCopy}
+                      onEdit={handleEdit}
+                      onViewAgentDetails={onViewAgentDetails}
+                      isStreaming={
+                        enableStreaming && streamingMessageId === message.id
+                      }
+                      isLastMessage={message.id === lastRenderableMessageId}
+                      t={t}
+                    />
+                  )}
+                </div>
               )}
 
               {/* Render Pending Tool Calls */}
