@@ -240,7 +240,10 @@ function PromptDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl flex flex-col max-h-[90vh]">
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-1 min-h-0 w-full"
+        >
           <DialogHeader className="shrink-0">
             <DialogTitle>
               {prompt ? t('editPrompt') : t('addNewPrompt')}
@@ -252,7 +255,7 @@ function PromptDialog({
           <DialogBody>
             <ScrollArea className="h-full **:data-[slot='scroll-area-scrollbar']:hidden">
               <div className="space-y-4 pr-4">
-                <div className="space-y-2 w-full">
+                <div className="space-y-2">
                   <Label htmlFor="prompt-name">{t('promptName')}</Label>
                   <Input
                     id="prompt-name"
