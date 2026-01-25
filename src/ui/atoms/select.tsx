@@ -1,6 +1,11 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ChevronsUpDown,
+} from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -25,11 +30,13 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = 'default',
+  variant = 'default',
   hideIcon = false,
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: 'sm' | 'default';
+  variant?: 'default' | 'ghost';
   hideIcon?: boolean;
 }) {
   return (
@@ -37,7 +44,14 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        'group flex w-fit items-center justify-between gap-2 transition-[color,box-shadow,background-color] outline-none disabled:cursor-not-allowed disabled:opacity-50',
+        variant === 'default' && [
+          "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 rounded-md border bg-transparent px-3 py-2 text-sm focus-visible:ring-[3px] data-[size=default]:h-9 data-[size=sm]:h-8",
+        ],
+        variant === 'ghost' && [
+          'hover:bg-accent/50 active:bg-accent/80 p-1 rounded-md text-foreground/90 hover:text-foreground',
+        ],
+        '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2',
         className
       )}
       {...props}
@@ -45,7 +59,20 @@ function SelectTrigger({
       {children}
       {!hideIcon && (
         <SelectPrimitive.Icon asChild>
-          <ChevronDownIcon className="size-4 opacity-50" />
+          <div
+            className={cn(
+              'flex items-center justify-center rounded-sm transition-colors shrink-0',
+              variant === 'ghost'
+                ? 'bg-accent h-5 w-5 ml-1'
+                : 'size-4 opacity-50'
+            )}
+          >
+            {variant === 'ghost' ? (
+              <ChevronsUpDown className="size-3" />
+            ) : (
+              <ChevronDownIcon className="size-4" />
+            )}
+          </div>
         </SelectPrimitive.Icon>
       )}
     </SelectPrimitive.Trigger>

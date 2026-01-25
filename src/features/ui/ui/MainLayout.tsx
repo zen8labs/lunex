@@ -18,12 +18,13 @@ import {
   setAboutOpen,
   navigateToChat,
   toggleRightPanel,
+  setWorkspaceSettingsOpen,
 } from '@/features/ui/state/uiSlice';
 
 // Screens
 import { ChatScreen } from '@/features/chat/ui/ChatScreen';
 import { SettingsScreen } from '@/features/settings/ui/SettingsScreen';
-import { WorkspaceSettingsScreen } from '@/features/workspace/ui/WorkspaceSettingsScreen';
+import { WorkspaceSettingsDialog } from '@/features/workspace';
 
 export function MainLayout() {
   const { t } = useTranslation(['common', 'settings']);
@@ -36,6 +37,9 @@ export function MainLayout() {
   const titleBarText = useAppSelector((state) => state.ui.titleBarText);
   const isRightPanelOpen = useAppSelector((state) => state.ui.isRightPanelOpen);
   const aboutOpen = useAppSelector((state) => state.ui.aboutOpen);
+  const workspaceSettingsOpen = useAppSelector(
+    (state) => state.ui.workspaceSettingsOpen
+  );
 
   return (
     <div className="flex h-screen flex-col bg-background select-none">
@@ -107,12 +111,21 @@ export function MainLayout() {
       {/* Main Content Area */}
       {activePage === 'chat' && <ChatScreen />}
       {activePage === 'settings' && <SettingsScreen />}
-      {activePage === 'workspaceSettings' && <WorkspaceSettingsScreen />}
 
       {/* About Dialog */}
       <About
         open={aboutOpen}
         onOpenChange={(open) => dispatch(setAboutOpen(open))}
+      />
+
+      <WorkspaceSettingsDialog
+        open={workspaceSettingsOpen || activePage === 'workspaceSettings'}
+        onOpenChange={(open) => {
+          dispatch(setWorkspaceSettingsOpen(open));
+          if (!open && activePage === 'workspaceSettings') {
+            dispatch(navigateToChat());
+          }
+        }}
       />
 
       {/* Chat Search Dialog */}

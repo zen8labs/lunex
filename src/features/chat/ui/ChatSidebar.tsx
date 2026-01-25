@@ -38,8 +38,9 @@ import { useChats } from '../hooks/useChats';
 import { useWorkspaces } from '@/features/workspace';
 import { useExportChat } from '@/features/chat/hooks/useExportChat';
 import { useAppDispatch } from '@/app/hooks';
-import { navigateToWorkspaceSettings } from '@/features/ui/state/uiSlice';
+import { setWorkspaceSettingsOpen } from '@/features/ui/state/uiSlice';
 import { logger } from '@/lib/logger';
+import { ConfirmDialog } from '@/ui/molecules/ConfirmDialog';
 
 export function ChatSidebar() {
   // Track render performance
@@ -78,6 +79,7 @@ export function ChatSidebar() {
     currentTitle: string;
   } | null>(null);
   const [newChatTitle, setNewChatTitle] = useState('');
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
 
   const handleRenameClick = (chatId: string) => {
     const chat = chats.find((c) => c.id === chatId);
@@ -120,11 +122,14 @@ export function ChatSidebar() {
     if (!chatToDelete) return;
 
     try {
+      setIsDeletingChat(true);
       await handleDeleteChat(chatToDelete);
       setDeleteDialogOpen(false);
       setChatToDelete(null);
     } catch (error) {
       logger.error('Error deleting chat:', error);
+    } finally {
+      setIsDeletingChat(false);
     }
   };
 
@@ -280,7 +285,7 @@ export function ChatSidebar() {
       <div className="p-2 mt-auto border-t border-sidebar-border">
         <Button
           onClick={() => {
-            dispatch(navigateToWorkspaceSettings());
+            dispatch(setWorkspaceSettingsOpen(true));
           }}
           className="w-full justify-start gap-2"
           variant="ghost"
@@ -372,39 +377,17 @@ export function ChatSidebar() {
       </Dialog>
 
       {/* Delete Chat Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('settings:deleteChat')}</DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              {t('settings:confirmDeleteChat')}
-              {chats.find((c) => c.id === chatToDelete)?.title && (
-                <span className="font-semibold">
-                  {' '}
-                  {chats.find((c) => c.id === chatToDelete)?.title}
-                </span>
-              )}
-              ?
-            </p>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              {t('common:cancel')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleConfirmDelete}
-            >
-              {t('common:delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={t('settings:deleteChat')}
+        description={`${t('settings:confirmDeleteChat')} ${
+          chats.find((c) => c.id === chatToDelete)?.title || ''
+        }?`}
+        onConfirm={handleConfirmDelete}
+        confirmLabel={t('common:delete')}
+        isLoading={isDeletingChat}
+      />
     </div>
   );
 }

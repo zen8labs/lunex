@@ -5,13 +5,11 @@ import {
   CheckCircle2,
   Loader2,
   XCircle,
-  Info,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
 import { Checkbox } from '@/ui/atoms/checkbox';
 import { Label } from '@/ui/atoms/label';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/ui/atoms/tooltip';
 import {
   Select,
   SelectContent,
@@ -85,15 +83,6 @@ export function MCPSettings({
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Label>{t('mcpServerConnectionsLabel')}</Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="size-4 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>{t('mcpConnectionsDescription')}</TooltipContent>
-            </Tooltip>
-          </div>
           {allMcpConnections.length > 0 && (
             <Button
               type="button"
@@ -131,15 +120,6 @@ export function MCPSettings({
     <div className="space-y-4">
       <div className="space-y-2 w-full">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Label>{t('mcpServerConnectionsLabel')}</Label>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Info className="size-4 text-muted-foreground cursor-help" />
-              </TooltipTrigger>
-              <TooltipContent>{t('mcpConnectionsDescription')}</TooltipContent>
-            </Tooltip>
-          </div>
           {allMcpConnections.length > 0 && (
             <Button
               type="button"
@@ -345,12 +325,6 @@ export function MCPSettings({
                               <div className="flex items-center gap-2 shrink-0">
                                 {isSelected && (
                                   <div className="flex items-center gap-2 animate-in fade-in zoom-in duration-200">
-                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                                      {t('permission', {
-                                        ns: 'settings',
-                                      })}
-                                      :
-                                    </span>
                                     <Select
                                       value={configValue || 'auto'}
                                       onValueChange={(value) => {
@@ -368,7 +342,10 @@ export function MCPSettings({
                                       }}
                                       disabled={!isConnected}
                                     >
-                                      <SelectTrigger className="w-[110px] h-7 text-xs">
+                                      <SelectTrigger
+                                        className="w-[110px] h-7 text-xs"
+                                        variant="ghost"
+                                      >
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>

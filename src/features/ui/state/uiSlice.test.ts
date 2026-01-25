@@ -24,6 +24,7 @@ describe('uiSlice', () => {
     isSidebarCollapsed: false,
     titleBarText: null,
     aboutOpen: false,
+    workspaceSettingsOpen: false,
     keyboardShortcutsOpen: false,
     settingsSection: 'general',
     language: 'vi',

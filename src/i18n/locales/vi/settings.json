@@ -148,14 +148,15 @@
   "mcpServerConnections": "Kết nối MCP server",
   "mcpServerConnectionsLabel": "Kết nối MCP server",
   "mcpSelectedToolsCount": "{{selected}}/{{total}} đã chọn",
+  "mcpTools": "MCP Tools",
   "noConnectedMCPConnections": "Không có kết nối MCP nào khả dụng",
   "noConnectedMCPConnectionsAvailable": "Không có kết nối MCP nào khả dụng",
   "noToolsAvailable": "Không có công cụ nào khả dụng",
   "deselectAllTools": "Bỏ chọn tất cả công cụ",
   "selectAllTools": "Chọn tất cả công cụ",
   "permission": "Quyền hạn",
-  "permissionAuto": "Tự động (Chạy)",
-  "permissionAsk": "Hỏi (Nhắm mục tiêu)",
+  "permissionAuto": "Tự động chạy",
+  "permissionAsk": "Hỏi khi chạy",
   "mcpServerInstalled": "Đã cài đặt MCP server thành công",
   "mcpServerInstalledDescription": "MCP server đã được thêm vào các kết nối của bạn",
   "model": "Model",
@@ -285,5 +286,7 @@
   "listDir": "liệt_kê_thư_mục",
   "listDirDesc": "Liệt kê nội dung của thư mục",
   "runCommand": "chạy_lệnh",
-  "runCommandDesc": "Thực thi một lệnh shell"
+  "runCommandDesc": "Thực thi một lệnh shell",
+  "streamEnabled": "Bật chế độ stream",
+  "streamEnabledDescription": "Nếu được bật, các token sẽ được hiển thị khi chúng được tạo ra."
 }

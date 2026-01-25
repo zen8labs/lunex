@@ -7,6 +7,5 @@ export { default as workspacesReducer } from './state/workspacesSlice';
 export { default as workspaceSettingsReducer } from './state/workspaceSettingsSlice';
 export * from './hooks/useWorkspaces';
 export * from './ui/WorkspaceSelector';
-export * from './ui/WorkspaceSettingsForm';
 export * from './ui/AddWorkspaceDialog';
-export * from './ui/WorkspaceSettingsScreen';
+export * from './ui/WorkspaceSettingsDialog';

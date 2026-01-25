@@ -214,13 +214,6 @@ export function useWorkspaces() {
           dispatch(setSelectedModel(undefined));
         }
       }
-
-      dispatch(
-        showSuccess(
-          t('workspaceSettingsSaved', { ns: 'settings' }),
-          t('workspaceSettingsSavedDescription', { ns: 'settings' })
-        )
-      );
     } catch (error) {
       logger.error('Error saving workspace settings:', error);
       dispatch(showError(t('cannotSaveWorkspaceSettings', { ns: 'settings' })));

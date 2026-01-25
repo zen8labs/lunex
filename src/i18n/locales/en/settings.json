@@ -153,10 +153,11 @@
   "deselectAllTools": "Deselect all tools",
   "selectAllTools": "Select all tools",
   "permission": "Permission",
-  "permissionAuto": "Auto (Run)",
-  "permissionAsk": "Ask (Target)",
+  "permissionAuto": "Auto run",
+  "permissionAsk": "Ask user",
   "mcpServerInstalled": "MCP server installed successfully",
   "mcpServerInstalledDescription": "The MCP server has been added to your connections",
+  "mcpTools": "MCP Tools",
   "model": "Model",
   "modelsList": "Models List ({{count}})",
   "monokaiTheme": "Monokai",
@@ -285,5 +286,6 @@
   "listDir": "list_dir",
   "listDirDesc": "List contents of a directory",
   "runCommand": "run_command",
-  "runCommandDesc": "Execute a shell command"
+  "runCommandDesc": "Execute a shell command",
+  "streamEnabled": "Enable stream"
 }

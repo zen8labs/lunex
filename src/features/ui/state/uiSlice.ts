@@ -22,6 +22,7 @@ export interface UIState {
   isSidebarCollapsed: boolean;
   titleBarText: string | null;
   aboutOpen: boolean;
+  workspaceSettingsOpen: boolean;
   keyboardShortcutsOpen: boolean;
   settingsSection: SettingsSection;
   language: 'vi' | 'en';
@@ -194,6 +195,7 @@ const initialState: UIState = {
   isSidebarCollapsed: false,
   titleBarText: null,
   aboutOpen: false,
+  workspaceSettingsOpen: false,
   keyboardShortcutsOpen: false,
   settingsSection: 'general',
   language: 'vi',
@@ -245,6 +247,9 @@ const uiSlice = createSlice({
     },
     setAboutOpen: (state, action: PayloadAction<boolean>) => {
       state.aboutOpen = action.payload;
+    },
+    setWorkspaceSettingsOpen: (state, action: PayloadAction<boolean>) => {
+      state.workspaceSettingsOpen = action.payload;
     },
     setKeyboardShortcutsOpen: (state, action: PayloadAction<boolean>) => {
       state.keyboardShortcutsOpen = action.payload;
@@ -390,6 +395,7 @@ export const {
   setSidebarCollapsed,
   setSettingsSection,
   setAboutOpen,
+  setWorkspaceSettingsOpen,
   setKeyboardShortcutsOpen,
   setLanguage,
   setTheme,
