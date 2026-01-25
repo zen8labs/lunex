@@ -50,7 +50,7 @@ export function FlowEditorDialog({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-none! w-[98vw] max-h-[95vh] h-[95vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 p-0 m-0">
             {t('workflowEditor')}
             <Badge
               variant="outline"

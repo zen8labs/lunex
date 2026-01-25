@@ -38,7 +38,8 @@ export const ThinkingItem = memo(function ThinkingItem({
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
       className="mb-4"
-      contentClassName="py-1"
+      headerClassName="mb-2"
+      contentClassName="p-0 m-0"
       header={
         <>
           {isStreaming ? (

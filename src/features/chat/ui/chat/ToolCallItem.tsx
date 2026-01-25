@@ -129,6 +129,8 @@ export const ToolCallItem = memo(
       <ExpandableMessageItem
         isExpanded={isExpanded}
         onToggle={handleToggle}
+        headerClassName="mb-2"
+        contentClassName="p-0 m-0"
         header={
           <>
             {isExecuting ? (

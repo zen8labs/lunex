@@ -453,7 +453,7 @@
 
 /* Code blocks */
 .markdown-content pre {
-  @apply bg-secondary/30 rounded-lg p-4 my-4 overflow-x-auto border border-border/50;
+  @apply bg-secondary/30 rounded-lg p-4 overflow-x-auto border-none;
   line-height: 1.5;
 }
 

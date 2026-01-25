@@ -4,9 +4,9 @@ import { ChevronLeft } from 'lucide-react';
 import { AppDispatch, RootState } from '@/app/store';
 import { setActiveNote } from '../state/notesSlice';
 import { updateNote } from '../state/notesActions';
-import { Textarea } from '@/ui/atoms/textarea';
-import { Input } from '@/ui/atoms/input';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
+import { Input } from '@/ui/atoms/input';
+import { Textarea } from '@/ui/atoms/textarea';
 
 export function NoteEditor() {
   const dispatch = useDispatch<AppDispatch>();
@@ -48,21 +48,20 @@ export function NoteEditor() {
         </div>
       </div>
 
-      <ScrollArea className="-mx-2 flex-1 px-2">
-        <div className="flex flex-col gap-4">
-          <Input
-            value={title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="Title"
-            className="border-none bg-transparent p-0 text-lg font-bold shadow-none ring-0 placeholder:text-muted-foreground/30 focus-visible:ring-0"
-          />
-          <Textarea
-            value={content}
-            onChange={(e) => handleContentChange(e.target.value)}
-            placeholder="Start writing..."
-            className="min-h-[300px] flex-1 resize-none border-none bg-transparent p-0 text-sm shadow-none ring-0 placeholder:text-muted-foreground/30 focus-visible:ring-0"
-          />
-        </div>
+      <Input
+        value={title}
+        onChange={(e) => handleTitleChange(e.target.value)}
+        placeholder="Title"
+        className="border-none bg-transparent p-0 text-lg font-bold shadow-none ring-0 placeholder:text-muted-foreground/30 focus-visible:ring-0 mb-4"
+      />
+
+      <ScrollArea className="pr-3 h-full">
+        <Textarea
+          value={content}
+          onChange={(e) => handleContentChange(e.target.value)}
+          placeholder="Start writing..."
+          className="overflow-hidden h-screen resize-none border-none bg-transparent p-0 shadow-none ring-0 placeholder:text-muted-foreground/30 focus-visible:ring-0"
+        />
       </ScrollArea>
     </div>
   );
