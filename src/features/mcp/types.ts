@@ -49,3 +49,15 @@ export interface HubMCPServerConfig {
   url?: string;
   headers?: Record<string, string>;
 }
+
+export interface PythonRuntimeStatus {
+  version: string;
+  installed: boolean;
+  path: string | null;
+}
+
+export interface NodeRuntimeStatus {
+  version: string;
+  installed: boolean;
+  path: string | null;
+}
