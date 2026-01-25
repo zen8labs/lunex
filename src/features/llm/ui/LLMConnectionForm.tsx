@@ -87,7 +87,10 @@ export function LLMConnectionForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col flex-1 min-h-0 w-full"
+    >
       <DialogBody className="overflow-hidden">
         <ScrollArea className="h-full">
           <div className="space-y-4 pr-4">

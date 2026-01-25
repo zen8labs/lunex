@@ -7,7 +7,7 @@ exports[`AgentChatHistoryDialog > Empty State > should match snapshot for empty 
       <div />
       <div>
         <div
-          class="flex flex-col gap-2 text-center sm:text-left px-6 py-3 border-b shrink-0"
+          class="flex flex-col gap-2 text-center sm:text-left w-full px-6 py-3 border-b shrink-0"
           data-slot="dialog-header"
         >
           <div
@@ -35,7 +35,7 @@ exports[`AgentChatHistoryDialog > Empty State > should match snapshot for empty 
           </div>
         </div>
         <div
-          class="relative flex-1 min-h-0 overflow-hidden px-0 py-0"
+          class="relative flex-1 min-h-0 w-full overflow-hidden px-0 py-0"
           data-slot="dialog-body"
           dir="ltr"
           style="position: relative; --radix-scroll-area-corner-width: 0px; --radix-scroll-area-corner-height: 0px;"
@@ -94,7 +94,7 @@ exports[`AgentChatHistoryDialog > Loaded State > should match snapshot for loade
       <div />
       <div>
         <div
-          class="flex flex-col gap-2 text-center sm:text-left px-6 py-3 border-b shrink-0"
+          class="flex flex-col gap-2 text-center sm:text-left w-full px-6 py-3 border-b shrink-0"
           data-slot="dialog-header"
         >
           <div
@@ -122,7 +122,7 @@ exports[`AgentChatHistoryDialog > Loaded State > should match snapshot for loade
           </div>
         </div>
         <div
-          class="relative flex-1 min-h-0 overflow-hidden px-0 py-0"
+          class="relative flex-1 min-h-0 w-full overflow-hidden px-0 py-0"
           data-slot="dialog-body"
           dir="ltr"
           style="position: relative; --radix-scroll-area-corner-width: 0px; --radix-scroll-area-corner-height: 0px;"

@@ -210,7 +210,7 @@ function DialogHeader({
     <div
       data-slot="dialog-header"
       className={cn(
-        'flex flex-col gap-2 text-center sm:text-left shrink-0 px-4 pt-4 pb-2',
+        'flex flex-col gap-2 text-center sm:text-left shrink-0 px-4 pt-4 pb-2 w-full',
         showBorder && 'border-b border-border',
         className
       )}
@@ -231,6 +231,7 @@ function DialogFooter({
       data-slot="dialog-footer"
       className={cn(
         'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end shrink-0 px-4 pt-2 pb-4',
+        'ư-full',
         showBorder && 'border-t border-border',
         className
       )}
@@ -243,7 +244,7 @@ function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <ScrollArea
       data-slot="dialog-body"
-      className={cn('flex-1 min-h-0', className)}
+      className={cn('flex-1 min-h-0 w-full', className)}
     >
       <div className="px-4 py-2" {...props} />
     </ScrollArea>
@@ -261,7 +262,10 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-xl leading-none font-semibold my-1', className)}
+      className={cn(
+        'text-xl leading-none font-semibold my-1 w-full',
+        className
+      )}
       {...props}
     >
       {children}
