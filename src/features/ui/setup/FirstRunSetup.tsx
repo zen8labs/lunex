@@ -35,7 +35,6 @@ import {
   Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/atoms/card';
 import { logger } from '@/lib/logger';
 
 type Step = 'welcome' | 'installing' | 'llm-setup' | 'completed';
@@ -290,84 +289,114 @@ export function FirstRunSetup({ open }: { open: boolean }) {
   return (
     <Dialog open={open}>
       <DialogContent
-        className="sm:max-w-[600px] h-[650px] flex flex-col border-border/50 shadow-2xl p-0 gap-0 overflow-hidden"
+        className="sm:max-w-[540px] h-auto max-h-[90vh] flex flex-col border-border/40 shadow-2xl p-0 gap-0 overflow-hidden bg-background rounded-3xl"
         showCloseButton={false}
       >
-        <DialogHeader className="items-center justify-center shrink-0 h-[220px] pb-6 pt-10 text-center bg-muted/30 border-b border-border/40">
-          {step === 'welcome' && (
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-background shadow-xl ring-1 ring-border/50 animate-in zoom-in-50 duration-700">
-              <img
-                src="/icon.svg"
-                alt="Nexo Logo"
-                className="h-14 w-14 drop-shadow-sm"
-              />
-            </div>
+        <DialogHeader
+          className={cn(
+            'relative flex flex-col items-center justify-center shrink-0 text-center overflow-hidden border-b border-border/30 transition-all duration-500',
+            step === 'welcome' ? 'h-[220px]' : 'h-[160px]'
           )}
-          <DialogTitle className="text-3xl font-bold tracking-tight bg-linear-to-br from-foreground to-foreground/70 bg-clip-text text-transparent px-6">
-            {step === 'welcome' && 'Welcome to Nexo'}
-            {step === 'installing' && 'Setting up Environment'}
-            {step === 'llm-setup' && 'Connect Your AI'}
-          </DialogTitle>
-          <DialogDescription className="text-base text-muted-foreground/80 max-w-[420px] mt-3 px-6 leading-relaxed">
-            {step === 'welcome' &&
-              'Your powerful, local-first AI workspace. Let’s get everything ready for you.'}
-            {step === 'installing' &&
-              'We are installing the necessary runtimes to power your automated workflows.'}
-            {step === 'llm-setup' &&
-              'Choose your preferred AI provider to start chatting and generating code.'}
-          </DialogDescription>
+        >
+          {/* Background Decorative Element */}
+          <div className="absolute inset-0 bg-linear-to-b from-muted/50 to-background z-0" />
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl z-0" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-3xl z-0" />
+
+          <div className="relative z-10 flex flex-col items-center">
+            {step === 'welcome' && (
+              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-background shadow-xl ring-1 ring-border/50 animate-in zoom-in-50 duration-700">
+                <img
+                  src="/icon.svg"
+                  alt="Nexo Logo"
+                  className="h-12 w-12 drop-shadow-md"
+                />
+              </div>
+            )}
+
+            <DialogTitle
+              className={cn(
+                'font-bold tracking-tight text-foreground px-6 transition-all duration-500',
+                step === 'welcome' ? 'text-3xl' : 'text-2xl'
+              )}
+            >
+              {step === 'welcome' && 'Chào mừng đến với Nexo'}
+              {step === 'installing' && 'Đang thiết lập môi trường'}
+              {step === 'llm-setup' && 'Kết nối AI của bạn'}
+            </DialogTitle>
+
+            <DialogDescription className="text-sm text-muted-foreground/90 max-w-[400px] mt-3 px-8 leading-relaxed font-medium">
+              {step === 'welcome' &&
+                'Không gian làm việc AI mạnh mẽ, ưu tiên xử lý cục bộ. Hãy để chúng tôi chuẩn bị mọi thứ cho bạn.'}
+              {step === 'installing' &&
+                'Chúng tôi đang cài đặt các runtime cần thiết để vận hành quy trình tự động của bạn.'}
+              {step === 'llm-setup' &&
+                'Chọn nhà cung cấp AI yêu thích để bắt đầu trò chuyện và tạo mã nguồn.'}
+            </DialogDescription>
+          </div>
         </DialogHeader>
 
-        <DialogBody className="flex-1 py-8 px-8 flex flex-col justify-center overflow-y-auto">
+        <DialogBody className="relative z-10 flex-1 py-8 px-8 flex flex-col overflow-y-auto">
           {step === 'welcome' && (
-            <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-              <Card className="border-border/50 bg-card/50 shadow-sm">
-                <CardHeader className="pb-3 pt-5 px-5">
-                  <CardTitle className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                    Recommended Setup Includes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-3 text-sm text-foreground/80 px-5 pb-5">
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/20">
-                      <Terminal className="h-4 w-4" />
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+              <div className="space-y-4">
+                <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">
+                  Cài đặt đề xuất bao gồm
+                </h4>
+                <div className="grid gap-2.5">
+                  <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-muted/40 border border-border/30 hover:bg-muted/60 transition-all duration-300">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500 ring-1 ring-blue-500/20 shadow-sm">
+                      <Terminal className="h-4.5 w-4.5" />
                     </div>
-                    <span>Python & Node.js Runtimes</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-purple-500/10 text-purple-500 ring-1 ring-purple-500/20">
-                      <Bot className="h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm">
+                        Runtime Python & Node.js
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Cần thiết cho các tác vụ nâng cao và tự động hóa
+                      </span>
                     </div>
-                    <span>Default LLM Connection</span>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-muted/40 border border-border/30 hover:bg-muted/60 transition-all duration-300">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500 ring-1 ring-purple-500/20 shadow-sm">
+                      <Bot className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm">
+                        Kết nối LLM mặc định
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        Thiết lập mô hình ngôn ngữ để bắt đầu làm việc
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
           {step === 'installing' && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-right-8 duration-700">
+            <div className="space-y-3.5 animate-in fade-in slide-in-from-right-8 duration-700">
               <RuntimeInstallCard
                 icon={<Cpu className="h-5 w-5" />}
-                title="Python Runtime"
-                description="Core environment for AI agents"
+                title="Runtime Python"
+                description="Môi trường cốt lõi cho AI Agent"
                 status={installStatus.python}
               />
               <RuntimeInstallCard
                 icon={<Terminal className="h-5 w-5" />}
-                title="Node.js Runtime"
-                description="Engine for JavaScript tools"
+                title="Runtime Node.js"
+                description="Công cụ cho các tiện ích JavaScript"
                 status={installStatus.node}
               />
             </div>
           )}
 
           {step === 'llm-setup' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-8 duration-700">
               <div className="grid gap-2">
-                <Label className="text-sm font-medium text-foreground">
-                  AI Provider
+                <Label className="text-[12px] font-semibold text-foreground/80 ml-1">
+                  Nhà cung cấp AI
                 </Label>
                 <Select
                   value={llmConfig.provider}
@@ -384,18 +413,24 @@ export function FirstRunSetup({ open }: { open: boolean }) {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-full h-11 border-input bg-background/50 focus:ring-primary/20 transition-[background-color,box-shadow,ring] hover:bg-accent/50 focus:bg-background">
-                    <SelectValue placeholder="Select provider" />
+                  <SelectTrigger className="w-full h-11 rounded-xl border-border/60 bg-muted/30 focus:ring-primary/20 transition-all hover:bg-muted/50 focus:bg-background">
+                    <SelectValue placeholder="Chọn nhà cung cấp" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl shadow-xl border-border/40">
                     {PROVIDER_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <div className="flex items-center gap-2">
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="py-2"
+                      >
+                        <div className="flex items-center gap-3">
                           <ProviderIcon
                             provider={option.value}
                             className="h-4 w-4"
                           />
-                          <span>{option.label}</span>
+                          <span className="font-medium text-sm">
+                            {option.label}
+                          </span>
                         </div>
                       </SelectItem>
                     ))}
@@ -405,13 +440,13 @@ export function FirstRunSetup({ open }: { open: boolean }) {
 
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label className="text-sm font-medium text-foreground">
+                  <Label className="text-[12px] font-semibold text-foreground/80 ml-1">
                     Base URL
                   </Label>
                   <div className="relative group">
-                    <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Globe className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                     <Input
-                      className="h-10 pl-9 bg-background/50 focus:bg-background transition-colors"
+                      className="h-10 pl-10 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-all text-sm"
                       value={llmConfig.baseUrl}
                       onChange={(e) =>
                         setLlmConfig((prev) => ({
@@ -425,18 +460,18 @@ export function FirstRunSetup({ open }: { open: boolean }) {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium text-foreground">
+                  <div className="flex items-center justify-between px-1">
+                    <Label className="text-[12px] font-semibold text-foreground/80">
                       API Key
                     </Label>
-                    <span className="text-[10px] uppercase font-medium text-muted-foreground/70 bg-muted px-2 py-0.5 rounded-full">
-                      Stored Locally
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider">
+                      Lưu trữ cục bộ
                     </span>
                   </div>
                   <div className="relative group">
-                    <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Key className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                     <Input
-                      className="h-10 pl-9 font-mono text-sm bg-background/50 focus:bg-background transition-colors"
+                      className="h-10 pl-10 rounded-xl border-border/60 font-mono text-sm bg-muted/30 focus:bg-background transition-all"
                       type="password"
                       value={llmConfig.apiKey}
                       onChange={(e) =>
@@ -454,31 +489,30 @@ export function FirstRunSetup({ open }: { open: boolean }) {
           )}
         </DialogBody>
 
-        <DialogFooter className="sm:justify-between px-8 py-6 bg-muted/10 border-t border-border/40">
+        <DialogFooter className="sm:justify-between px-8 py-6 bg-muted/5 border-t border-border/30">
           {step === 'welcome' && (
             <>
               <Button
                 variant="ghost"
-                size="lg"
                 onClick={skipSetup}
-                className="text-muted-foreground hover:text-foreground hover:bg-transparent px-0 font-medium"
+                className="text-muted-foreground hover:text-foreground hover:bg-transparent px-2 font-semibold text-[14px]"
               >
-                Skip Setup
+                Bỏ qua thiết lập
               </Button>
               <Button
-                size="lg"
                 onClick={startSetup}
-                className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[background-color,box-shadow,transform] px-8 h-12 text-base font-medium rounded-xl"
+                className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 px-8 h-11 text-[14px] font-bold rounded-2xl min-w-[160px]"
               >
-                Start Auto Setup
+                Bắt đầu thiết lập
               </Button>
             </>
           )}
 
           {step === 'installing' && (
-            <div className="w-full text-center">
-              <span className="text-sm font-medium text-muted-foreground animate-pulse">
-                Configuring your workspace...
+            <div className="w-full flex items-center justify-center gap-3 py-1">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-[13px] font-semibold text-foreground/70 animate-pulse">
+                Đang cấu hình không gian làm việc...
               </span>
             </div>
           )}
@@ -488,20 +522,19 @@ export function FirstRunSetup({ open }: { open: boolean }) {
               <Button
                 variant="ghost"
                 onClick={skipSetup}
-                className="text-muted-foreground hover:text-foreground hover:bg-transparent px-0 font-medium"
+                className="text-muted-foreground hover:text-foreground hover:bg-transparent px-2 font-semibold text-[14px]"
               >
-                Skip
+                Bỏ qua
               </Button>
               <Button
-                size="lg"
                 onClick={handleLlmSubmit}
                 disabled={isSubmitting || !llmConfig.apiKey}
-                className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-[background-color,box-shadow,transform] min-w-[140px] rounded-xl h-11"
+                className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all px-8 h-11 text-[14px] font-bold rounded-2xl min-w-[160px]"
               >
                 {isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
-                Connect & Install Environment
+                Kết nối & Cài đặt
               </Button>
             </>
           )}
