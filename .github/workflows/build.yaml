@@ -81,18 +81,12 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Nexo __VERSION__'
           releaseBody: |
-            # Nexo v0.1.0-beta.17
-
-            ## New Features
-
-            - **Advanced Workspace Settings**: Added support for Internal Tools and Max Agent Iterations configuration.
-            - **Safe Operations**: Implemented a reusable Confirm Dialog for destructive actions like deleting chats and workspaces to prevent accidental data loss.
+            # Nexo v0.1.0-beta.18
 
             ## UI/UX Improvements
 
-            - **Settings Redesign**: Optimized the Settings dialog header for better visual balance and alignment.
-            - **New Setting Items**: Added a dedicated numeric input component for precision configuration.
-            - **Refined Layouts**: Improved spacing and alignment across all setting items for a more premium feel.
+            - **Refined Chat Input**: Optimized the chat input area for better responsiveness and height management.
+            - **Styling Updates**: Improved overall visual consistency in the chat interface.
 
             ---
 
