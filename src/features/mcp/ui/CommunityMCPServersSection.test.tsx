@@ -54,11 +54,71 @@ vi.mock('lucide-react', () => ({
   ChevronDownIcon: () => <div data-testid="icon-ChevronDownIcon" />,
   ChevronUpIcon: () => <div data-testid="icon-ChevronUpIcon" />,
   CheckIcon: () => <div data-testid="icon-CheckIcon" />,
+  Check: () => <div data-testid="icon-Check" />,
 }));
 
+interface MockComponentProps {
+  children?: React.ReactNode;
+}
+
 vi.mock('@/ui/atoms/scroll-area', () => ({
-  ScrollArea: ({ children }: { children: React.ReactNode }) => (
+  ScrollArea: ({ children }: MockComponentProps) => (
     <div data-testid="scroll-area">{children}</div>
+  ),
+}));
+
+vi.mock('@/ui/atoms/dialog/component', () => ({
+  Dialog: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
+    open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogHeader: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogTitle: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogDescription: ({ children }: MockComponentProps) => (
+    <div>{children}</div>
+  ),
+  DialogBody: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogFooter: ({ children }: MockComponentProps) => <div>{children}</div>,
+}));
+
+vi.mock('@/ui/molecules/EntityCard', () => ({
+  EntityCard: ({
+    title,
+    description,
+    onClick,
+    footer,
+    extra,
+    actions,
+  }: {
+    title: React.ReactNode;
+    description?: React.ReactNode;
+    onClick?: () => void;
+    footer?: React.ReactNode;
+    extra?: React.ReactNode;
+    actions?: React.ReactNode;
+  }) => (
+    <div data-testid="entity-card" onClick={onClick}>
+      <div>{title}</div>
+      {description && <div>{description}</div>}
+      {actions && <div>{actions}</div>}
+      {extra && <div>{extra}</div>}
+      {footer && <div>{footer}</div>}
+    </div>
+  ),
+}));
+
+vi.mock('@/ui/atoms/button/button', () => ({
+  Button: ({
+    children,
+    onClick,
+    disabled,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+  }) => (
+    <button onClick={onClick} disabled={disabled}>
+      {children}
+    </button>
   ),
 }));
 

@@ -7,15 +7,9 @@ import { Input } from '@/ui/atoms/input';
 import { Label } from '@/ui/atoms/label';
 import { Textarea } from '@/ui/atoms/textarea';
 
-import {
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/ui/atoms/dialog/component';
-import { ScrollArea } from '@/ui/atoms/scroll-area';
+import { SectionHeader } from '@/ui/molecules/SectionHeader';
+import { EntityCard } from '@/ui/molecules/EntityCard';
+import { FormDialog } from '@/ui/molecules/FormDialog';
 import { invokeCommand, TauriCommands } from '@/lib/tauri';
 import { useAppDispatch } from '@/app/hooks';
 import {
@@ -120,13 +114,13 @@ export function PromptManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-end">
+    <div className="space-y-6 h-full flex flex-col">
+      <SectionHeader>
         <Button onClick={handleAdd} size="sm">
           <Plus className="mr-2 size-4" />
           {t('addPrompt')}
         </Button>
-      </div>
+      </SectionHeader>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -135,41 +129,18 @@ export function PromptManagement() {
       ) : prompts.length === 0 ? (
         <EmptyState icon={FileText} title={t('noPrompts')} />
       ) : (
-        <ScrollArea className="h-full **:data-[slot='scroll-area-scrollbar']:hidden">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 content-visibility-auto">
-            {prompts.map((prompt) => (
-              <div
-                key={prompt.id}
-                onClick={() => handleEdit(prompt)}
-                className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-[box-shadow,border-color] duration-200 cursor-pointer overflow-hidden"
-              >
-                {/* Subtle gradient overlay on hover */}
-                <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-
-                <div className="relative space-y-3">
-                  {/* Header with icon and name */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                      <FileText className="size-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="font-normal truncate">
-                        {prompt.name}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content preview */}
-                  <div className="space-y-1.5">
-                    <p className="text-xs text-muted-foreground line-clamp-3">
-                      {prompt.content}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {prompts.map((prompt) => (
+            <EntityCard
+              key={prompt.id}
+              onClick={() => handleEdit(prompt)}
+              icon={<FileText className="size-5 text-primary" />}
+              title={prompt.name}
+              description={prompt.content}
+              className="h-full"
+            />
+          ))}
+        </div>
       )}
 
       <PromptDialog
@@ -239,73 +210,61 @@ function PromptDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl flex flex-col max-h-[90vh]">
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col flex-1 min-h-0 w-full"
-        >
-          <DialogHeader className="shrink-0">
-            <DialogTitle>
-              {prompt ? t('editPrompt') : t('addNewPrompt')}
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              {t('configurePrompt')}
-            </p>
-          </DialogHeader>
-          <DialogBody>
-            <ScrollArea className="h-full **:data-[slot='scroll-area-scrollbar']:hidden">
-              <div className="space-y-4 pr-4">
-                <div className="space-y-2">
-                  <Label htmlFor="prompt-name">{t('promptName')}</Label>
-                  <Input
-                    id="prompt-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t('promptNamePlaceholder')}
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="prompt-content">{t('promptContent')}</Label>
-                  <Textarea
-                    id="prompt-content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder={t('promptContentPlaceholder')}
-                    className="w-full min-h-[200px]"
-                    required
-                  />
-                </div>
-              </div>
-            </ScrollArea>
-          </DialogBody>
-          <DialogFooter className="shrink-0 justify-between gap-2">
-            {onDelete && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={onDelete}
-                className="flex-1"
-              >
-                <Trash2 className="mr-2 size-4" />
-                {t('delete', { ns: 'common' })}
-              </Button>
-            )}
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={prompt ? t('editPrompt') : t('addNewPrompt')}
+      description={t('configurePrompt')}
+      footer={
+        <div className="flex w-full gap-3">
+          {onDelete && (
             <Button
-              type="submit"
-              disabled={!name.trim() || !content.trim()}
-              className="flex-1"
+              type="button"
+              variant="destructive"
+              onClick={onDelete}
+              className="flex-1 h-10"
             >
-              {prompt
-                ? t('save', { ns: 'common' })
-                : t('add', { ns: 'common' })}
+              <Trash2 className="mr-2 size-4" />
+              {t('delete', { ns: 'common' })}
             </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )}
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            className="flex-1 h-10"
+            disabled={!name.trim() || !content.trim()}
+          >
+            {prompt ? t('save', { ns: 'common' }) : t('add', { ns: 'common' })}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="prompt-name">{t('promptName')}</Label>
+          <Input
+            id="prompt-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('promptNamePlaceholder')}
+            className="w-full h-10"
+            required
+            autoFocus
+          />
+        </div>
+        <div className="space-y-2 w-full">
+          <Label htmlFor="prompt-content">{t('promptContent')}</Label>
+          <Textarea
+            id="prompt-content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={t('promptContentPlaceholder')}
+            className="w-full min-h-[200px]"
+            required
+          />
+        </div>
+      </div>
+    </FormDialog>
   );
 }
 

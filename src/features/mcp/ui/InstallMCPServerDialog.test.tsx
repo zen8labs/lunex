@@ -54,10 +54,52 @@ vi.mock('lucide-react', () => ({
   CheckIcon: () => <div data-testid="icon-CheckIcon" />,
 }));
 
+interface MockComponentProps {
+  children?: React.ReactNode;
+}
+
 vi.mock('@/ui/atoms/scroll-area', () => ({
-  ScrollArea: ({ children }: { children: React.ReactNode }) => (
+  ScrollArea: ({ children }: MockComponentProps) => (
     <div data-testid="scroll-area">{children}</div>
   ),
+}));
+
+vi.mock('@/ui/molecules/FormDialog', () => ({
+  FormDialog: ({
+    children,
+    title,
+    description,
+    open,
+    footer,
+  }: {
+    children: React.ReactNode;
+    title: string;
+    description?: string;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    footer?: React.ReactNode;
+  }) =>
+    open ? (
+      <div data-testid="form-dialog">
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
+        <div>{children}</div>
+        {footer && <footer>{footer}</footer>}
+      </div>
+    ) : null,
+}));
+
+vi.mock('@/ui/atoms/dialog/component', () => ({
+  Dialog: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
+    open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogHeader: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogTitle: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogDescription: ({ children }: MockComponentProps) => (
+    <div>{children}</div>
+  ),
+  DialogBody: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogFooter: ({ children }: MockComponentProps) => <div>{children}</div>,
 }));
 
 describe('InstallMCPServerDialog', () => {

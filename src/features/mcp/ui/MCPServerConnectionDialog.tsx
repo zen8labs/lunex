@@ -11,17 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/atoms/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/ui/atoms/dialog';
-import { ScrollArea } from '@/ui/atoms/scroll-area';
+import { FormDialog } from '@/ui/molecules/FormDialog';
+import { KeyValueEditor } from '@/ui/molecules/KeyValueEditor';
 import { Skeleton } from '@/ui/atoms/skeleton';
-import { HeadersEditor } from '@/features/settings';
+import { cn } from '@/lib/utils';
 import type {
   MCPServerConnection,
   PythonRuntimeStatus,
@@ -169,208 +162,204 @@ export function MCPServerConnectionDialog({
     nodeRuntimes.some((r) => r.installed);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl flex flex-col max-h-[90vh]">
-        <DialogHeader className="shrink-0 scale-95 origin-top p-0">
-          <DialogTitle className="p-0 m-0">
-            {connection ? t('editConnection') : t('addNewConnection')}
-          </DialogTitle>
-          <DialogDescription>{t('configureMCPConnection')}</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col flex-1 min-h-0 overflow-hidden w-full">
-          <div className="flex-1 overflow-y-auto min-h-0 w-full">
-            <div className="space-y-6 py-2 pb-6 w-full">
-              {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-                <div className="md:col-span-2 space-y-2">
-                  <Label htmlFor="mcp-name" className="text-sm font-medium">
-                    {t('connectionName')}
-                  </Label>
-                  <Input
-                    id="mcp-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t('mcpConnectionNamePlaceholder')}
-                    className="w-full h-9"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="mcp-type" className="text-sm font-medium">
-                    {t('type')}
-                  </Label>
-                  <Select
-                    value={type}
-                    onValueChange={(
-                      value: 'sse' | 'stdio' | 'http-streamable'
-                    ) => setType(value)}
-                  >
-                    <SelectTrigger id="mcp-type" className="w-full h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sse">{t('sseType')}</SelectItem>
-                      <SelectItem value="stdio">{t('stdioType')}</SelectItem>
-                      <SelectItem value="http-streamable">
-                        {t('httpStreamableType')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={connection ? t('editConnection') : t('addNewConnection')}
+      description={t('configureMCPConnection')}
+      maxWidth="2xl"
+      footer={
+        <div className="flex w-full gap-3">
+          {onDelete && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={onDelete}
+              className="flex-1 h-10"
+            >
+              <Trash2 className="mr-2 size-4" />
+              {tCommon('delete')}
+            </Button>
+          )}
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            className="flex-1 h-10"
+            disabled={!name.trim() || !url.trim()}
+          >
+            {tCommon('save')}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* Basic Information */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2 space-y-2">
+            <Label htmlFor="mcp-name" className="text-sm font-medium">
+              {t('connectionName')}
+            </Label>
+            <Input
+              id="mcp-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('mcpConnectionNamePlaceholder')}
+              className="w-full h-10"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="mcp-type" className="text-sm font-medium">
+              {t('type')}
+            </Label>
+            <Select
+              value={type}
+              onValueChange={(value: 'sse' | 'stdio' | 'http-streamable') =>
+                setType(value)
+              }
+            >
+              <SelectTrigger id="mcp-type" className="w-full h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sse">{t('sseType')}</SelectItem>
+                <SelectItem value="stdio">{t('stdioType')}</SelectItem>
+                <SelectItem value="http-streamable">
+                  {t('httpStreamableType')}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Runtime and Command Support */}
+        <div className="space-y-4 rounded-xl border bg-muted/30 p-5">
+          {showRuntimeSelector &&
+            (runtimesLoading ? (
+              <RuntimeSelectorSkeleton />
+            ) : hasInstalledRuntimes ? (
+              <div className="space-y-2 w-full">
+                <Label className="text-sm font-medium">
+                  {t('runtimeEnvironment')}
+                </Label>
+                <Select
+                  value={selectedRuntime}
+                  onValueChange={handleRuntimeChange}
+                >
+                  <SelectTrigger className="w-full h-10 bg-background">
+                    <SelectValue placeholder={t('systemDefault')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">
+                      {t('systemDefault')}
+                    </SelectItem>
+                    {pythonRuntimes
+                      .filter((r) => r.installed && r.path)
+                      .map((r) => (
+                        <SelectItem key={r.version} value={r.path || ''}>
+                          Python {r.version} (Bundled)
+                        </SelectItem>
+                      ))}
+                    {nodeRuntimes
+                      .filter((r) => r.installed && r.path)
+                      .map((r) => (
+                        <SelectItem key={r.version} value={r.path || ''}>
+                          Node.js {r.version} (Bundled)
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
+            ) : null)}
 
-              {/* Runtime and Command Support */}
-              <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
-                {showRuntimeSelector &&
-                  (runtimesLoading ? (
-                    <RuntimeSelectorSkeleton />
-                  ) : hasInstalledRuntimes ? (
-                    <div className="space-y-2 w-full">
-                      <Label className="text-sm font-medium">
-                        {t('runtimeEnvironment')}
-                      </Label>
-                      <Select
-                        value={selectedRuntime}
-                        onValueChange={handleRuntimeChange}
-                      >
-                        <SelectTrigger className="w-full h-9 bg-background">
-                          <SelectValue placeholder={t('systemDefault')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="default">
-                            {t('systemDefault')}
-                          </SelectItem>
-                          {pythonRuntimes
-                            .filter((r) => r.installed && r.path)
-                            .map((r) => (
-                              <SelectItem key={r.version} value={r.path || ''}>
-                                Python {r.version} (Bundled)
-                              </SelectItem>
-                            ))}
-                          {nodeRuntimes
-                            .filter((r) => r.installed && r.path)
-                            .map((r) => (
-                              <SelectItem key={r.version} value={r.path || ''}>
-                                Node.js {r.version} (Bundled)
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ) : null)}
-
-                <div className="space-y-2 w-full">
-                  <Label htmlFor="mcp-url" className="text-sm font-medium">
-                    {type === 'stdio'
-                      ? runtimePrefix
-                        ? t('mcpArguments')
-                        : t('mcpCommand')
-                      : t('url')}
-                  </Label>
-                  <div className="flex gap-2 items-center">
-                    {type === 'stdio' && runtimePrefix && (
-                      <span className="bg-muted px-2.5 py-1.5 rounded-md text-xs font-mono border whitespace-nowrap">
-                        {runtimePrefix}
-                      </span>
-                    )}
-                    <Input
-                      id="mcp-url"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      placeholder={
-                        type === 'stdio'
-                          ? runtimePrefix
-                            ? t('mcpArgumentsPlaceholder')
-                            : t('stdioUrlPlaceholder')
-                          : t('sseUrlPlaceholder')
-                      }
-                      className="w-full h-9 bg-background"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {showEnvVars && (
-                  <div
-                    className={`w-full ${envVars ? 'border-t pt-4 mt-2' : 'mt-2'}`}
-                  >
-                    <HeadersEditor
-                      value={envVars}
-                      onChange={handleEnvVarsChange}
-                      label={t('envVarsOptional', {
-                        defaultValue: 'Environment Variables (Optional)',
-                      })}
-                      placeholderKey="VAR_NAME"
-                      placeholderValue="value"
-                      helperText={t('envVarsInfo', {
-                        defaultValue:
-                          'Passed as environment variables to the stdio process.',
-                      })}
-                    />
-                  </div>
-                )}
-
-                {showHeaders && (
-                  <div
-                    className={`w-full ${headers ? 'border-t pt-4 mt-2' : 'mt-2'}`}
-                  >
-                    <HeadersEditor
-                      value={headers}
-                      onChange={handleHeadersChange}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Tools List */}
-              <ScrollArea className="space-y-4 border-t pt-4 h-full">
-                {connection?.tools && connection.tools.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      {t('toolsList', { count: connection.tools.length })}
-                    </Label>
-                    <div className="rounded-md border bg-muted/20 overflow-hidden">
-                      <div className="max-h-[200px] overflow-y-auto divide-y divide-border">
-                        {connection.tools.map((tool, index) => (
-                          <div
-                            key={index}
-                            className="px-3 py-2 text-sm hover:bg-muted/30 transition-colors"
-                          >
-                            <div className="font-medium text-foreground">
-                              {tool.name}
-                            </div>
-                            {tool.description && (
-                              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                                {tool.description}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </ScrollArea>
+          <div className="space-y-2 w-full">
+            <Label htmlFor="mcp-url" className="text-sm font-medium">
+              {type === 'stdio'
+                ? runtimePrefix
+                  ? t('mcpArguments')
+                  : t('mcpCommand')
+                : t('url')}
+            </Label>
+            <div className="flex gap-2 items-center">
+              {type === 'stdio' && runtimePrefix && (
+                <span className="bg-muted px-3 py-2 rounded-md text-xs font-mono border whitespace-nowrap h-10 flex items-center">
+                  {runtimePrefix}
+                </span>
+              )}
+              <Input
+                id="mcp-url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder={
+                  type === 'stdio'
+                    ? runtimePrefix
+                      ? t('mcpArgumentsPlaceholder')
+                      : t('stdioUrlPlaceholder')
+                    : t('sseUrlPlaceholder')
+                }
+                className="w-full h-10 bg-background"
+                required
+              />
             </div>
           </div>
-          <DialogFooter className="shrink-0 flex flex-row gap-2 border-t pt-4">
-            <Button type="button" onClick={handleSubmit} className="flex-1">
-              {tCommon('save')}
-            </Button>
-            {onDelete && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={onDelete}
-                className="flex-1"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {tCommon('delete')}
-              </Button>
-            )}
-          </DialogFooter>
+
+          {showEnvVars && (
+            <div className={cn('w-full', envVars && 'border-t pt-4 mt-2')}>
+              <KeyValueEditor
+                value={envVars}
+                onChange={handleEnvVarsChange}
+                label={t('envVarsOptional', {
+                  defaultValue: 'Environment Variables (Optional)',
+                })}
+                placeholderKey="VAR_NAME"
+                placeholderValue="value"
+                helperText={t('envVarsInfo', {
+                  defaultValue:
+                    'Passed as environment variables to the stdio process.',
+                })}
+              />
+            </div>
+          )}
+
+          {showHeaders && (
+            <div className={cn('w-full', headers && 'border-t pt-4 mt-2')}>
+              <KeyValueEditor
+                value={headers}
+                onChange={handleHeadersChange}
+                label={t('headersOptional')}
+              />
+            </div>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Tools List */}
+        {connection?.tools && connection.tools.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {t('toolsList', { count: connection.tools.length })}
+            </Label>
+            <div className="rounded-xl border bg-muted/20 overflow-hidden">
+              <div className="max-h-[250px] overflow-y-auto divide-y divide-border/50">
+                {connection.tools.map((tool, index) => (
+                  <div
+                    key={index}
+                    className="px-4 py-3 text-sm hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="font-semibold text-foreground">
+                      {tool.name}
+                    </div>
+                    {tool.description && (
+                      <div className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                        {tool.description}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </FormDialog>
   );
 }

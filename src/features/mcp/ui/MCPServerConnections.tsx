@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, AlertCircle, RefreshCw, Server, PowerOff } from 'lucide-react';
+import { Plus, Server } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
 import { EmptyState } from '@/ui/atoms/empty-state';
 import { ConfirmDialog } from '@/ui/molecules/ConfirmDialog';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/ui/atoms/tooltip';
 import { useAppDispatch } from '@/app/hooks';
+import { SectionHeader } from '@/ui/molecules/SectionHeader';
+import { MCPServerConnectionCard } from './MCPServerConnectionCard';
 import { MCPServerConnectionDialog } from './MCPServerConnectionDialog';
 import {
   useGetMCPConnectionsQuery,
@@ -27,7 +23,6 @@ import {
 } from '@/features/notifications/state/notificationSlice';
 
 import type {
-  MCPToolType,
   MCPServerConnection,
   PythonRuntimeStatus,
   NodeRuntimeStatus,
@@ -237,12 +232,12 @@ export function MCPServerConnections() {
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex items-center justify-end shrink-0">
+      <SectionHeader>
         <Button onClick={handleAdd} size="sm">
           <Plus className="mr-2 size-4" />
           {t('addConnection')}
         </Button>
-      </div>
+      </SectionHeader>
 
       {mcpConnections.length === 0 ? (
         <EmptyState icon={Server} title={t('noConnections')} />
@@ -250,130 +245,13 @@ export function MCPServerConnections() {
         <ScrollArea className="flex-1 min-h-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {mcpConnections.map((connection) => (
-              <div
+              <MCPServerConnectionCard
                 key={connection.id}
-                onClick={() => handleEdit(connection)}
-                className="group relative rounded-lg border bg-card p-4 hover:shadow-md hover:border-primary/20 transition-[box-shadow,border-color] duration-200 cursor-pointer overflow-hidden"
-              >
-                {/* Subtle gradient overlay on hover */}
-                <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-
-                <div className="relative space-y-3">
-                  {/* Header with icon and name */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                      <Server className="size-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-normal truncate">
-                          {connection.name}
-                        </span>
-                        {connection.errorMessage && (
-                          <TooltipProvider>
-                            <Tooltip delayDuration={0}>
-                              <TooltipTrigger asChild>
-                                <AlertCircle className="size-4 text-destructive shrink-0 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="max-w-xs">
-                                <p className="text-sm">
-                                  {connection.errorMessage}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {connection.type}
-                      </p>
-                    </div>
-                    <div
-                      className="flex gap-1 shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {connection.status === 'connected' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8"
-                          onClick={() => handleDisconnect(connection)}
-                          title={t('disconnectConnection')}
-                        >
-                          <PowerOff className="size-3.5" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8"
-                        onClick={() => handleReload(connection)}
-                        title={t('reloadConnection')}
-                        disabled={connection.status === 'connecting'}
-                      >
-                        <RefreshCw
-                          className={`size-3.5 ${connection.status === 'connecting' ? 'animate-spin' : ''}`}
-                        />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Status and URL */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {connection.status && (
-                        <span
-                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs ${
-                            connection.status === 'connected'
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                              : connection.status === 'connecting'
-                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                          }`}
-                        >
-                          {connection.status === 'connected'
-                            ? t('connected')
-                            : connection.status === 'connecting'
-                              ? t('connecting')
-                              : t('disconnected')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {connection.url}
-                    </p>
-                  </div>
-
-                  {/* Tools list - Fixed height to prevent layout shift */}
-                  <div className="flex items-center gap-1.5 overflow-hidden min-h-[28px]">
-                    {connection.tools && connection.tools.length > 0 ? (
-                      <>
-                        <div className="flex gap-1.5 overflow-hidden">
-                          {connection.tools
-                            .slice(0, 3)
-                            .map((tool: MCPToolType, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center rounded-md bg-muted/60 px-2 py-1 text-xs text-foreground/80 group-hover:bg-muted transition-colors whitespace-nowrap"
-                              >
-                                {tool.name}
-                              </span>
-                            ))}
-                        </div>
-                        {connection.tools.length > 3 && (
-                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs text-primary font-medium whitespace-nowrap shrink-0">
-                            +{connection.tools.length - 3}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <span className="inline-flex items-center rounded-md bg-muted/40 px-2 py-1 text-xs text-muted-foreground/60 whitespace-nowrap">
-                        {t('noTools', { defaultValue: 'No tools' })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+                connection={connection}
+                onEdit={handleEdit}
+                handleDisconnect={handleDisconnect}
+                handleReload={handleReload}
+              />
             ))}
           </div>
         </ScrollArea>

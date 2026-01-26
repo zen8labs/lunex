@@ -79,6 +79,9 @@ vi.mock('@/ui/atoms/dialog/component', () => ({
   DialogContent: ({ children }: MockComponentProps) => <div>{children}</div>,
   DialogHeader: ({ children }: MockComponentProps) => <div>{children}</div>,
   DialogTitle: ({ children }: MockComponentProps) => <div>{children}</div>,
+  DialogDescription: ({ children }: MockComponentProps) => (
+    <div>{children}</div>
+  ),
   DialogBody: ({ children }: MockComponentProps) => <div>{children}</div>,
   DialogFooter: ({ children }: MockComponentProps) => <div>{children}</div>,
 }));
