@@ -79,18 +79,24 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'Nexo __VERSION__'
+          releaseName: 'Lunex __VERSION__'
           releaseBody: |
-            # Nexo v0.1.0-beta.18
+            # Lunex v0.1.0-beta.19
+
+            ## New Features
+
+            - **Enhanced Tools and Skills**: Added usage examples to tool descriptions and improved skill management with localized UI and dedicated confirmation dialogs.
+            - **Setup Experience**: Refactored the first-run setup UI for a smoother onboarding experience with dynamic step content.
 
             ## UI/UX Improvements
 
-            - **Refined Chat Input**: Optimized the chat input area for better responsiveness and height management.
-            - **Styling Updates**: Improved overall visual consistency in the chat interface.
+            - **Editor Refinements**: Enhanced textarea components with dynamic height and optimized the note editor layout.
+            - **LLM Connection Management**: Improved the LLM connection form with consolidated status display and better feedback when no models are found.
+            - **Visual Consistency**: Standardized dialogs and entity cards across the application for a more unified and premium feel.
 
             ---
 
-            Report issues at: https://github.com/Nexo-Agent/nexo/issues
+            Report issues at: https://github.com/zen8labs/lunex/issues
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
@@ -98,7 +104,7 @@ jobs:
       - name: Trigger Homebrew update
         if: matrix.platform == 'macos-latest'
         run: |
-          curl -X POST https://api.github.com/repos/Nexo-Agent/homebrew-nexo/actions/workflows/ci.yaml/dispatches \
+          curl -X POST https://api.github.com/repos/zen8labs/homebrew-lunex/actions/workflows/ci.yaml/dispatches \
             -H "Authorization: Bearer ${{ secrets.PAT }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \

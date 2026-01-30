@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime};
 
 const HUB_INDEX_URL: &str =
-    "https://raw.githubusercontent.com/Nexo-Agent/official-hub/main/index.json";
+    "https://raw.githubusercontent.com/zen8labs/official-hub/main/index.json";
 
 /// Service to fetch and cache hub index configuration from remote
 /// Manages prompt templates, agents, and MCP servers from the official hub

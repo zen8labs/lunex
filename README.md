@@ -1,21 +1,21 @@
 <p align="center">
-    <img width="200" alt="Nexo Logo" src="https://raw.githubusercontent.com/Nexo-Agent/nexo/refs/heads/main/logo.svg">
+    <img width="200" alt="Lunex Logo" src="https://raw.githubusercontent.com/zen8labs/lunex/refs/heads/main/logo.svg">
 </p>
 
-<h1 align="center">Nexo - All-in-One Workspace AI</h1>
+<h1 align="center">Lunex - All-in-One Workspace AI</h1>
 
 <div align="center">
   
-  [![publish](https://github.com/Nexo-Agent/nexo/actions/workflows/build.yaml/badge.svg)](https://github.com/Nexo-Agent/nexo/actions/workflows/build.yaml)
-  ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/nexo-docs?style=flat-square&name=docs)
-  ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/nexo?style=flat-square&name=website)
+  [![publish](https://github.com/zen8labs/lunex/actions/workflows/build.yaml/badge.svg)](https://github.com/zen8labs/lunex/actions/workflows/build.yaml)
+  ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/lunex-docs?style=flat-square&name=docs)
+  ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/lunex?style=flat-square&name=website)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
 ## About
 
-Nexo is a cross-platform desktop AI assistant built with Tauri, React, and Rust. It provides a seamless interface for interacting with multiple LLM providers while offering advanced features like MCP (Model Context Protocol) integration, workspace management, and extensible tool support.
+Lunex is a cross-platform desktop AI assistant built with Tauri, React, and Rust. It provides a seamless interface for interacting with multiple LLM providers while offering advanced features like MCP (Model Context Protocol) integration, workspace management, and extensible tool support.
 
 ## Key Advantages:
 
@@ -31,26 +31,26 @@ Nexo is a cross-platform desktop AI assistant built with Tauri, React, and Rust.
 ### MacOS Via Homebrew
 
 ```bash
-brew tap nexo-agent/nexo
-brew install --cask nexo
+brew tap zen8labs/lunex
+brew install --cask lunex
 ```
 
 ### Windows
 
-Download the latest release for your platform from the [Releases](https://github.com/Nexo-Agent/nexo/releases) page and run the `.msi` or `.exe` installer
+Download the latest release for your platform from the [Releases](https://github.com/zen8labs/lunex/releases) page and run the `.msi` or `.exe` installer
 
 ### Linux
 
-Download the latest release for your platform from the [Releases](https://github.com/Nexo-Agent/nexo/releases) page and run the `.deb` or `.AppImage` file
+Download the latest release for your platform from the [Releases](https://github.com/zen8labs/lunex/releases) page and run the `.deb` or `.AppImage` file
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Nexo-Agent/nexo&type=timeline&legend=top-left)](https://www.star-history.com/#Nexo-Agent/nexo&type=timeline&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=zen8labs/lunex&type=timeline&legend=top-left)](https://www.star-history.com/#zen8labs/lunex&type=timeline&legend=top-left)
 
 <div align="center">
-  <p>Made with ❤️ by the Nexo community</p>
+  <p>Made with ❤️ by the Lunex community</p>
   <p>
-    <a href="https://github.com/Nexo-Agent/nexo/stargazers">⭐ Star us on GitHub</a> •
-    <a href="https://nexo.nkthanh.dev">🌐 Visit Website</a>
+    <a href="https://github.com/zen8labs/lunex/stargazers">⭐ Star us on GitHub</a> •
+    <a href="https://lunex.nkthanh.dev">🌐 Visit Website</a>
   </p>
 </div>

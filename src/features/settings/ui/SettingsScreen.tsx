@@ -139,14 +139,14 @@ export function SettingsScreen() {
             <div className="relative flex items-center justify-center size-24 rounded-2xl bg-background shadow-xl ring-1 ring-border/50">
               <img
                 src="/icon.svg"
-                alt="Nexo Logo"
+                alt="Lunex Logo"
                 className="size-14 drop-shadow-sm"
               />
             </div>
           </div>
           <div className="space-y-2">
             <h3 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/70">
-              {tCommon('aboutTitle', { defaultValue: 'Nexo Agent' })}
+              {tCommon('aboutTitle', { defaultValue: 'Lunex' })}
             </h3>
             <p className="text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
               {tSettings('aboutDescription') || tCommon('appDescription')}
@@ -222,7 +222,7 @@ export function SettingsScreen() {
             Built with Tauri, React & Rust
           </p>
           <p className="text-[10px] text-muted-foreground/60">
-            © {new Date().getFullYear()} Nexo Agent. Open Source Software.
+            © {new Date().getFullYear()} Lunex. Open Source Software.
           </p>
         </div>
       </div>

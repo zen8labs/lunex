@@ -237,7 +237,7 @@ export function TitleBar({
       >
         {isMacOS && !leftContent && (
           <span className="text-xs font-medium text-muted-foreground">
-            Nexo
+            Lunex
           </span>
         )}
       </div>

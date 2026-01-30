@@ -21,7 +21,6 @@ vi.mock('@/hooks/useLogger', () => ({
   }),
 }));
 
-
 vi.mock('lucide-react', () => ({
   Info: () => <div data-testid="info-icon" />,
   Github: () => <div data-testid="github-icon" />,
@@ -86,7 +85,7 @@ describe('About', () => {
   it('renders app name and version', () => {
     render(<About {...defaultProps} />);
 
-    expect(screen.getByText('Nexo')).toBeInTheDocument();
+    expect(screen.getByText('Lunex')).toBeInTheDocument();
     expect(screen.getByText(/version/i)).toBeInTheDocument();
   });
 
@@ -105,20 +104,20 @@ describe('About', () => {
     if (githubButton) fireEvent.click(githubButton);
     await waitFor(() =>
       expect(mockOpenUrl).toHaveBeenCalledWith(
-        'https://github.com/Nexo-Agent/nexo'
+        'https://github.com/zen8labs/lunex'
       )
     );
 
     const websiteButton = screen.getByText('Website').closest('button');
     if (websiteButton) fireEvent.click(websiteButton);
     await waitFor(() =>
-      expect(mockOpenUrl).toHaveBeenCalledWith('https://nexo.nkthanh.dev')
+      expect(mockOpenUrl).toHaveBeenCalledWith('https://lunex.nkthanh.dev')
     );
 
     const docsButton = screen.getByText('Docs').closest('button');
     if (docsButton) fireEvent.click(docsButton);
     await waitFor(() =>
-      expect(mockOpenUrl).toHaveBeenCalledWith('https://nexo-docs.nkthanh.dev')
+      expect(mockOpenUrl).toHaveBeenCalledWith('https://lunex-docs.nkthanh.dev')
     );
   });
 

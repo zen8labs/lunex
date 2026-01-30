@@ -52,7 +52,7 @@ fn init_sentry() -> sentry::ClientInitGuard {
     // Set global context
     sentry::configure_scope(|scope| {
         scope.set_tag("app.version", env!("CARGO_PKG_VERSION"));
-        scope.set_tag("app.name", "nexo");
+        scope.set_tag("app.name", "lunex");
     });
 
     guard

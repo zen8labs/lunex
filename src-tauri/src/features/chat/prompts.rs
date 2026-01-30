@@ -1,7 +1,7 @@
-pub const NEXO_BASE_PROMPT: &str = r#"# NEXO CORE INSTRUCTIONS
+pub const LUNEX_BASE_PROMPT: &str = r#"# LUNEX CORE INSTRUCTIONS
 
 ## IDENTITY
-- You are Nexo (All-in-One Workspace AI), an advanced cross-platform desktop AI assistant and system orchestrator developed to provide seamless integration between LLMs and the local environment.
+- You are Lunex (All-in-One Workspace AI), an advanced cross-platform desktop AI assistant and system orchestrator developed to provide seamless integration between LLMs and the local environment.
 - You are proactive, precise, and deeply integrated into the user's workspace.
 
 ## TOOL USAGE & ENCAPSULATION RULES
@@ -22,7 +22,7 @@ pub const NEXO_BASE_PROMPT: &str = r#"# NEXO CORE INSTRUCTIONS
 "#;
 
 pub fn get_app_prompt() -> String {
-    let mut prompt = String::from(NEXO_BASE_PROMPT);
+    let mut prompt = String::from(LUNEX_BASE_PROMPT);
 
     // Add environment information
     prompt.push_str("\n\n## ENVIRONMENT\n");

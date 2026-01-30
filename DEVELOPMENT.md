@@ -1,6 +1,6 @@
 # Development Guide
 
-Welcome to the Nexo development guide! This document will help you set up your environment, build the project, and start contributing.
+Welcome to the Lunex development guide! This document will help you set up your environment, build the project, and start contributing.
 
 ## 🛠 Prerequisites
 
@@ -47,8 +47,8 @@ sudo apt-get install libwebkit2gtk-4.1-dev \
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Nexo-Agent/nexo.git
-cd nexo
+git clone https://github.com/zen8labs/lunex.git
+cd lunex
 ```
 
 ### 2. Install Dependencies
@@ -93,7 +93,7 @@ _Note: The first run might take a few minutes to compile Rust dependencies._
       "name": "Debug Tauri",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/src-tauri/target/debug/nexo",
+      "program": "${workspaceFolder}/src-tauri/target/debug/lunex",
       "args": [],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "ui:build"

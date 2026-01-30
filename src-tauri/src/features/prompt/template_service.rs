@@ -2,7 +2,7 @@ use super::models::ParsedPromptTemplate;
 use crate::error::AppError;
 use regex::Regex;
 
-const HUB_BASE_URL: &str = "https://raw.githubusercontent.com/Nexo-Agent/official-hub/main";
+const HUB_BASE_URL: &str = "https://raw.githubusercontent.com/zen8labs/official-hub/main";
 
 /// Service to fetch and parse markdown prompt templates from hub
 pub struct PromptTemplateService;

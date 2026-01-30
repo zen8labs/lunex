@@ -1,24 +1,24 @@
-# Contributing to Nexo
+# Contributing to Lunex
 
-Thank you for your interest in contributing to Nexo! We welcome contributions from everyone. By participating in this project, you agree to abide by our code of conduct.
+Thank you for your interest in contributing to Lunex! We welcome contributions from everyone. By participating in this project, you agree to abide by our code of conduct.
 
 ## 📋 How to Contribute
 
-### 1. Reporting Bugs
+## 1. Reporting Bugs
 
-- **Search First**: check the [Issues](https://github.com/magiskboy/nexo/issues) to see if the bug has already been reported.
+- **Search First**: check the [Issues](https://github.com/zen8labs/lunex/issues) to see if the bug has already been reported.
 - **Detailed Report**: Provide as much information as possible:
   - OS version
-  - Nexo version
+  - Lunex version
   - Steps to reproduce
   - Screenshots/Recordings
 
-### 2. Suggesting Features
+## 2. Suggesting Features
 
 - Open a new Issue with the `enhancement` label.
 - Explain **why** this feature is useful and how it should work.
 
-### 3. Submitting Pull Requests (PRs)
+## 3. Submitting Pull Requests (PRs)
 
 1.  **Fork** the repo and create your branch from `main`. (Note: We do not use a `develop` branch. All PRs should target `main`.)
 2.  **Naming**: Use a descriptive branch name (e.g., `feature/new-sidebar`,`fix/memory-leak`).

@@ -2,7 +2,7 @@
 description: Create and push a new release tag (alpha, beta, rc, patch, minor, major)
 ---
 
-Follow these steps to release a new version of Nexo:
+Follow these steps to release a new version of Lunex:
 
 1. **Decide on the new version**
    - **Patch**: `v0.1.0` -> `v0.1.1` (bug fixes)

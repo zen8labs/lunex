@@ -15,7 +15,7 @@ export default defineConfig(async () => ({
     // Sentry plugin for uploading source maps (only in production builds)
     sentryVitePlugin({
       org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT_FRONTEND || 'nexo-frontend',
+      project: process.env.SENTRY_PROJECT_FRONTEND || 'lunex-frontend',
       authToken: process.env.SENTRY_AUTH_TOKEN,
       // Only upload source maps in production builds
       disable:

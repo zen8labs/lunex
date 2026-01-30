@@ -2734,6 +2734,52 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
+name = "lunex"
+version = "0.1.0-beta.19"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "chrono",
+ "flate2",
+ "futures",
+ "hex",
+ "log",
+ "regex",
+ "reqwest",
+ "rusqlite",
+ "rust-mcp-schema 0.6.0",
+ "rust-mcp-sdk",
+ "rust-mcp-transport",
+ "sentry",
+ "sentry-tracing",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "shell-words",
+ "tar",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-log",
+ "tauri-plugin-opener",
+ "tauri-plugin-process",
+ "tauri-plugin-updater",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
+ "ts-rs",
+ "uuid",
+ "zip 2.4.2",
+]
+
+[[package]]
 name = "lzma-rs"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2947,52 +2993,6 @@ name = "new_debug_unreachable"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
-
-[[package]]
-name = "nexo"
-version = "0.1.0-beta.18"
-dependencies = [
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "chrono",
- "flate2",
- "futures",
- "hex",
- "log",
- "regex",
- "reqwest",
- "rusqlite",
- "rust-mcp-schema 0.6.0",
- "rust-mcp-sdk",
- "rust-mcp-transport",
- "sentry",
- "sentry-tracing",
- "serde",
- "serde_json",
- "serde_yaml",
- "sha2",
- "shell-words",
- "tar",
- "tauri",
- "tauri-build",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-log",
- "tauri-plugin-opener",
- "tauri-plugin-process",
- "tauri-plugin-updater",
- "tempfile",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
- "tracing-log",
- "tracing-subscriber",
- "ts-rs",
- "uuid",
- "zip 2.4.2",
-]
 
 [[package]]
 name = "nix"
