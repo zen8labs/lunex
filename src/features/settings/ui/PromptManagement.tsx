@@ -18,6 +18,7 @@ import {
 } from '@/features/notifications/state/notificationSlice';
 import { logger } from '@/lib/logger';
 import { ConfirmDialog } from '@/ui/molecules/ConfirmDialog';
+import { ScrollArea } from '@/ui/atoms/scroll-area';
 
 interface Prompt {
   id: string;
@@ -215,6 +216,7 @@ function PromptDialog({
       onOpenChange={onOpenChange}
       title={prompt ? t('editPrompt') : t('addNewPrompt')}
       description={t('configurePrompt')}
+      scrollable={false}
       footer={
         <div className="flex w-full gap-3">
           {onDelete && (
@@ -254,14 +256,16 @@ function PromptDialog({
         </div>
         <div className="space-y-2 w-full">
           <Label htmlFor="prompt-content">{t('promptContent')}</Label>
-          <Textarea
-            id="prompt-content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={t('promptContentPlaceholder')}
-            className="w-full min-h-[200px]"
-            required
-          />
+          <ScrollArea className="h-[500px]">
+            <Textarea
+              id="prompt-content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={t('promptContentPlaceholder')}
+              className="w-full overflow-hidden min-h-[50vw]"
+              required
+            />
+          </ScrollArea>
         </div>
       </div>
     </FormDialog>
