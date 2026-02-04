@@ -65,16 +65,14 @@ jobs:
       - uses: tauri-apps/tauri-action@dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Sentry DSN - embedded at build time
-          # Use repository variable SENTRY_DSN for both frontend and backend
           VITE_SENTRY_DSN: ${{ vars.SENTRY_DSN }}
           RUST_SENTRY_DSN: ${{ vars.SENTRY_DSN }}
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          # APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
@@ -83,19 +81,12 @@ jobs:
           releaseBody: |
             ## Alpha Phase Continues
 
-            Building a more solid foundation for Lunex.
-
-            ## What's New
-
-            - **Lunex Branding**: Official transition to Lunex - your personal AI assistant.
-            - **UI Standardization**: Introduced `FormDialog`, `EntityCard`, and `ScrollArea` for a more consistent and premium look.
-            - **Enhanced Configuration**: Improved LLM and MCP server connection forms with real-time status updates.
-            - **Vietnamese Support**: Localized first-run setup UI to Vietnamese.
+            Maintenance release with build improvements.
 
             ## Improvements
 
-            - **Stability**: Updated application signing and internal configuration.
-            - **UI Polish**: Refined chat interface, note editor layout, and workspace settings.
+            - **Build Configuration**: Cleaned up GitHub Actions workflow configuration
+            - **Version Management**: Updated to 0.1.0-alpha.2
 
           releaseDraft: false
           prerelease: true
