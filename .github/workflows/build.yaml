@@ -81,8 +81,18 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Lunex __VERSION__'
           releaseBody: |
-            # Lunex v0.1.0-alpha.0
-            No releases yet
+            ## What's New
+
+            - **Lunex Branding**: Official transition to Lunex - your personal AI assistant.
+            - **UI Standardization**: Introduced `FormDialog`, `EntityCard`, and `ScrollArea` for a more consistent and premium look.
+            - **Enhanced Configuration**: Improved LLM and MCP server connection forms with real-time status updates.
+            - **Vietnamese Support**: Localized first-run setup UI to Vietnamese.
+
+            ## Improvements
+
+            - Refined chat interface with standardized content width.
+            - Improved note editor layout and global scrollbar styling.
+            - Reimplemented workspace settings for better accessibility.
 
           releaseDraft: false
           prerelease: true

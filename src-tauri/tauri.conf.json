@@ -47,7 +47,7 @@
     "resources": ["binaries/*"],
     "windows": {
       "wix": {
-        "version": "0.1.1019"
+        "version": "0.1.0"
       }
     }
   }
