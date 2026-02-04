@@ -81,36 +81,23 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Lunex __VERSION__'
           releaseBody: |
-            # Lunex v0.1.0-beta.19
+            # Lunex v0.1.0-alpha.0
+            No releases yet
 
-            ## New Features
-
-            - **Enhanced Tools and Skills**: Added usage examples to tool descriptions and improved skill management with localized UI and dedicated confirmation dialogs.
-            - **Setup Experience**: Refactored the first-run setup UI for a smoother onboarding experience with dynamic step content.
-
-            ## UI/UX Improvements
-
-            - **Editor Refinements**: Enhanced textarea components with dynamic height and optimized the note editor layout.
-            - **LLM Connection Management**: Improved the LLM connection form with consolidated status display and better feedback when no models are found.
-            - **Visual Consistency**: Standardized dialogs and entity cards across the application for a more unified and premium feel.
-
-            ---
-
-            Report issues at: https://github.com/zen8labs/lunex/issues
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
 
-      - name: Trigger Homebrew update
-        if: matrix.platform == 'macos-latest'
-        run: |
-          curl -X POST https://api.github.com/repos/zen8labs/homebrew-lunex/actions/workflows/ci.yaml/dispatches \
-            -H "Authorization: Bearer ${{ secrets.PAT }}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            -d '{
-              "ref": "main",
-              "inputs": {
-                "version": "${{ github.ref_name }}"
-              }
-            }'
+      # - name: Trigger Homebrew update
+      #   if: matrix.platform == 'macos-latest'
+      #   run: |
+      #     curl -X POST https://api.github.com/repos/zen8labs/homebrew-lunex/actions/workflows/ci.yaml/dispatches \
+      #       -H "Authorization: Bearer ${{ secrets.PAT }}" \
+      #       -H "Accept: application/vnd.github+json" \
+      #       -H "X-GitHub-Api-Version: 2022-11-28" \
+      #       -d '{
+      #         "ref": "main",
+      #         "inputs": {
+      #           "version": "${{ github.ref_name }}"
+      #         }
+      #       }'

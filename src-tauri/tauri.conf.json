@@ -9,7 +9,7 @@
     }
   },
   "productName": "Lunex",
-  "version": "0.1.0-beta.19",
+  "version": "0.1.0-alpha.0",
   "identifier": "com.lunex.app",
   "build": {
     "beforeDevCommand": "yarn ui:dev",

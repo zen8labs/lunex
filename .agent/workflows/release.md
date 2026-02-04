@@ -8,7 +8,7 @@ Follow these steps to release a new version of Lunex:
    - **Patch**: `v0.1.0` -> `v0.1.1` (bug fixes)
    - **Minor**: `v0.1.0` -> `v0.2.0` (new features, no breaking changes)
    - **Major**: `v0.1.0` -> `v1.0.0` (breaking changes)
-   - **Alpha/Beta/RC**: `v0.1.0-alpha.1`, `v0.1.0-beta.2`, etc.
+   - **Alpha/Beta/RC**: `v0.1.0-alpha.0`, `v0.1.0-beta.2`, etc.
 
 2. **Update version in all project files**
    Ensure all files are in sync:

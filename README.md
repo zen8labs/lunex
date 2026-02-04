@@ -7,8 +7,6 @@
 <div align="center">
   
   [![publish](https://github.com/zen8labs/lunex/actions/workflows/build.yaml/badge.svg)](https://github.com/zen8labs/lunex/actions/workflows/build.yaml)
-  ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/lunex-docs?style=flat-square&name=docs)
-  ![Vercel Deploy](https://deploy-badge.vercel.app/vercel/lunex?style=flat-square&name=website)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
