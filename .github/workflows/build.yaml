@@ -81,6 +81,10 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Lunex __VERSION__'
           releaseBody: |
+            ## Alpha Phase Continues
+
+            Building a more solid foundation for Lunex.
+
             ## What's New
 
             - **Lunex Branding**: Official transition to Lunex - your personal AI assistant.
@@ -90,9 +94,8 @@ jobs:
 
             ## Improvements
 
-            - Refined chat interface with standardized content width.
-            - Improved note editor layout and global scrollbar styling.
-            - Reimplemented workspace settings for better accessibility.
+            - **Stability**: Updated application signing and internal configuration.
+            - **UI Polish**: Refined chat interface, note editor layout, and workspace settings.
 
           releaseDraft: false
           prerelease: true
