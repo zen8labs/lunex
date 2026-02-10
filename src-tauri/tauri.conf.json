@@ -9,7 +9,7 @@
     }
   },
   "productName": "Lunex",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "identifier": "com.lunex.app",
   "build": {
     "beforeDevCommand": "yarn ui:dev",
@@ -47,7 +47,7 @@
     "resources": ["binaries/*"],
     "windows": {
       "wix": {
-        "version": "0.1.3"
+        "version": "0.1.4"
       }
     }
   }
