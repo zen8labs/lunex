@@ -49,6 +49,9 @@
       "wix": {
         "version": "0.1.4"
       }
+    },
+    "macOS": {
+      "signingIdentity": "-"
     }
   }
 }
