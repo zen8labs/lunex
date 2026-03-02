@@ -81,6 +81,36 @@ vi.mock('@/ui/atoms/scroll-area', () => ({
   ),
 }));
 
+// Mock LLMConnectionDialog to avoid rendering FormDialog/LLMConnectionForm (which can hang in tests)
+vi.mock('./LLMConnectionDialog', () => ({
+  LLMConnectionDialog: ({
+    open,
+    connection,
+    onDelete,
+  }: {
+    open: boolean;
+    connection: { id?: string; name?: string } | null;
+    onDelete?: () => void;
+  }) =>
+    open ? (
+      <div data-testid="llm-connection-dialog">
+        <span>{connection ? 'editConnection' : 'addNewConnection'}</span>
+        {connection?.name != null && (
+          <input
+            readOnly
+            value={connection.name}
+            aria-label="connection name"
+          />
+        )}
+        {onDelete && (
+          <button type="button" onClick={onDelete}>
+            delete
+          </button>
+        )}
+      </div>
+    ) : null,
+}));
+
 describe('LLMConnections', () => {
   const mockDispatch = vi.fn();
   const mockCreate = vi.fn();
@@ -149,7 +179,7 @@ describe('LLMConnections', () => {
     const user = userEvent.setup();
     render(<LLMConnections />);
 
-    await user.click(screen.getByText('addConnection'));
+    await user.click(screen.getByRole('button', { name: 'addConnection' }));
 
     expect(screen.getByText('addNewConnection')).toBeInTheDocument();
   });
