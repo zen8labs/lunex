@@ -1,78 +1,92 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+
+/** Check if the Speech Synthesis API is available (not guaranteed in all WebViews/OS). */
+function isSpeechSynthesisAvailable(): boolean {
+  if (typeof window === 'undefined') return false;
+  const s = window.speechSynthesis;
+  return !!s && typeof s.speak === 'function';
+}
 
 export const useTTS = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+  const isAvailable = useMemo(() => isSpeechSynthesisAvailable(), []);
+
   const stop = useCallback(() => {
+    if (!isAvailable || typeof window === 'undefined') return;
     window.speechSynthesis.cancel();
     setIsPlaying(false);
-  }, []);
+  }, [isAvailable]);
 
-  const speak = useCallback((text: string) => {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+  const speak = useCallback(
+    (text: string) => {
+      if (!isAvailable || typeof window === 'undefined') return;
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
 
-    // Remove markdown symbols for better reading
-    // This is a basic cleanup, can be improved
-    const cleanText = text
-      .replace(/#+\s/g, '') // headers
-      .replace(/\*\*/g, '') // bold
-      .replace(/\*/g, '') // italic
-      .replace(/```[\s\S]*?```/g, '') // code blocks
-      .replace(/`.*?`/g, '') // inline code
-      .replace(/\[(.*?)\]\(.*?\)/g, '$1') // links
-      .replace(/!\[.*?\]\(.*?\)/g, '') // images
-      .replace(/>\s/g, '') // quotes
-      .replace(/-\s/g, '') // list items
-      .trim();
+      // Remove markdown symbols for better reading
+      // This is a basic cleanup, can be improved
+      const cleanText = text
+        .replace(/#+\s/g, '') // headers
+        .replace(/\*\*/g, '') // bold
+        .replace(/\*/g, '') // italic
+        .replace(/```[\s\S]*?```/g, '') // code blocks
+        .replace(/`.*?`/g, '') // inline code
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // links
+        .replace(/!\[.*?\]\(.*?\)/g, '') // images
+        .replace(/>\s/g, '') // quotes
+        .replace(/-\s/g, '') // list items
+        .trim();
 
-    if (!cleanText) return;
+      if (!cleanText) return;
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+      const utterance = new SpeechSynthesisUtterance(cleanText);
 
-    // Detect language (simple check for Vietnamese characters)
-    const hasVietnamese =
-      /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(
-        cleanText
-      );
-    const lang = hasVietnamese ? 'vi-VN' : 'en-US';
+      // Detect language (simple check for Vietnamese characters)
+      const hasVietnamese =
+        /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(
+          cleanText
+        );
+      const lang = hasVietnamese ? 'vi-VN' : 'en-US';
 
-    const voices = window.speechSynthesis.getVoices();
+      const voices = window.speechSynthesis.getVoices();
 
-    const findVoice = (targetLang: string) => {
-      return (
-        voices.find((v) => v.lang === targetLang) ||
-        voices.find((v) => v.lang.startsWith(targetLang.split('-')[0]))
-      );
-    };
+      const findVoice = (targetLang: string) => {
+        return (
+          voices.find((v) => v.lang === targetLang) ||
+          voices.find((v) => v.lang.startsWith(targetLang.split('-')[0]))
+        );
+      };
 
-    let voice: SpeechSynthesisVoice | undefined;
-    if (lang === 'vi-VN') {
-      voice = findVoice(lang);
-    } else if (lang === 'en-US') {
-      voice = voices.find((v) => v.name === 'Samantha');
-    }
+      let voice: SpeechSynthesisVoice | undefined;
+      if (lang === 'vi-VN') {
+        voice = findVoice(lang);
+      } else if (lang === 'en-US') {
+        voice = voices.find((v) => v.name === 'Samantha');
+      }
 
-    // Fallback if target language voice not found
-    if (!voice) {
-      voice = voices.find((v) => v.default) || voices[0];
-    }
+      // Fallback if target language voice not found
+      if (!voice) {
+        voice = voices.find((v) => v.default) || voices[0];
+      }
 
-    if (voice) {
-      utterance.voice = voice;
-      utterance.lang = voice.lang;
-    } else {
-      utterance.lang = lang;
-    }
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        utterance.lang = lang;
+      }
 
-    utterance.onstart = () => setIsPlaying(true);
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
 
-    utteranceRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
-  }, []);
+      utteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    },
+    [isAvailable]
+  );
 
   const toggle = useCallback(
     (text: string) => {
@@ -87,9 +101,11 @@ export const useTTS = () => {
 
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      if (isAvailable && typeof window !== 'undefined') {
+        window.speechSynthesis.cancel();
+      }
     };
-  }, []);
+  }, [isAvailable]);
 
-  return { isPlaying, speak, stop, toggle };
+  return { isPlaying, speak, stop, toggle, isAvailable };
 };
