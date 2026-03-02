@@ -1,6 +1,6 @@
 [package]
 name = "lunex"
-version = "0.1.0-alpha.4"
+version = "1.0.0"
 description = "A smart AI assistant for everyone"
 authors = ["Thanh Nguyen"]
 edition = "2021"

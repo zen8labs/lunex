@@ -7,7 +7,7 @@ Only the latest stable release and the current `main` branch are supported for s
 | Version | Supported          |
 | ------- | ------------------ |
 | Latest  | :white_check_mark: |
-| < 0.1.0 | :x:                |
+| < 1.0.0 | :x:                |
 
 ## Reporting a Vulnerability
 
