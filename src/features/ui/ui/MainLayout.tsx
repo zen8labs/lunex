@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   PanelRightClose,
   PanelRightOpen,
+  Settings,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/ui/atoms/button/button';
@@ -17,6 +18,7 @@ import {
   toggleSidebar,
   setAboutOpen,
   navigateToChat,
+  navigateToSettings,
   toggleRightPanel,
   setWorkspaceSettingsOpen,
 } from '@/features/ui/state/uiSlice';
@@ -86,23 +88,35 @@ export function MainLayout() {
         rightContent={
           <>
             {activePage === 'chat' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => dispatch(toggleRightPanel())}
-                aria-label={
-                  isRightPanelOpen
-                    ? t('collapseRightPanel', { ns: 'common' })
-                    : t('expandRightPanel', { ns: 'common' })
-                }
-                className="h-7 w-7"
-              >
-                {isRightPanelOpen ? (
-                  <PanelRightClose className="size-4" />
-                ) : (
-                  <PanelRightOpen className="size-4" />
-                )}
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => dispatch(navigateToSettings())}
+                  aria-label={t('openSettings', { ns: 'common' })}
+                  title={t('openSettings', { ns: 'common' })}
+                  className="h-7 w-7"
+                >
+                  <Settings className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => dispatch(toggleRightPanel())}
+                  aria-label={
+                    isRightPanelOpen
+                      ? t('collapseRightPanel', { ns: 'common' })
+                      : t('expandRightPanel', { ns: 'common' })
+                  }
+                  className="h-7 w-7"
+                >
+                  {isRightPanelOpen ? (
+                    <PanelRightClose className="size-4" />
+                  ) : (
+                    <PanelRightOpen className="size-4" />
+                  )}
+                </Button>
+              </>
             )}
           </>
         }

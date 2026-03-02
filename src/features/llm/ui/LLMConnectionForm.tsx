@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
 import { Trash2, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/ui/atoms/button/button';
 import { Input } from '@/ui/atoms/input';
@@ -18,11 +19,15 @@ import { useLLMConnectionForm } from '../hooks/useLLMConnectionForm';
 import { ScrollArea } from '@/ui/atoms/scroll-area';
 import { cn } from '@/lib/utils';
 
+const LLM_CONNECTION_FORM_ID = 'llm-connection-form';
+
 interface LLMConnectionFormProps {
   connection: LLMConnection | null;
   onSave: (connection: Omit<LLMConnection, 'id'>) => void;
   onDelete?: () => void;
   onClose: () => void;
+  /** Renders the action buttons so the parent can place them in the dialog footer (always visible on all platforms). */
+  onFooterRender?: (footer: React.ReactNode) => void;
 }
 
 /**
@@ -35,6 +40,7 @@ export function LLMConnectionForm({
   onSave,
   onDelete,
   onClose,
+  onFooterRender,
 }: LLMConnectionFormProps) {
   const { t } = useTranslation(['settings', 'common']);
 
@@ -86,8 +92,51 @@ export function LLMConnectionForm({
     }
   };
 
+  const saveDisabled = !name.trim() || !baseUrl.trim() || isTesting;
+
+  useEffect(() => {
+    if (!onFooterRender) return;
+    onFooterRender(
+      <>
+        {onDelete && (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onDelete}
+            className="flex-1 h-10"
+          >
+            <Trash2 className="mr-2 size-4" />
+            {t('delete', { ns: 'common' })}
+          </Button>
+        )}
+        <Button
+          type="submit"
+          form={LLM_CONNECTION_FORM_ID}
+          disabled={saveDisabled}
+          className="flex-1 h-10"
+          data-tour="llm-save-btn"
+        >
+          {isTesting ? (
+            <>
+              <RefreshCw className="mr-2 size-4 animate-spin" />
+              {t('saving', { ns: 'common' })}
+            </>
+          ) : connection ? (
+            t('save', { ns: 'common' })
+          ) : (
+            t('add', { ns: 'common' })
+          )}
+        </Button>
+      </>
+    );
+  }, [onFooterRender, onDelete, saveDisabled, isTesting, connection, t]);
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form
+      id={LLM_CONNECTION_FORM_ID}
+      onSubmit={handleSubmit}
+      className="space-y-6"
+    >
       <div className="space-y-4">
         <div className="space-y-2 w-full">
           <Label htmlFor="name">{t('connectionName')}</Label>
@@ -196,37 +245,6 @@ export function LLMConnectionForm({
             </div>
           )}
         </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-3 pt-4 sticky bottom-0 bg-background/0">
-        {onDelete && (
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={onDelete}
-            className="flex-1 h-10"
-          >
-            <Trash2 className="mr-2 size-4" />
-            {t('delete', { ns: 'common' })}
-          </Button>
-        )}
-        <Button
-          type="submit"
-          disabled={!name.trim() || !baseUrl.trim() || isTesting}
-          className="flex-1 h-10"
-          data-tour="llm-save-btn"
-        >
-          {isTesting ? (
-            <>
-              <RefreshCw className="mr-2 size-4 animate-spin" />
-              {t('saving', { ns: 'common' })}
-            </>
-          ) : connection ? (
-            t('save', { ns: 'common' })
-          ) : (
-            t('add', { ns: 'common' })
-          )}
-        </Button>
       </div>
     </form>
   );

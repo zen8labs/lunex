@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FormDialog } from '@/ui/molecules/FormDialog';
 import type { LLMConnection } from '../types';
@@ -13,8 +13,8 @@ interface LLMConnectionDialogProps {
 }
 
 /**
- * Memoized dialog wrapper for LLM connection form
- * Uses shared FormDialog for consistent UI
+ * Memoized dialog wrapper for LLM connection form.
+ * Renders Save/Delete in the dialog footer so they stay visible on all platforms (e.g. Windows WebView).
  */
 export const LLMConnectionDialog = memo(function LLMConnectionDialog({
   open,
@@ -24,6 +24,11 @@ export const LLMConnectionDialog = memo(function LLMConnectionDialog({
   onDelete,
 }: LLMConnectionDialogProps) {
   const { t } = useTranslation(['settings', 'common']);
+  const [footer, setFooter] = useState<React.ReactNode>(null);
+
+  const handleFooterRender = useCallback((node: React.ReactNode) => {
+    setFooter(node);
+  }, []);
 
   return (
     <FormDialog
@@ -32,13 +37,16 @@ export const LLMConnectionDialog = memo(function LLMConnectionDialog({
       title={connection ? t('editConnection') : t('addNewConnection')}
       description={t('configureConnection')}
       maxWidth="2xl"
-      scrollable={false}
+      scrollable={true}
+      scrollableHeightClass="min-h-0 flex-1"
+      footer={footer}
     >
       <LLMConnectionForm
         connection={connection}
         onSave={onSave}
         onDelete={onDelete}
         onClose={() => onOpenChange(false)}
+        onFooterRender={handleFooterRender}
       />
     </FormDialog>
   );
