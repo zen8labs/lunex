@@ -249,7 +249,11 @@ impl MCPClientService {
                         if let Some(bin_dir) = node_bin_dir {
                             let bin_dir_str = bin_dir.to_string_lossy().to_string();
                             let new_path = if let Ok(current_path) = std::env::var("PATH") {
-                                format!("{bin_dir_str}:{current_path}")
+                                #[cfg(windows)]
+                                let separator = ";";
+                                #[cfg(not(windows))]
+                                let separator = ":";
+                                format!("{bin_dir_str}{separator}{current_path}")
                             } else {
                                 bin_dir_str
                             };
@@ -285,6 +289,24 @@ impl MCPClientService {
                         vars.insert("UV_CACHE_DIR".to_string(), uv_cache_str);
                         env_vars = Some(vars);
                     }
+                }
+            }
+
+            // Always enforce UTF-8 for Python and UV commands on Windows
+            if command.ends_with("python")
+                || command.ends_with("python.exe")
+                || command.ends_with("python3")
+                || command.ends_with("python3.exe")
+                || command.ends_with("uv")
+                || command.ends_with("uv.exe")
+                || env_vars.as_ref().and_then(|v| v.get("UV_PYTHON")).is_some()
+            {
+                if let Some(vars) = &mut env_vars {
+                    vars.insert("PYTHONUTF8".to_string(), "1".to_string());
+                } else {
+                    let mut vars = HashMap::new();
+                    vars.insert("PYTHONUTF8".to_string(), "1".to_string());
+                    env_vars = Some(vars);
                 }
             }
 

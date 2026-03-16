@@ -105,18 +105,14 @@ jobs:
           tagName: __VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Lunex __VERSION__'
           releaseBody: |
-            ## Lunex 1.0.0 — First stable release
+            ## Lunex 1.0.1-alpha.1 — Alpha Release
 
-            First stable release after the beta period.
+            Fixes issues on Windows environments.
 
             ## Highlights
 
-            - Cross-platform desktop AI assistant (macOS, Windows, Linux)
-            - Local-first: chat history and data stored in SQLite
-            - LLM connections and workspace settings
-            - MCP (Model Context Protocol) server support
-            - Agents, addons (Python/Node runtimes), and workflow editor (experimental)
-            - Built with Tauri 2, React, and Rust
+            - `Fix`: Resolved MCP `Connection closed (-32000)` issue on Windows by forcing UTF-8 encoding.
+            - `Fix`: Resolved Node.js PATH appending issue on Windows.
 
           releaseDraft: false
           prerelease: false
